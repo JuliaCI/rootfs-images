@@ -1,0 +1,33 @@
+name: Build
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+  workflow_dispatch:
+jobs:
+  build:
+    name: ${{ matrix.image_name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image_name:
+          - 'llvm_passes'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: '1.6'
+          arch: x64
+      - run: sudo apt-get update
+      - run: sudo apt-get -y install debootstrap
+      - run: julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
+      - run: julia --color=yes --project=. -e 'using Pkg; Pkg.precompile()'
+      - run: julia --color=yes --project=. ${{ matrix.image_name }}.jl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
