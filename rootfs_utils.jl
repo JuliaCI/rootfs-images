@@ -96,28 +96,34 @@ function upload_rootfs_image(tarball_path::String;
 end
 
 function upload_rootfs_image_github_actions(tarball_path::String)
-    if get(ENV, "GITHUB_ACTIONS", "") == "true"
-        GITHUB_EVENT_NAME = ENV["GITHUB_EVENT_NAME"]
-        GITHUB_REF        = ENV["GITHUB_REF"]
-        if GITHUB_EVENT_NAME == "release"
-            m = match(r"^refs\/tags\/(.*?)$", GITHUB_REF)
-            let
-                error_msg = "This is a `release` event, but the ref does not look like a tag."
-                (m === nothing) && @error error_msg GITHUB_EVENT_NAME GITHUB_REF
-            end
-            force_overwrite = false
-            github_repo = convert(String, ENV["GITHUB_REPOSITORY"])::String
-            tag_name = convert(String, m[1])::String
-            return upload_rootfs_image(
-                tarball_path;
-                force_overwrite,
-                github_repo,
-                tag_name,
-            )
-        end
+    if get(ENV, "GITHUB_ACTIONS", "") != "true"
+        @info "Skipping upload because this is not a GitHub Actions build"
+        return nothing
+    end
+
+    GITHUB_EVENT_NAME = ENV["GITHUB_EVENT_NAME"]
+    GITHUB_REF        = ENV["GITHUB_REF"]
+    m = match(r"^refs\/tags\/(.*?)$", GITHUB_REF)
+
+    if GITHUB_EVENT_NAME != "release"
         @info "Skipping upload because this is not a `release` build" GITHUB_EVENT_NAME GITHUB_REF
         return nothing
     end
-    @info "Skipping upload because this is not a GitHub Actions build"
-    return nothing
+
+    if m === nothing
+        error_msg = "This is a `release` event, but the ref does not look like a tag."
+        @error error_msg GITHUB_EVENT_NAME GITHUB_REF
+        throw(ErrorException(error_msg))
+    end
+
+    force_overwrite = false
+    github_repo = convert(String, ENV["GITHUB_REPOSITORY"])::String
+    tag_name = convert(String, m[1])::String
+
+    return upload_rootfs_image(
+        tarball_path;
+        force_overwrite,
+        github_repo,
+        tag_name,
+    )
 end
