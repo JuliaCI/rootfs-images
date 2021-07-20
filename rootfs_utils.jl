@@ -108,13 +108,12 @@ function upload_rootfs_image_github_actions(tarball_path::String)
             force_overwrite = false
             github_repo = convert(String, ENV["GITHUB_REPOSITORY"])::String
             tag_name = convert(String, m[1])::String
-            upload_rootfs_image(
+            return upload_rootfs_image(
                 tarball_path;
                 force_overwrite,
                 github_repo,
                 tag_name,
             )
-            return tarball_url
         end
         @info "Skipping upload because this is not a `release` build" GITHUB_EVENT_NAME GITHUB_REF
         return nothing
