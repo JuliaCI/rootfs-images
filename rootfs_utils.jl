@@ -144,7 +144,7 @@ end
 function debian_arch(image_arch::String)
     debian_arch_mapping = Dict(
         "x86_64" => "amd64",
-        "i686" => "i686",
+        "i686" => "i386",
         "armv7l" => "armhf",
         "aarch64" => "arm64",
         "powerpc64le" => "ppc64el",
