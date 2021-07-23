@@ -22,7 +22,7 @@ packages = [
     "vim",
 ]
 
-tarball_path = debootstrap(arch, "buildkite_agent_$(arch)"; packages) do rootfs
+tarball_path = debootstrap(arch, "buildkite_agent-$(arch)"; packages) do rootfs
     # Also download buildkite-agent
     @info("Installing buildkite-agent...")
     buildkite_install_cmd = """

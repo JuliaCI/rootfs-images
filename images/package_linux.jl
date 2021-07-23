@@ -25,7 +25,7 @@ packages = [
     "wget",
     "vim",
 ]
-tarball_path = debootstrap(arch, "package_linux64"; packages) do rootfs
+tarball_path = debootstrap(arch, "package_linux-$(arch)"; packages) do rootfs
     # Install GCC 9, specifically
     @info("Installing gcc-9")
     gcc_install_cmd = """

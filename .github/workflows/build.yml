@@ -23,10 +23,12 @@ jobs:
           - 'buildkite_agent_linux.aarch64'
           - 'buildkite_agent_linux.armv7l'
 
+          # Our `package_linux` images are all `debian`-based 
           - 'package_linux.x86_64'
           - 'package_linux.i686'
           - 'package_linux.armv7l'
           - 'package_linux.aarch64'
+          - 'package_linux.powerpc64le'
 
           - 'package_musl.x86_64'
     steps:
