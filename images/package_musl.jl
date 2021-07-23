@@ -21,7 +21,7 @@ packages = [
     AlpinePackage("gcc~9", "v3.11"),
     AlpinePackage("gfortran~9", "v3.11"),
 ]
-tarball_path = alpine_bootstrap("package_musl_$(arch)"; packages)
+tarball_path = alpine_bootstrap("package_musl-$(arch)"; packages)
 
 # Upload it
 upload_rootfs_image_github_actions(tarball_path)
