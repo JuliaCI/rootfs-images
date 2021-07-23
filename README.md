@@ -1,3 +1,8 @@
+[![Build][build-img]][build-url]
+
+[build-img]: https://github.com/JuliaCI/rootfs-images/actions/workflows/build.yml/badge.svg "Build"
+[build-url]: https://github.com/JuliaCI/rootfs-images/actions/workflows/build.yml?query=branch%3Amain
+
 ## Rootfs images
 
 Our CI setup makes use of rootfs images that contain our build tools.
