@@ -91,7 +91,7 @@ function create_rootfs(f::Function, name::String; force::Bool=false)
     # Archive it into a `.tar.gz` file (but only if this is not a pull request build).
     if is_github_actions_pr()
         info_msg = "Skipping tarball creation because the build is a `pull_request` build"
-        @info info_msg tarball_path artifact_hash
+        @info info_msg artifact_hash
         return nothing
     end
     @info "Archiving" tarball_path artifact_hash
