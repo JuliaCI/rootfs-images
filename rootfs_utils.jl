@@ -219,8 +219,8 @@ function is_github_actions()
 end
 function _is_github_actions_event(event_name::AbstractString)
     is_gha = is_github_actions()
-    is_pr = get(ENV, "GITHUB_EVENT_NAME", "") == event_name
-    return is_gha && is_pr
+    is_event = get(ENV, "GITHUB_EVENT_NAME", "") == event_name
+    return is_gha && is_event
 end
 function is_github_actions_pr()
     return _is_github_actions_event("pull_request")
