@@ -5,7 +5,7 @@
 include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
 
 # Build debian-based image with the following extra packages:
-const packages = [
+packages = [
     "build-essential",
     "cmake",
     "curl",
@@ -20,8 +20,7 @@ const packages = [
     "python3",
     "wget",
 ]
-
-const tarball_path = debootstrap("llvm_passes"; packages)
+tarball_path = debootstrap("llvm_passes"; packages)
 
 # Upload it
 upload_rootfs_image_github_actions(tarball_path)
