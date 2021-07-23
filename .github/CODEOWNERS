@@ -1,0 +1,5 @@
+* @staticfloat @DilumAluthge
+
+CODEOWNERS @staticfloat @DilumAluthge
+/.github/ @staticfloat @DilumAluthge
+/.buildkite/ @staticfloat @DilumAluthge
