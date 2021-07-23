@@ -285,7 +285,8 @@ alpine_bootstrap(name::String; kwargs...) = alpine_bootstrap(p -> nothing, name;
 function upload_rootfs_image(tarball_path::String;
                              force_overwrite::Bool,
                              github_repo::String,
-                             tag_name::String)
+                             tag_name::String,
+                             num_retries::Int = 3)
     # Upload it to `github_repo`
     tarball_url = "https://github.com/$(github_repo)/releases/download/$(tag_name)/$(basename(tarball_path))"
     @info("Uploading to $(github_repo)@$(tag_name)", tarball_url)
@@ -293,8 +294,13 @@ function upload_rootfs_image(tarball_path::String;
     append!(cmd.exec, ["-u", dirname(github_repo), "-r", basename(github_repo)])
     force_overwrite && push!(cmd.exec, "-replace")
     append!(cmd.exec, [tag_name, tarball_path])
-    run(cmd)
-    return tarball_url
+    for _ in 1:num_retries
+        p = run(cmd)
+        if success(p)
+            return tarball_url
+        end
+    end
+    error("Unable to upload!")
 end
 
 function is_github_actions()
