@@ -17,10 +17,18 @@ jobs:
       fail-fast: false
       matrix:
         image_name:
-          - 'buildkite_agent'
-          - 'llvm_passes'
-          - 'package_linux64'
-          - 'package_musl64'
+          # Build a bunch of different "agent" rootfs images
+          # ppc64le pending: https://github.com/buildkite/agent/issues/1472
+          - 'buildkite_agent_linux.x86_64'
+          - 'buildkite_agent_linux.aarch64'
+          - 'buildkite_agent_linux.armv7l'
+
+          - 'package_linux.x86_64'
+          - 'package_linux.i686'
+          - 'package_linux.armv7l'
+          - 'package_linux.aarch64'
+
+          - 'package_musl.x86_64'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
@@ -28,9 +36,11 @@ jobs:
           version: '1.6'
           arch: x64
       - run: sudo apt-get update
-      - run: sudo apt-get -y install debootstrap
-      - run: julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
-      - run: julia --color=yes --project=. -e 'using Pkg; Pkg.precompile()'
-      - run: julia --color=yes --project=. images/${{ matrix.image_name }}.jl
+      - run: sudo apt-get -y install debootstrap qemu-user-static binfmt-support
+      - run: |
+          julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
+          IMAGE_NAME=$(echo ${{ matrix.image_name }} | cut -d. -f1)
+          IMAGE_ARCH=$(echo ${{ matrix.image_name }} | cut -d. -f2)
+          julia --color=yes --project=. images/${IMAGE_NAME}.jl ${IMAGE_ARCH}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

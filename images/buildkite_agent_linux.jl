@@ -3,6 +3,7 @@
 ## nested inside of this one.
 
 include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
+arch = parse_args(ARGS)
 
 # Build debian-based image with the following extra packages:
 packages = [
@@ -20,7 +21,8 @@ packages = [
     # Debugging
     "vim",
 ]
-tarball_path = debootstrap("buildkite_agent"; packages) do rootfs
+
+tarball_path = debootstrap(arch, "buildkite_agent_$(arch)"; packages) do rootfs
     # Also download buildkite-agent
     @info("Installing buildkite-agent...")
     buildkite_install_cmd = """

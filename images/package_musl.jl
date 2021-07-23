@@ -2,6 +2,7 @@
 ## within an alpine-based environment with GCC 9.
 
 include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
+arch = parse_args(ARGS)
 
 # Build alpine-based image with the following extra packages:
 packages = [
@@ -20,7 +21,7 @@ packages = [
     AlpinePackage("gcc~9", "v3.11"),
     AlpinePackage("gfortran~9", "v3.11"),
 ]
-tarball_path = alpine_bootstrap("package_musl64"; packages)
+tarball_path = alpine_bootstrap("package_musl_$(arch)"; packages)
 
 # Upload it
 upload_rootfs_image_github_actions(tarball_path)

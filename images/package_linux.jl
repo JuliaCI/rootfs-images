@@ -2,6 +2,7 @@
 ## within a debian-based environment with GCC 9.
 
 include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
+arch = parse_args(ARGS)
 
 # Build debian-based image with the following extra packages:
 packages = [
@@ -24,7 +25,7 @@ packages = [
     "wget",
     "vim",
 ]
-tarball_path = debootstrap("package_linux64"; packages) do rootfs
+tarball_path = debootstrap(arch, "package_linux64"; packages) do rootfs
     # Install GCC 9, specifically
     @info("Installing gcc-9")
     gcc_install_cmd = """
