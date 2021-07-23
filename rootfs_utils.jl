@@ -1,9 +1,33 @@
-using Scratch, Pkg, Pkg.Artifacts, ghr_jll, SHA, Dates
+using Scratch, Pkg, Pkg.Artifacts, ghr_jll, SHA, Dates, Base.BinaryPlatforms
 
 # Utility functions
 getuid() = ccall(:getuid, Cint, ())
 getgid() = ccall(:getgid, Cint, ())
 chroot(rootfs, cmds...; uid=getuid(), gid=getgid()) = run(`sudo chroot --userspec=$(uid):$(gid) $(rootfs) $(cmds)`)
+
+# Common ARGS parsing
+function parse_args(ARGS)
+    # Default `arch` to current native arch
+    arch = Base.BinaryPlatforms.arch(HostPlatform())
+
+    arch_idx = findfirst(arg -> startswith(arg, "--arch"), ARGS)
+    if arch_idx !== nothing
+        if ARGS[arch_idx] == "--arch"
+            if length(ARGS) < arch_idx + 1
+                error("--arch requires an argument!")
+            end
+            arch = ARGS[arch_idx + 1]
+        else
+            arch = split(ARGS[arch_idx], "=")[2]
+        end
+        if arch ∉ keys(Base.BinaryPlatforms.arch_mapping)
+            error("Invalid choice for --arch: $(arch)")
+        end
+    end
+
+    # Return all our parsed args here
+    return arch
+end
 
 # Sometimes rootfs images have absolute symlinks within them; this
 # is very bad for us as it breaks our ability to look at a rootfs
@@ -99,16 +123,77 @@ function create_rootfs(f::Function, name::String; force::Bool=false)
     return tarball_path
 end
 
-function debootstrap(f::Function, name::String; release::String="buster", variant::String="minbase",
-                     packages::Vector{String}=String[], force::Bool=false)
+function normalize_arch(image_arch::String)
+    if image_arch in ("x86_64", "amd64", "x64")
+        return "x86_64"
+    end
+    if image_arch in ("i686", "i386", "x86")
+        return "i686"
+    end
+    if image_arch in ("armv7l", "arm", "armhf")
+        return "armv7l"
+    end
+    if image_arch in ("aarch64", "armv8", "arm64")
+        return "aarch64"
+    end
+    if image_arch in ("powerpc64le", "ppc64le", "ppc64el")
+        return "powerpc64le"
+    end
+end
+
+function debian_arch(image_arch::String)
+    debian_arch_mapping = Dict(
+        "x86_64" => "amd64",
+        "i686" => "i686",
+        "armv7l" => "armhf",
+        "aarch64" => "arm64",
+        "powerpc64le" => "ppc64el",
+    )
+    return debian_arch_mapping[normalize_arch(image_arch)]
+end
+
+function can_run_natively(image_arch::String)
+    native_arch = Base.BinaryPlatforms.arch(HostPlatform())
+    if native_arch == "x86_64"
+        # We'll assume all `x86_64` chips can run `i686` code
+        return image_arch in ("x86_64", "i686")
+    end
+    if native_arch == "aarch64"
+        # We'll assume all `aarch64` chips can run `armv7l`, even though this may not be true
+        return image_arch in ("aarch64", "armv7l")
+    end
+    return native_arch == image_arch
+end
+
+function qemu_installed(image_arch::String)
+    qemu_arch_mapping = Dict(
+        "x86_64" => "x86_64",
+        "i686" => "i386",
+        "aarch64" => "aarch64",
+        "armv7l" => "arm",
+        "powerpc64le" => "ppc64le",
+    )
+    return Sys.which("qemu-$(qemu_arch_mapping[image_arch])-static") !== nothing
+end
+
+function debootstrap(f::Function, arch::String, name::String;
+                     release::String="buster",
+                     variant::String="minbase",
+                     packages::Vector{String}=String[],
+                     force::Bool=false)
     if Sys.which("debootstrap") === nothing
         error("Must install `debootstrap`!")
+    end
+
+    arch = normalize_arch(arch)
+    if !can_run_natively(arch) && !qemu_installed(arch)
+        error("Must install qemu-user-static and binfmt_misc!")
     end
 
     return create_rootfs(name; force) do rootfs
         packages_string = join(push!(packages, "locales"), ",")
         @info("Running debootstrap", release, variant, packages)
-        run(`sudo debootstrap --variant=$(variant) --include=$(packages_string) $(release) "$(rootfs)"`)
+        run(`sudo debootstrap --arch=$(debian_arch(arch)) --variant=$(variant) --include=$(packages_string) $(release) "$(rootfs)"`)
 
         # Call user callback, if requested
         f(rootfs)
@@ -143,7 +228,7 @@ function debootstrap(f::Function, name::String; release::String="buster", varian
     end
 end
 # If no user callback is provided, default to doing nothing
-debootstrap(name::String; kwargs...) = debootstrap(p -> nothing, name; kwargs...)
+debootstrap(arch::String, name::String; kwargs...) = debootstrap(p -> nothing, arch, name; kwargs...)
 
 # Helper structure for installing alpine packages that may or may not be part of an older Alpine release
 struct AlpinePackage
