@@ -88,8 +88,13 @@ function create_rootfs(f::Function, name::String; force::Bool=false)
 
     artifact_hash = create_artifact(f)
 
-    # Archive it into a `.tar.gz` file
-    @info("Archiving", tarball_path, artifact_hash)
+    # Archive it into a `.tar.gz` file (but only if this is not a pull request build).
+    if is_github_actions_pr()
+        info_msg = "Skipping tarball creation because the build is a `pull_request` build"
+        @info info_msg tarball_path artifact_hash
+        return nothing
+    end
+    @info "Archiving" tarball_path artifact_hash
     archive_artifact(artifact_hash, tarball_path)
     return tarball_path
 end
@@ -207,17 +212,47 @@ function upload_rootfs_image(tarball_path::String;
     return tarball_url
 end
 
+function is_github_actions()
+    is_ci  = get(ENV, "CI", "")              == "true"
+    is_gha = get(ENV, "GITHUB_ACTIONS", "")  == "true"
+    return is_ci && is_gha
+end
+function _is_github_actions_event(event_name::AbstractString)
+    is_gha = is_github_actions()
+    is_pr = get(ENV, "GITHUB_EVENT_NAME", "") == event_name
+    return is_gha && is_pr
+end
+function is_github_actions_pr()
+    return _is_github_actions_event("pull_request")
+end
+function is_github_actions_release()
+    return _is_github_actions_event("release")
+end
+get_github_actions_event_name() = convert(String, ENV["GITHUB_EVENT_NAME"])::String
+get_github_actions_ref()        = convert(String, ENV["GITHUB_REF"])::String
+get_github_actions_repo()       = convert(String, ENV["GITHUB_REPOSITORY"])::String
+
+function upload_rootfs_image_github_actions(tarball_path::Nothing)
+    if !is_github_actions_pr()
+        error_msg = "You are only allowed to skip tarball creation if the build is a `pull_request` build"
+        throw(ErrorException(error_msg))
+    end
+    GITHUB_EVENT_NAME = get_github_actions_event_name()
+    GITHUB_REF        = get_github_actions_ref()
+    @info "Skipping upload because the build is a `pull_request` build" GITHUB_EVENT_NAME GITHUB_REF
+    return nothing
+end
 function upload_rootfs_image_github_actions(tarball_path::String)
-    if get(ENV, "GITHUB_ACTIONS", "") != "true"
+    if !is_github_actions()
         @info "Skipping upload because this is not a GitHub Actions build"
         return nothing
     end
 
-    GITHUB_EVENT_NAME = ENV["GITHUB_EVENT_NAME"]
-    GITHUB_REF        = ENV["GITHUB_REF"]
+    GITHUB_EVENT_NAME = get_github_actions_event_name()
+    GITHUB_REF        = get_github_actions_ref()
     m = match(r"^refs\/tags\/(.*?)$", GITHUB_REF)
 
-    if GITHUB_EVENT_NAME != "release"
+    if !is_github_actions_release()
         @info "Skipping upload because this is not a `release` build" GITHUB_EVENT_NAME GITHUB_REF
         return nothing
     end
@@ -229,7 +264,7 @@ function upload_rootfs_image_github_actions(tarball_path::String)
     end
 
     force_overwrite = false
-    github_repo = convert(String, ENV["GITHUB_REPOSITORY"])::String
+    github_repo = get_github_actions_repo()
     tag_name = convert(String, m[1])::String
 
     return upload_rootfs_image(
