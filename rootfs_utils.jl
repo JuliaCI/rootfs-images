@@ -26,7 +26,7 @@ function parse_args(ARGS)
     end
 
     # Return all our parsed args here
-    return arch
+    return String(arch)
 end
 
 # Sometimes rootfs images have absolute symlinks within them; this
