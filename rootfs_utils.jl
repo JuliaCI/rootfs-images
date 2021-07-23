@@ -91,7 +91,7 @@ function create_rootfs(f::Function, name::String; force::Bool=false)
     # Archive it into a `.tar.gz` file (but only if this is not a pull request build).
     if is_github_actions_pr()
         info_msg = "Skipping tarball creation because the build is a `pull_request` build"
-        @info info_msg tarball_path artifact_hash
+        @info info_msg artifact_hash
         return nothing
     end
     @info "Archiving" tarball_path artifact_hash
@@ -219,8 +219,8 @@ function is_github_actions()
 end
 function _is_github_actions_event(event_name::AbstractString)
     is_gha = is_github_actions()
-    is_pr = get(ENV, "GITHUB_EVENT_NAME", "") == event_name
-    return is_gha && is_pr
+    is_event = get(ENV, "GITHUB_EVENT_NAME", "") == event_name
+    return is_gha && is_event
 end
 function is_github_actions_pr()
     return _is_github_actions_event("pull_request")
