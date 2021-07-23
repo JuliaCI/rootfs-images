@@ -83,11 +83,19 @@ function cleanup_rootfs(rootfs; rootfs_info=nothing)
     end
     mkpath(joinpath(rootfs, "home", "juliaci"))
 
-    # Write out a reasonable default resolv.conf
+    # Write out a reasonable default `/etc/resolv.conf` file
     open(joinpath(rootfs, "etc", "resolv.conf"), write=true) do io
         write(io, """
         nameserver 1.1.1.1
         nameserver 8.8.8.8
+        """)
+    end
+
+    # Write out a reasonable default `/etc/hosts` file
+    open(joinpath(rootfs, "etc", "hosts"), write=true) do io
+        write(io, """
+        127.0.0.1   localhost localhost.localdomain
+        ::1         localhost localhost.localdomain
         """)
     end
 
