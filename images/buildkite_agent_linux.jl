@@ -3,7 +3,7 @@
 ## nested inside of this one.
 
 include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
-arch = parse_args(ARGS)
+arch, = parse_args(ARGS)
 
 # Build debian-based image with the following extra packages:
 packages = [

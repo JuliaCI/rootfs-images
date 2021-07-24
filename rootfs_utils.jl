@@ -1,32 +1,27 @@
-using Scratch, Pkg, Pkg.Artifacts, ghr_jll, SHA, Dates, Base.BinaryPlatforms
+using ArgParse: ArgParse
+using Base.BinaryPlatforms
+using Dates
+using Pkg
+using Pkg.Artifacts
+using SHA
+using Scratch
+using ghr_jll
 
 # Utility functions
 getuid() = ccall(:getuid, Cint, ())
 getgid() = ccall(:getgid, Cint, ())
 chroot(rootfs, cmds...; uid=getuid(), gid=getgid()) = run(`sudo chroot --userspec=$(uid):$(gid) $(rootfs) $(cmds)`)
 
-# Common ARGS parsing
-function parse_args(ARGS)
-    # Default `arch` to current native arch
-    arch = Base.BinaryPlatforms.arch(HostPlatform())
-
-    arch_idx = findfirst(arg -> startswith(arg, "--arch"), ARGS)
-    if arch_idx !== nothing
-        if ARGS[arch_idx] == "--arch"
-            if length(ARGS) < arch_idx + 1
-                error("--arch requires an argument!")
-            end
-            arch = ARGS[arch_idx + 1]
-        else
-            arch = split(ARGS[arch_idx], "=")[2]
-        end
-        if arch ∉ keys(Base.BinaryPlatforms.arch_mapping)
-            error("Invalid choice for --arch: $(arch)")
-        end
+function parse_args(args::AbstractVector)
+    settings = ArgParse.ArgParseSettings()
+    ArgParse.@add_arg_table! settings begin
+        "--arch"
+            required=false
+            default=Base.BinaryPlatforms.arch(HostPlatform()) # Default `arch` to current native arch
     end
-
-    # Return all our parsed args here
-    return String(arch)
+    parsed_args = ArgParse.parse_args(args, settings)
+    arch = parsed_args["arch"]::String
+    return (; arch)
 end
 
 # Sometimes rootfs images have absolute symlinks within them; this

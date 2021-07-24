@@ -2,7 +2,7 @@
 ## within a debian-based environment with GCC 9.
 
 include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
-arch = parse_args(ARGS)
+arch, = parse_args(ARGS)
 
 # Build debian-based image with the following extra packages:
 packages = [

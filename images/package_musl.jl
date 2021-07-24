@@ -2,7 +2,7 @@
 ## within an alpine-based environment with GCC 9.
 
 include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
-arch = parse_args(ARGS)
+arch, = parse_args(ARGS)
 
 # Build alpine-based image with the following extra packages:
 packages = [
