@@ -31,7 +31,7 @@ jobs:
           - 'package_linux.powerpc64le'
           - 'package_linux.x86_64'
 
-          # The `package_linux` images is `alpine`-based
+          # The `package_musl` image is `alpine`-based
           - 'package_musl.x86_64'
           
           # The `llvm_passes` image is a short-term solution for the `analyzegc` builder
