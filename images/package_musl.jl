@@ -3,6 +3,7 @@
 
 include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
 arch, = parse_args(ARGS)
+image = "$(basename(@__FILE__)).$(arch)"
 
 # Build alpine-based image with the following extra packages:
 packages = [
@@ -21,7 +22,7 @@ packages = [
     AlpinePackage("gcc~9", "v3.11"),
     AlpinePackage("gfortran~9", "v3.11"),
 ]
-tarball_path = alpine_bootstrap("package_musl-$(arch)"; packages)
+tarball_path = alpine_bootstrap(image; packages)
 
 # Upload it
 upload_rootfs_image_github_actions(tarball_path)

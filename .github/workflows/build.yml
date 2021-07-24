@@ -11,25 +11,27 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    name: ${{ matrix.image_name }}
+    name: ${{ matrix.image }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        image_name:
+        image:
           # Build a bunch of different "agent" rootfs images
           # ppc64le pending: https://github.com/buildkite/agent/issues/1472
-          - 'buildkite_agent_linux.x86_64'
           - 'buildkite_agent_linux.aarch64'
           - 'buildkite_agent_linux.armv7l'
+          # - 'buildkite_agent_linux.ppc64le'
+          - 'buildkite_agent_linux.x86_64'
 
-          # Our `package_linux` images are all `debian`-based 
-          - 'package_linux.x86_64'
-          - 'package_linux.i686'
-          - 'package_linux.armv7l'
+          # The `package_linux` images are all `debian`-based
           - 'package_linux.aarch64'
+          - 'package_linux.armv7l'
+          - 'package_linux.i686'
           - 'package_linux.powerpc64le'
+          - 'package_linux.x86_64'
 
+          # The `package_linux` images is `alpine`-based
           - 'package_musl.x86_64'
     steps:
       - uses: actions/checkout@v2
@@ -38,11 +40,15 @@ jobs:
           version: '1.6'
           arch: x64
       - run: sudo apt-get update
-      - run: sudo apt-get -y install debootstrap qemu-user-static binfmt-support
       - run: |
-          julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
-          IMAGE_NAME=$(echo ${{ matrix.image_name }} | cut -d. -f1)
-          IMAGE_ARCH=$(echo ${{ matrix.image_name }} | cut -d. -f2)
-          julia --color=yes --project=. images/${IMAGE_NAME}.jl --arch=${IMAGE_ARCH}
+          sudo apt-get -y install binfmt-support debootstrap qemu-user-static
+      - run: julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
+      - run: julia --color=yes --project=. -e 'using Pkg; Pkg.precompile()'
+      - run: |
+          IMAGE_NAME=$(echo ${{ matrix.image }} | cut -d. -f1)
+          IMAGE_ARCH=$(echo ${{ matrix.image }} | cut -d. -f2)
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          echo "IMAGE_ARCH=$IMAGE_ARCH" >> $GITHUB_ENV
+      - run: julia --color=yes --project=. images/${{ env.IMAGE_NAME }}.jl --arch=${{ env.IMAGE_ARCH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

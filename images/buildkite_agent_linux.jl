@@ -4,6 +4,7 @@
 
 include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
 arch, = parse_args(ARGS)
+image = "$(basename(@__FILE__)).$(arch)"
 
 # Build debian-based image with the following extra packages:
 packages = [
@@ -22,7 +23,7 @@ packages = [
     "vim",
 ]
 
-tarball_path = debootstrap(arch, "buildkite_agent-$(arch)"; packages) do rootfs
+tarball_path = debootstrap(arch, image; packages) do rootfs
     # Also download buildkite-agent
     @info("Installing buildkite-agent...")
     buildkite_install_cmd = """
