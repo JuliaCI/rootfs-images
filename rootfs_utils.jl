@@ -26,7 +26,7 @@ function parse_args(ARGS)
     end
 
     # Return all our parsed args here
-    return arch
+    return String(arch)
 end
 
 # Sometimes rootfs images have absolute symlinks within them; this
@@ -83,11 +83,19 @@ function cleanup_rootfs(rootfs; rootfs_info=nothing)
     end
     mkpath(joinpath(rootfs, "home", "juliaci"))
 
-    # Write out a reasonable default resolv.conf
+    # Write out a reasonable default `/etc/resolv.conf` file
     open(joinpath(rootfs, "etc", "resolv.conf"), write=true) do io
         write(io, """
         nameserver 1.1.1.1
         nameserver 8.8.8.8
+        """)
+    end
+
+    # Write out a reasonable default `/etc/hosts` file
+    open(joinpath(rootfs, "etc", "hosts"), write=true) do io
+        write(io, """
+        127.0.0.1   localhost localhost.localdomain
+        ::1         localhost localhost.localdomain
         """)
     end
 
@@ -144,7 +152,7 @@ end
 function debian_arch(image_arch::String)
     debian_arch_mapping = Dict(
         "x86_64" => "amd64",
-        "i686" => "i686",
+        "i686" => "i386",
         "armv7l" => "armhf",
         "aarch64" => "arm64",
         "powerpc64le" => "ppc64el",
@@ -194,6 +202,13 @@ function debootstrap(f::Function, arch::String, name::String;
         packages_string = join(push!(packages, "locales"), ",")
         @info("Running debootstrap", release, variant, packages)
         run(`sudo debootstrap --arch=$(debian_arch(arch)) --variant=$(variant) --include=$(packages_string) $(release) "$(rootfs)"`)
+
+        # This is necessary on any 32-bit userspaces to work around the
+        # following bad interaction between qemu, linux and openssl:
+        # https://serverfault.com/questions/1045118/debootstrap-armhd-buster-unable-to-get-local-issuer-certificate
+        if isfile(joinpath(rootfs, "usr", "bin", "c_rehash"))
+            chroot(rootfs, "/usr/bin/c_rehash"; uid=0, gid=0)
+        end
 
         # Call user callback, if requested
         f(rootfs)
