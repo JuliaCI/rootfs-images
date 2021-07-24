@@ -4,7 +4,7 @@
 
 include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
 arch, = parse_args(ARGS)
-image = "$(basename(@__FILE__)).$(arch)"
+image = "$(splitext(basename(@__FILE__))[1]).$(arch)"
 
 # Build debian-based image with the following extra packages:
 packages = [
