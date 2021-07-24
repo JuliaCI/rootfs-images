@@ -203,6 +203,13 @@ function debootstrap(f::Function, arch::String, name::String;
         @info("Running debootstrap", release, variant, packages)
         run(`sudo debootstrap --arch=$(debian_arch(arch)) --variant=$(variant) --include=$(packages_string) $(release) "$(rootfs)"`)
 
+        # This is necessary on any 32-bit userspaces to work around the
+        # following bad interaction between qemu, linux and openssl:
+        # https://serverfault.com/questions/1045118/debootstrap-armhd-buster-unable-to-get-local-issuer-certificate
+        if isfile(joinpath(rootfs, "usr", "bin", "c_rehash"))
+            chroot(rootfs, "/usr/bin/c_rehash"; uid=0, gid=0)
+        end
+
         # Call user callback, if requested
         f(rootfs)
 

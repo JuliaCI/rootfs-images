@@ -27,7 +27,7 @@ tarball_path = debootstrap(arch, "buildkite_agent-$(arch)"; packages) do rootfs
     @info("Installing buildkite-agent...")
     buildkite_install_cmd = """
     echo 'deb https://apt.buildkite.com/buildkite-agent stable main' >> /etc/apt/sources.list && \\
-    curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x32A37959C2FA5C3C99EFBC32A79206696452D198" | apt-key add - && \\
+    curl -sfL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x32A37959C2FA5C3C99EFBC32A79206696452D198" | apt-key add - && \\
     apt-get update && \\
     DEBIAN_FRONTEND=noninteractive apt-get install -y buildkite-agent
     """
