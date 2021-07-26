@@ -179,7 +179,7 @@ function qemu_installed(image_arch::String)
 end
 
 function debootstrap(f::Function, arch::String, name::String;
-                     release::String="buster",
+                     release::String="jessie",
                      variant::String="minbase",
                      packages::Vector{String}=String[],
                      force::Bool=false)
