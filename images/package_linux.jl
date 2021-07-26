@@ -41,7 +41,9 @@ tarball_path = debootstrap(arch, image; packages) do rootfs
         ln -sf "\${tool}-9" "/usr/bin/\${tool}"
     done
     """
+    chroot(rootfs, "bash", "-c", "ldd --version"; uid=0, gid=0)
     chroot(rootfs, "bash", "-c", gcc_install_cmd; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "ldd --version"; uid=0, gid=0)
 end
 
 # Upload it
