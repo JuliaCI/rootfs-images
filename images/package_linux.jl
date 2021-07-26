@@ -32,7 +32,7 @@ tarball_path = debootstrap(arch, image; packages) do rootfs
     gcc_install_cmd = """
     echo 'deb http://deb.debian.org/debian testing main' >> /etc/apt/sources.list && \\
     apt-get update && \\
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \\
+    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \\
         gcc-9 g++-9 gfortran-9
 
     # Create symlinks for `gcc` -> `gcc-9`, etc...
