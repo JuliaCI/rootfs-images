@@ -234,6 +234,9 @@ function debootstrap(f::Function, arch::String, name::String;
             println(io, "en_US.UTF-8 UTF-8")
         end
         chroot(rootfs, "locale-gen")
+
+        # Print the version of glibc
+        chroot(rootfs, "bash", "-c", "ldd --version"; uid=0, gid=0)
     end
 end
 # If no user callback is provided, default to doing nothing
