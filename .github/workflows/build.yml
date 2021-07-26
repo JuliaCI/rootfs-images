@@ -17,21 +17,21 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          # Build a bunch of different "agent" rootfs images
+          # Build a bunch of different "agent" rootfs images.
           # ppc64le pending: https://github.com/buildkite/agent/issues/1472
           - 'agent_linux.aarch64'
           - 'agent_linux.armv7l'
           # - 'agent_linux.ppc64le'
           - 'agent_linux.x86_64'
 
-          # The `package_linux` images are all `debian`-based
+          # The `package_linux` images are all `debian`-based.
           - 'package_linux.aarch64'
           - 'package_linux.armv7l'
           - 'package_linux.i686'
           - 'package_linux.powerpc64le'
           - 'package_linux.x86_64'
 
-          # The `package_musl` image is `alpine`-based
+          # The `package_musl` image is `alpine`-based.
           - 'package_musl.x86_64'
 
           # The `tester_linux` images are all `debian`-based.
@@ -42,7 +42,11 @@ jobs:
           - 'tester_linux.powerpc64le'
           - 'tester_linux.x86_64'
 
-          # The `llvm_passes` image is a short-term solution for the `analyzegc` builder
+          # The `tester_musl` image is `alpine`-based.
+          # It does not include the compiler toolchain.
+          - 'tester_musl.x86_64'
+
+          # The `llvm_passes` image is a short-term solution for the `analyzegc` builder.
           - 'llvm_passes.x86_64'
     steps:
       - uses: actions/checkout@v2
