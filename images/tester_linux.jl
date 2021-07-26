@@ -12,7 +12,9 @@ packages = [
     "vim",
 ]
 tarball_path = debootstrap(arch, image; packages) do rootfs
-    # Install GCC 9, specifically
+    # Install a newer version of glibc.
+    # This is just a short-term workaround.
+    # Once we have fixed issue #44, we should remove this workaround.
     @info("Installing a newer version of glibc")
     glibc_install_cmd = """
     echo 'deb http://deb.debian.org/debian testing main' >> /etc/apt/sources.list && \\
