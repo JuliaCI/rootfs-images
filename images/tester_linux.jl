@@ -11,7 +11,7 @@ packages = [
     "gdb",
     "vim",
 ]
-tarball_path = debootstrap(arch, image; packages)
+tarball_path = debootstrap(arch, image; packages, release = "bullseye")
 
 # Upload it
 upload_rootfs_image_github_actions(tarball_path)
