@@ -19,10 +19,10 @@ jobs:
         image:
           # Build a bunch of different "agent" rootfs images
           # ppc64le pending: https://github.com/buildkite/agent/issues/1472
-          - 'buildkite_agent_linux.aarch64'
-          - 'buildkite_agent_linux.armv7l'
-          # - 'buildkite_agent_linux.ppc64le'
-          - 'buildkite_agent_linux.x86_64'
+          - 'agent_linux.aarch64'
+          - 'agent_linux.armv7l'
+          # - 'agent_linux.ppc64le'
+          - 'agent_linux.x86_64'
 
           # The `package_linux` images are all `debian`-based
           - 'package_linux.aarch64'
