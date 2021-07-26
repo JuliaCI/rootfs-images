@@ -7,6 +7,9 @@ image = "$(splitext(basename(@__FILE__))[1]).$(arch)"
 # Build debian-based image with the following extra packages:
 packages = [
     "bash",
+    "curl",
+    "gdb",
+    "vim",
 ]
 tarball_path = debootstrap(arch, image; packages)
 
