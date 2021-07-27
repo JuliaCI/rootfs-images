@@ -16,7 +16,8 @@ function parse_args(args::AbstractVector)
     settings = ArgParse.ArgParseSettings()
     ArgParse.@add_arg_table! settings begin
         "--arch"
-            required=true
+            arg_type = String
+            required = true
     end
     parsed_args = ArgParse.parse_args(args, settings)
     arch = parsed_args["arch"]::String
@@ -179,10 +180,13 @@ function qemu_installed(image_arch::String)
 end
 
 function debootstrap(f::Function, arch::String, name::String;
-                     release::String="buster",
+                     release::Union{String, Nothing} = nothing,
                      variant::String="minbase",
                      packages::Vector{String}=String[],
                      force::Bool=false)
+    default_release = "buster"
+    release = (release isa String) ? (release::String) : (default_release::String)
+
     if Sys.which("debootstrap") === nothing
         error("Must install `debootstrap`!")
     end
@@ -234,6 +238,9 @@ function debootstrap(f::Function, arch::String, name::String;
             println(io, "en_US.UTF-8 UTF-8")
         end
         chroot(rootfs, "locale-gen")
+
+        # Print the glibc version to the log
+        chroot(rootfs, "bash", "-c", "ldd --version"; uid=0, gid=0)
     end
 end
 # If no user callback is provided, default to doing nothing

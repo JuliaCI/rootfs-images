@@ -5,6 +5,17 @@ include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
 arch, = parse_args(ARGS)
 image = "$(splitext(basename(@__FILE__))[1]).$(arch)"
 
+# For each architecture, we want to use the oldest Debian release that
+# supports that architecture.
+arch_to_release = Dict(
+    "aarch64"     => "stretch",
+    "armv7l"      => "jessie",
+    "i686"        => "jessie",
+    "powerpc64le" => "stretch",
+    "x86_64"      => "jessie",
+)
+release = arch_to_release[arch]
+
 # Build debian-based image with the following extra packages:
 packages = [
     "automake",
@@ -13,7 +24,10 @@ packages = [
     "cmake",
     "curl",
     "flex",
+    "g++",
+    "gcc",
     "gdb",
+    "gfortran",
     "git",
     "less",
     "libatomic1",
@@ -24,25 +38,14 @@ packages = [
     "pkg-config",
     "python",
     "python3",
-    "wget",
     "vim",
+    "wget",
 ]
-tarball_path = debootstrap(arch, image; packages) do rootfs
-    # Install GCC 9, specifically
-    @info("Installing gcc-9")
-    gcc_install_cmd = """
-    echo 'deb http://deb.debian.org/debian testing main' >> /etc/apt/sources.list && \\
-    apt-get update && \\
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \\
-        gcc-9 g++-9 gfortran-9
-
-    # Create symlinks for `gcc` -> `gcc-9`, etc...
-    for tool_path in /usr/bin/*-9; do
-        tool="\$(basename "\${tool_path}" | sed -e 's/-9//')"
-        ln -sf "\${tool}-9" "/usr/bin/\${tool}"
-    done
-    """
-    chroot(rootfs, "bash", "-c", gcc_install_cmd; uid=0, gid=0)
+tarball_path = debootstrap(arch, image; packages, release) do rootfs
+    # Print the gcc version to the log
+    chroot(rootfs, "bash", "-c", "gcc --version"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "g++ --version"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "gfortran --version"; uid=0, gid=0)
 end
 
 # Upload it
