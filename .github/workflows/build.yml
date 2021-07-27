@@ -31,6 +31,11 @@ jobs:
           - 'package_linux.powerpc64le'
           - 'package_linux.x86_64'
 
+          # The `package_centos6` images are based on CentOS 6.
+          # The purpose of these images is to build Julia binaries for
+          # use on legacy systems with old versions of glibc (e.g. 2.12)
+          - 'package_centos6.x86_64'
+
           # The `package_musl` image is `alpine`-based.
           - 'package_musl.x86_64'
 
@@ -41,6 +46,10 @@ jobs:
           - 'tester_linux.i686'
           - 'tester_linux.powerpc64le'
           - 'tester_linux.x86_64'
+
+          # The `tester_centos6` images are based on CentOS 6.
+          # They do not include the compiler toolchain.
+          - 'tester_centos6.x86_64'
 
           # The `tester_musl` image is `alpine`-based.
           # It does not include the compiler toolchain.
@@ -54,8 +63,12 @@ jobs:
         with:
           version: '1.6'
           arch: x64
+      - run: sudo touch /etc/apt/sources.list.d/additional_debian.list
+      - run: echo 'deb [trusted=yes] http://deb.debian.org/debian buster main' | sudo tee -a /etc/apt/sources.list.d/additional_debian.list
+      - run: echo 'deb [trusted=yes] http://security.debian.org/debian-security buster/updates main' | sudo tee -a /etc/apt/sources.list.d/additional_debian.list
+      - run: echo 'deb [trusted=yes] http://deb.debian.org/debian buster-updates main' | sudo tee -a /etc/apt/sources.list.d/additional_debian.list
       - run: sudo apt-get update
-      - run: sudo apt-get -y install binfmt-support debootstrap qemu-user-static
+      - run: sudo apt-get -y install binfmt-support debootstrap qemu-user-static yum
       - run: update-binfmts --display
       - run: julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
       - run: julia --color=yes --project=. -e 'using Pkg; Pkg.precompile()'

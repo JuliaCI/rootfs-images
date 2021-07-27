@@ -53,6 +53,50 @@ function force_relative(rootfs)
     end
 end
 
+function uperm_to_chmod_string(octet)
+    mapping = Dict(
+        0x00 => "u-r,u-w,u-x",
+        0x01 => "u-r,u-w,u+x",
+        0x02 => "u-r,u+w,u-x",
+        0x03 => "u-r,u+w,u+x",
+        0x04 => "u+r,u-w,u-x",
+        0x05 => "u+r,u-w,u+x",
+        0x06 => "u+r,u+w,u-x",
+        0x07 => "u+r,u+w,u+x",
+    )
+    return mapping[octet]
+end
+
+function chmod_directories_before(rootfs)
+    original_uperms = Dict{String, UInt8}()
+    for (root, dirs, files) in walkdir(rootfs)
+        for d in dirs
+            d = joinpath(root, d)
+            original_uperm = uperm(d)
+            if original_uperm != 0x07
+                haskey(original_uperms, d) && throw(ErrorException("Key already exists: $(d)"))
+                original_uperms[d] = original_uperm
+                new_uperm = 0x07
+                original_chmod_string = uperm_to_chmod_string(original_uperm)
+                new_chmod_string      = uperm_to_chmod_string(new_uperm)
+                @debug "Temporarily setting: $(original_uperm) --> $(new_uperm): $(d)"
+                run(`chmod $(new_chmod_string) $(d)`)
+            end
+        end
+    end
+    return original_uperms
+end
+
+function chmod_directories_after(rootfs, original_uperms)
+    for (d, original_uperm) in original_uperms
+        current_uperm = uperm(d)
+        original_chmod_string = uperm_to_chmod_string(original_uperm)
+        @debug "Undoing: $(original_uperm) <-- $(current_uperm): $(d)"
+        run(`chmod $(original_chmod_string) $(d)`)
+    end
+    return nothing
+end
+
 function cleanup_rootfs(rootfs; rootfs_info=nothing)
     # Remove special `dev` files
     @info("Cleaning up `/dev`")
@@ -61,6 +105,12 @@ function cleanup_rootfs(rootfs; rootfs_info=nothing)
         if !islink(f)
             run(`sudo rm -rf "$(f)"`)
         end
+    end
+
+    # Remove `/etc/shadow`, etc.
+    for f in ["shadow", "shadow-", "gshadow", "gshadow-"]
+        f = joinpath(rootfs, "etc", f)
+        run(`sudo rm -rf "$(f)"`)
     end
 
     # take ownership of the entire rootfs
@@ -102,7 +152,9 @@ function cleanup_rootfs(rootfs; rootfs_info=nothing)
     end
 
     @info("Forcing all symlinks to be relative")
+    original_uperms = chmod_directories_before(rootfs)
     force_relative(rootfs)
+    chmod_directories_after(rootfs, original_uperms)
 end
 
 function create_rootfs(f::Function, name::String; force::Bool=false)
@@ -290,6 +342,58 @@ function alpine_bootstrap(f::Function, name::String; release::VersionNumber=v"3.
 end
 # If no user callback is provided, default to doing nothing
 alpine_bootstrap(name::String; kwargs...) = alpine_bootstrap(p -> nothing, name; kwargs...)
+
+function centos_bootstrap(f::Function, name::String;
+                          force::Bool              = false,
+                          packages::Vector{String} = String[],
+                          release::String           = "6",
+                          repo_baseurl::String      = "https://vault.centos.org/centos/$(release)/os/x86_64",
+    )
+    return create_rootfs(name; force) do rootfs
+        if Sys.which("yum") === nothing
+            error("Must install `yum`!")
+        end
+        repo_config_file = joinpath(mktempdir(; cleanup = true), "centos.repo")
+        rm(repo_config_file; force = true, recursive = true)
+        open(repo_config_file, "w") do io
+            println(io, "[CentOS-$(release)-Base]")
+            println(io, "name=CentOS-$(release)-Base")
+            println(io, "baseurl=$(repo_baseurl)")
+            println(io, "gpgcheck=0")
+        end
+        let
+            cmd = `sudo yum`
+            push!(cmd.exec, "-y")
+            push!(cmd.exec, "--config=$(repo_config_file)")
+            push!(cmd.exec, "--disablerepo=*")
+            push!(cmd.exec, "--enablerepo=CentOS-$(release)-Base")
+            push!(cmd.exec, "--disableplugin=*")
+            push!(cmd.exec, "--installroot=$(rootfs)")
+            push!(cmd.exec, "install")
+            for pkg in packages
+                push!(cmd.exec, pkg)
+            end
+            run(cmd)
+        end
+
+        # Call user callback, if requested
+        f(rootfs)
+
+        # Remove special `dev` files, take ownership, force symlinks to be relative, etc...
+        rootfs_info="""
+                    rootfs_type=centos
+                    release=$(release)
+                    packages=$(join([pkg for pkg in packages], ","))
+                    build_date=$(Dates.now())
+                    """
+        cleanup_rootfs(rootfs; rootfs_info)
+
+        # Print the glibc version to the log
+        chroot(rootfs, "bash", "-c", "ldd --version"; uid=0, gid=0)
+    end
+end
+# If no user callback is provided, default to doing nothing
+centos_bootstrap(name::String; kwargs...) = centos_bootstrap(p -> nothing, name; kwargs...)
 
 function upload_rootfs_image(tarball_path::String;
                              force_overwrite::Bool,
