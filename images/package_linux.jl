@@ -22,6 +22,7 @@ packages = [
     "make",
     "perl",
     "pkg-config",
+    "python",
     "python3",
     "wget",
     "vim",
