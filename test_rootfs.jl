@@ -2,16 +2,17 @@
 using Sandbox, Pkg.Artifacts
 
 if length(ARGS) < 1 || length(ARGS) > 2
-    println("Usage: test_rootfs.jl <url> [gitsha]")
+    println(stderr, "Usage: $(basename(@__FILE__)) <url> [gitsha]")
     exit(1)
 end
 
 url = ARGS[1]
-hash = Base.SHA1(get(ARGS, 2, nothing))
 
-if hash === nothing
+if length(ARGS) == 1
     @warn("hash not provided; this will download the tarball, then fail, so you can see the true hash")
     hash = Base.SHA1("0000000000000000000000000000000000000000")
+else
+    hash = Base.SHA1(ARGS[2])
 end
 
 # If the artifact is not locally existent, download it
