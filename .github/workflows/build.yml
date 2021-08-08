@@ -67,7 +67,7 @@ jobs:
           version: '1.6'
           arch: x64
       - run: sudo apt-get update
-      - run: sudo apt-get -y install binfmt-support debootstrap qemu qemu-user-static
+      - run: sudo apt-get -y install binfmt-support debootstrap qemu qemu-user qemu-user-static
       - run: update-binfmts --display
       - run: julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
       - run: julia --color=yes --project=. -e 'using Pkg; Pkg.precompile()'
