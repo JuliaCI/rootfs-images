@@ -73,7 +73,7 @@ jobs:
             debootstrap \
             qemu \
             qemu-user \
-            qemu-user-binfmt \
+            # qemu-user-binfmt \
             qemu-user-static \
             qemu-utils \
       - run: update-binfmts --display
