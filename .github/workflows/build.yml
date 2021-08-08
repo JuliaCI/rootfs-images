@@ -66,6 +66,12 @@ jobs:
         with:
           version: '1.6'
           arch: x64
+
+      - run: sudo touch /etc/apt/sources.list.d/additional_debian.list
+      - run: echo 'deb [trusted=yes] http://deb.debian.org/debian buster main' | sudo tee -a /etc/apt/sources.list.d/additional_debian.list
+      - run: echo 'deb [trusted=yes] http://security.debian.org/debian-security buster/updates main' | sudo tee -a /etc/apt/sources.list.d/additional_debian.list
+      - run: echo 'deb [trusted=yes] http://deb.debian.org/debian buster-updates main' | sudo tee -a /etc/apt/sources.list.d/additional_debian.list
+
       - run: sudo apt-get update
       - run: |
           sudo apt-get -y install \
