@@ -65,16 +65,16 @@ jobs:
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1.6'
-          arch: x64
+          arch: x64 
       - run: |
           sudo rm -f /etc/apt/sources.list
           sudo touch /etc/apt/sources.list
           sudo rm -rf /etc/apt/sources.list.d
           sudo mkdir /etc/apt/sources.list.d
-          sudo touch /etc/apt/sources.list.d/debian.list
-      - run: echo 'deb [trusted=yes] http://deb.debian.org/debian buster main' | sudo tee -a /etc/apt/sources.list.d/debian.list
-      - run: echo 'deb [trusted=yes] http://deb.debian.org/debian buster-updates main' | sudo tee -a /etc/apt/sources.list.d/debian.list
-      - run: echo 'deb [trusted=yes] http://security.debian.org/debian-security buster/updates main' | sudo tee -a /etc/apt/sources.list.d/debian.list
+          sudo touch /etc/apt/sources.list.d/ubuntu-ports.list
+          echo 'deb [trusted=yes] http://ports.ubuntu.com/ubuntu-ports focal main' | sudo tee -a /etc/apt/sources.list.d/ubuntu-ports.list
+          echo 'deb [trusted=yes] http://ports.ubuntu.com/ubuntu-ports focal-security main' | sudo tee -a /etc/apt/sources.list.d/ubuntu-ports.list
+          echo 'deb [trusted=yes] http://ports.ubuntu.com/ubuntu-ports focal-updates main' | sudo tee -a /etc/apt/sources.list.d/ubuntu-ports.list
       - run: sudo apt-get update
       - run: |
           sudo apt-get -y install \
@@ -84,12 +84,15 @@ jobs:
             qemu-user \
             qemu-user-static \
             qemu-utils \
-      - run: sudo dpkg --add-architecture arm64
-      - run: sudo dpkg --add-architecture ppc64el
+      - run: |
+          sudo dpkg --add-architecture arm64
+          sudo dpkg --add-architecture armhf
+          sudo dpkg --add-architecture ppc64el
       - run: sudo apt-get update    
       - run: |
           sudo apt install -y \
             libc6:arm64 \
+            libc6:armhf \
             libc6:ppc64el \
       - run: update-binfmts --display
       - run: julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
