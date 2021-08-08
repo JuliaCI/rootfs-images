@@ -66,12 +66,15 @@ jobs:
         with:
           version: '1.6'
           arch: x64
-
-      - run: sudo touch /etc/apt/sources.list.d/additional_debian.list
-      - run: echo 'deb [trusted=yes] http://deb.debian.org/debian buster main' | sudo tee -a /etc/apt/sources.list.d/additional_debian.list
-      - run: echo 'deb [trusted=yes] http://security.debian.org/debian-security buster/updates main' | sudo tee -a /etc/apt/sources.list.d/additional_debian.list
-      - run: echo 'deb [trusted=yes] http://deb.debian.org/debian buster-updates main' | sudo tee -a /etc/apt/sources.list.d/additional_debian.list
-
+      - run: |
+          sudo rm -f /etc/apt/sources.list
+          sudo touch /etc/apt/sources.list
+          sudo rm -rf /etc/apt/sources.list.d
+          sudo mkdir /etc/apt/sources.list.d
+          sudo touch /etc/apt/sources.list.d/debian.list
+      - run: echo 'deb [trusted=yes] http://deb.debian.org/debian buster main' | sudo tee -a /etc/apt/sources.list.d/debian.list
+      - run: echo 'deb [trusted=yes] http://deb.debian.org/debian buster-updates main' | sudo tee -a /etc/apt/sources.list.d/debian.list
+      - run: echo 'deb [trusted=yes] http://security.debian.org/debian-security buster/updates main' | sudo tee -a /etc/apt/sources.list.d/debian.list
       - run: sudo apt-get update
       - run: |
           sudo apt-get -y install \
@@ -84,8 +87,10 @@ jobs:
       - run: sudo dpkg --add-architecture arm64
       - run: sudo dpkg --add-architecture ppc64el
       - run: sudo apt-get update    
-      - run: sudo apt install libc6:arm64
-      - run: sudo apt install libc6:ppc64el
+      - run: |
+          sudo apt install -y \
+            libc6:arm64 \
+            libc6:ppc64el \
       - run: update-binfmts --display
       - run: julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
       - run: julia --color=yes --project=. -e 'using Pkg; Pkg.precompile()'
