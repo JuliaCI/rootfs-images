@@ -50,6 +50,8 @@ jobs:
           - 'llvm_passes.x86_64'
     steps:
       - uses: actions/checkout@v2
+      - run: which -a jq
+      - run: jq --version
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1.6'
