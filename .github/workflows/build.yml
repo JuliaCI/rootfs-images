@@ -67,7 +67,16 @@ jobs:
           version: '1.6'
           arch: x64 
       - run: |
+          sudo rm -f /etc/apt/sources.list
+          sudo touch /etc/apt/sources.list
+          sudo rm -rf /etc/apt/sources.list.d
+          sudo mkdir /etc/apt/sources.list.d
+          echo 'deb [arch=amd64,i386 trusted=yes] http://azure.archive.ubuntu.com/ubuntu focal main' | sudo tee -a /etc/apt/sources.list.d/ubuntu.list
+          echo 'deb [arch=amd64,i386 trusted=yes] http://azure.archive.ubuntu.com/ubuntu focal-backports main' | sudo tee -a /etc/apt/sources.list.d/ubuntu.list
+          echo 'deb [arch=amd64,i386 trusted=yes] http://azure.archive.ubuntu.com/ubuntu focal-security main' | sudo tee -a /etc/apt/sources.list.d/ubuntu.list
+          echo 'deb [arch=amd64,i386 trusted=yes] http://azure.archive.ubuntu.com/ubuntu focal-updates main' | sudo tee -a /etc/apt/sources.list.d/ubuntu.list
           echo 'deb [arch=arm64,armhf,ppc64el trusted=yes] http://ports.ubuntu.com/ubuntu-ports focal main' | sudo tee -a /etc/apt/sources.list.d/ubuntu-ports.list
+          echo 'deb [arch=arm64,armhf,ppc64el trusted=yes] http://ports.ubuntu.com/ubuntu-ports focal-backport main' | sudo tee -a /etc/apt/sources.list.d/ubuntu-ports.list
           echo 'deb [arch=arm64,armhf,ppc64el trusted=yes] http://ports.ubuntu.com/ubuntu-ports focal-security main' | sudo tee -a /etc/apt/sources.list.d/ubuntu-ports.list
           echo 'deb [arch=arm64,armhf,ppc64el trusted=yes] http://ports.ubuntu.com/ubuntu-ports focal-updates main' | sudo tee -a /etc/apt/sources.list.d/ubuntu-ports.list
       - run: sudo apt-get update
