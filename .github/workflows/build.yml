@@ -75,9 +75,11 @@ jobs:
             qemu-user \
             qemu-user-static \
             qemu-utils \
-      - run: sudo dpkg --add-architecture armhf
-      - run: sudo apt-get update
-      - run: sudo apt install libc6:armhf
+      - run: sudo dpkg --add-architecture arm64
+      - run: sudo dpkg --add-architecture ppc64el
+      - run: sudo apt-get update    
+      - run: sudo apt install libc6:arm64
+      - run: sudo apt install libc6:ppc64el
       - run: update-binfmts --display
       - run: julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
       - run: julia --color=yes --project=. -e 'using Pkg; Pkg.precompile()'
