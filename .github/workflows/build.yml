@@ -30,10 +30,9 @@ jobs:
       matrix:
         image:
           # Build a bunch of different "agent" rootfs images.
-          # ppc64le pending: https://github.com/buildkite/agent/issues/1472
           - 'agent_linux.aarch64'
           - 'agent_linux.armv7l'
-          # - 'agent_linux.ppc64le'
+          - 'agent_linux.ppc64le'
           - 'agent_linux.x86_64'
 
           # The `package_linux` images are all `debian`-based.
