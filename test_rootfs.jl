@@ -1,23 +1,30 @@
 #!/usr/bin/env julia
 using Sandbox, Pkg.Artifacts
 
-if length(ARGS) < 1 || length(ARGS) > 2
-    println(stderr, "Usage: $(basename(@__FILE__)) <url> [gitsha]")
-    exit(1)
+usage_msg = "Usage: $(basename(@__FILE__)) <url> [gitsha] [command...]"
+
+isempty(ARGS) && throw(ArgumentError(usage_msg))
+
+url = strip(popfirst!(ARGS))
+if isempty(url)
+    url = nothing
 end
-
-url = ARGS[1]
-
-if length(ARGS) == 1
+if isempty(ARGS)
     @warn("hash not provided; this will download the tarball, then fail, so you can see the true hash")
     hash = Base.SHA1("0000000000000000000000000000000000000000")
 else
-    hash = Base.SHA1(ARGS[2])
+    hash = Base.SHA1(strip(popfirst!(ARGS)))
+end
+if isempty(ARGS)
+    cmd = `/bin/bash`
+else
+    cmd = `$ARGS`
 end
 
 # If the artifact is not locally existent, download it
 if !artifact_exists(hash)
     @info("Artifact did not exist, downloading")
+    url === nothing && throw(ArgumentError(usage_msg))
     download_artifact(hash, url; verbose=true)
 end
 
@@ -35,6 +42,7 @@ config = SandboxConfig(
     uid=Sandbox.getuid(),
     gid=Sandbox.getgid(),
 )
+
 with_executor() do exe
-    run(exe, config, `/bin/bash`)
+    run(exe, config, cmd)
 end

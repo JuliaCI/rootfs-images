@@ -5,6 +5,7 @@ using Pkg
 using Pkg.Artifacts
 using SHA
 using Scratch
+using Test
 using ghr_jll
 
 # Utility functions
@@ -117,12 +118,12 @@ function create_rootfs(f::Function, name::String; force::Bool=false)
     # Archive it into a `.tar.gz` file (but only if this is not a pull request build).
     if is_github_actions_pr()
         info_msg = "Skipping tarball creation because the build is a `pull_request` build"
-        @info info_msg basename(tarball_path) artifact_hash
-        return nothing
+        @info info_msg artifact_hash basename(tarball_path)
+        return (; artifact_hash, tarball_path = nothing)
     end
-    @info "Archiving" tarball_path artifact_hash
+    @info "Archiving" artifact_hash tarball_path
     archive_artifact(artifact_hash, tarball_path)
-    return tarball_path
+    return (; artifact_hash, tarball_path)
 end
 
 function normalize_arch(image_arch::String)
@@ -335,11 +336,14 @@ function upload_rootfs_image_github_actions(tarball_path::Nothing)
         error_msg = "You are only allowed to skip tarball creation if the build is a `pull_request` build"
         throw(ErrorException(error_msg))
     end
+
     GITHUB_EVENT_NAME = get_github_actions_event_name()
     GITHUB_REF        = get_github_actions_ref()
+
     @info "Skipping upload because the build is a `pull_request` build" GITHUB_EVENT_NAME GITHUB_REF
     return nothing
 end
+
 function upload_rootfs_image_github_actions(tarball_path::String)
     if !is_github_actions()
         @info "Skipping upload because this is not a GitHub Actions build"
@@ -369,4 +373,25 @@ function upload_rootfs_image_github_actions(tarball_path::String)
         github_repo,
         tag_name,
     )
+end
+
+function test_sandbox(artifact_hash)
+    test_cmd = `$(Base.julia_cmd())`
+    push!(test_cmd.exec, "--project=$(Base.active_project())")
+    push!(test_cmd.exec, joinpath(@__DIR__, "test_rootfs.jl"))
+    push!(test_cmd.exec, "")
+    push!(test_cmd.exec, "$(artifact_hash)")
+    push!(test_cmd.exec, "/bin/bash")
+    push!(test_cmd.exec, "-c")
+    push!(test_cmd.exec, "echo Hello from inside the sandbox")
+    @testset "Test sandbox" begin
+        @testset begin
+            run(test_cmd)
+        end
+        @testset begin
+            @test success(test_cmd)
+            @test read(test_cmd, String) == "Hello from inside the sandbox\n"
+        end
+    end
+    return nothing
 end

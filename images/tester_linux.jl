@@ -11,7 +11,10 @@ packages = [
     "gdb",
     "vim",
 ]
-tarball_path = debootstrap(arch, image; packages)
+artifact_hash, tarball_path, = debootstrap(arch, image; packages)
 
 # Upload it
 upload_rootfs_image_github_actions(tarball_path)
+
+# Test that we can use our new rootfs image with Sandbox.jl
+test_sandbox(artifact_hash)

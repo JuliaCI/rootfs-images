@@ -30,7 +30,7 @@ packages = [
     "wget",
     "vim",
 ]
-tarball_path = debootstrap(arch, image; packages) do rootfs
+artifact_hash, tarball_path, = debootstrap(arch, image; packages) do rootfs
     # Install GCC 9, specifically
     @info("Installing gcc-9")
     gcc_install_cmd = """
@@ -50,3 +50,6 @@ end
 
 # Upload it
 upload_rootfs_image_github_actions(tarball_path)
+
+# Test that we can use our new rootfs image with Sandbox.jl
+test_sandbox(artifact_hash)
