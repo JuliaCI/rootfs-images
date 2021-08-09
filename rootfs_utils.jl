@@ -299,7 +299,6 @@ end
 alpine_bootstrap(name::String; kwargs...) = alpine_bootstrap(p -> nothing, name; kwargs...)
 
 function upload_rootfs_image(tarball_path::String;
-                             force_overwrite::Bool,
                              github_repo::String,
                              tag_name::String,
                              num_retries::Int = 3)
@@ -308,7 +307,6 @@ function upload_rootfs_image(tarball_path::String;
     @info("Uploading to $(github_repo)@$(tag_name)", tarball_url)
     cmd = ghr_jll.ghr()
     append!(cmd.exec, ["-u", dirname(github_repo), "-r", basename(github_repo)])
-    force_overwrite && push!(cmd.exec, "-replace")
     append!(cmd.exec, [tag_name, tarball_path])
     for _ in 1:num_retries
         p = run(cmd)
@@ -370,13 +368,11 @@ function upload_rootfs_image_github_actions(tarball_path::String)
         throw(ErrorException(error_msg))
     end
 
-    force_overwrite = false
     github_repo = get_github_actions_repo()
     tag_name = convert(String, m[1])::String
 
     return upload_rootfs_image(
         tarball_path;
-        force_overwrite,
         github_repo,
         tag_name,
     )
