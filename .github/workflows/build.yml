@@ -22,6 +22,12 @@ permissions:
   security-events:     none
   statuses:            none
 jobs:
+  all:
+    name: all
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All build jobs have completed."
   build:
     name: ${{ matrix.image }}
     runs-on: ubuntu-latest
