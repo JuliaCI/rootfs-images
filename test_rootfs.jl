@@ -25,7 +25,8 @@ end
 if !artifact_exists(hash)
     @info("Artifact did not exist, downloading")
     url === nothing && throw(ArgumentError(usage_msg))
-    download_artifact(hash, url; verbose=true)
+    was_success = download_artifact(hash, url; verbose=true)
+    was_success || throw(ErrorException("Download was not a success"))
 end
 
 config = SandboxConfig(
