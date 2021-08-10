@@ -1,7 +1,7 @@
 function test_sandbox(artifact_hash)
     test_cmd = `$(Base.julia_cmd())`
     push!(test_cmd.exec, "--project=$(Base.active_project())")
-    push!(test_cmd.exec, joinpath(@__DIR__, "test_rootfs.jl"))
+    push!(test_cmd.exec, joinpath(dirname(dirname(@__DIR__)), "test_rootfs.jl"))
     push!(test_cmd.exec, "")
     push!(test_cmd.exec, "$(artifact_hash)")
     push!(test_cmd.exec, "/bin/bash")
