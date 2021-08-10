@@ -11,16 +11,6 @@ on:
   workflow_dispatch:
 permissions:
   contents:            write
-  actions:             none
-  checks:              none
-  deployments:         none
-  issues:              none
-  discussions:         none
-  packages:            none
-  pull-requests:       none
-  repository-projects: none
-  security-events:     none
-  statuses:            none
 jobs:
   all:
     name: all
