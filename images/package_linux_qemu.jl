@@ -1,5 +1,6 @@
 ## This rootfs includes everything that must be installed to build Julia
 ## within a debian-based environment with GCC 9.
+## It also includes `qemu` inside the sandbox.
 
 using RootfsUtils
 
