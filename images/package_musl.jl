@@ -22,7 +22,10 @@ packages = [
     AlpinePackage("gcc~9", "v3.11"),
     AlpinePackage("gfortran~9", "v3.11"),
 ]
-tarball_path = alpine_bootstrap(image; packages)
+artifact_hash, tarball_path, = alpine_bootstrap(image; packages)
 
 # Upload it
 upload_rootfs_image_github_actions(tarball_path)
+
+# Test that we can use our new rootfs image with Sandbox.jl
+test_sandbox(artifact_hash)
