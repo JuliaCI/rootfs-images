@@ -18,6 +18,7 @@ packages = [
     "less",
     "libatomic1",
     "libtool",
+    "locales",
     "m4",
     "make",
     "perl",

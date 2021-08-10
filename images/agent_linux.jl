@@ -17,6 +17,7 @@ packages = [
     # We use these in our buildkite plugins a lot
     "git",
     "jq",
+    "locales",
     "openssl",
     "python3",
     # Debugging

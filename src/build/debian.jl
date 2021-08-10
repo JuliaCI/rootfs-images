@@ -10,10 +10,11 @@ function debian_arch(image_arch::String)
 end
 
 function debootstrap(f::Function, arch::String, name::String;
-                     release::String="buster",
-                     variant::String="minbase",
-                     packages::Vector{String}=String[],
-                     force::Bool=false)
+                     force::Bool = false,
+                     locale::Bool = true,
+                     packages::Vector{String} = String[],
+                     release::String = "buster",
+                     variant::String = "minbase")
     if Sys.which("debootstrap") === nothing
         error("Must install `debootstrap`!")
     end
@@ -24,9 +25,19 @@ function debootstrap(f::Function, arch::String, name::String;
     end
 
     return create_rootfs(name; force) do rootfs
-        packages_string = join(push!(packages, "locales"), ",")
         @info("Running debootstrap", release, variant, packages)
-        run(`sudo debootstrap --arch=$(debian_arch(arch)) --variant=$(variant) --include=$(packages_string) $(release) "$(rootfs)"`)
+        debootstrap_cmd = `sudo debootstrap`
+        push!(debootstrap_cmd.exec, "--arch=$(debian_arch(arch))")
+        push!(debootstrap_cmd.exec, "--variant=$(variant)")
+        if isempty(packages)
+            packages_string = "(no packages)"
+        else
+            packages_string = join(strip.(packages), ",")
+            push!(debootstrap_cmd.exec, "--include=$(packages_string)")
+        end
+        push!(debootstrap_cmd.exec, "$(release)")
+        push!(debootstrap_cmd.exec, "$(rootfs)")
+        run(debootstrap_cmd)
 
         # This is necessary on any 32-bit userspaces to work around the
         # following bad interaction between qemu, linux and openssl:
@@ -60,11 +71,13 @@ function debootstrap(f::Function, arch::String, name::String;
         end
 
         # Set up the one true locale
-        @info("Setting up UTF-8 locale")
-        open(joinpath(rootfs, "etc", "locale.gen"), "a") do io
-            println(io, "en_US.UTF-8 UTF-8")
+        if locale
+            @info("Setting up UTF-8 locale")
+            open(joinpath(rootfs, "etc", "locale.gen"), "a") do io
+                println(io, "en_US.UTF-8 UTF-8")
+            end
+            chroot(rootfs, "locale-gen")
         end
-        chroot(rootfs, "locale-gen")
     end
 end
 
