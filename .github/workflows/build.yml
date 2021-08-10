@@ -10,7 +10,7 @@ on:
     types: [published]
   workflow_dispatch:
 permissions:
-  contents:            write
+  contents: write
 jobs:
   all:
     name: all
