@@ -1,29 +1,3 @@
-using ArgParse: ArgParse
-using Base.BinaryPlatforms
-using Dates
-using Pkg
-using Pkg.Artifacts
-using SHA
-using Scratch
-using Test
-using ghr_jll
-
-# Utility functions
-getuid() = ccall(:getuid, Cint, ())
-getgid() = ccall(:getgid, Cint, ())
-chroot(rootfs, cmds...; uid=getuid(), gid=getgid()) = run(`sudo chroot --userspec=$(uid):$(gid) $(rootfs) $(cmds)`)
-
-function parse_args(args::AbstractVector)
-    settings = ArgParse.ArgParseSettings()
-    ArgParse.@add_arg_table! settings begin
-        "--arch"
-            required=true
-    end
-    parsed_args = ArgParse.parse_args(args, settings)
-    arch = parsed_args["arch"]::String
-    return (; arch)
-end
-
 # Sometimes rootfs images have absolute symlinks within them; this
 # is very bad for us as it breaks our ability to look at a rootfs
 # without `chroot`'ing into it; so we fix up all the links to be
@@ -37,6 +11,7 @@ function force_relative(link, rootfs)
     rm(link; force=true)
     symlink(relpath(target, dirname(link)), link)
 end
+
 function force_relative(rootfs)
     for (root, dirs, files) in walkdir(rootfs)
         for f in files
@@ -144,17 +119,6 @@ function normalize_arch(image_arch::String)
     end
 end
 
-function debian_arch(image_arch::String)
-    debian_arch_mapping = Dict(
-        "x86_64" => "amd64",
-        "i686" => "i386",
-        "armv7l" => "armhf",
-        "aarch64" => "arm64",
-        "powerpc64le" => "ppc64el",
-    )
-    return debian_arch_mapping[normalize_arch(image_arch)]
-end
-
 function can_run_natively(image_arch::String)
     native_arch = Base.BinaryPlatforms.arch(HostPlatform())
     if native_arch == "x86_64"
@@ -178,119 +142,6 @@ function qemu_installed(image_arch::String)
     )
     return Sys.which("qemu-$(qemu_arch_mapping[image_arch])-static") !== nothing
 end
-
-function debootstrap(f::Function, arch::String, name::String;
-                     release::String="buster",
-                     variant::String="minbase",
-                     packages::Vector{String}=String[],
-                     force::Bool=false)
-    if Sys.which("debootstrap") === nothing
-        error("Must install `debootstrap`!")
-    end
-
-    arch = normalize_arch(arch)
-    if !can_run_natively(arch) && !qemu_installed(arch)
-        error("Must install qemu-user-static and binfmt_misc!")
-    end
-
-    return create_rootfs(name; force) do rootfs
-        packages_string = join(push!(packages, "locales"), ",")
-        @info("Running debootstrap", release, variant, packages)
-        run(`sudo debootstrap --arch=$(debian_arch(arch)) --variant=$(variant) --include=$(packages_string) $(release) "$(rootfs)"`)
-
-        # This is necessary on any 32-bit userspaces to work around the
-        # following bad interaction between qemu, linux and openssl:
-        # https://serverfault.com/questions/1045118/debootstrap-armhd-buster-unable-to-get-local-issuer-certificate
-        if isfile(joinpath(rootfs, "usr", "bin", "c_rehash"))
-            chroot(rootfs, "/usr/bin/c_rehash"; uid=0, gid=0)
-        end
-
-        # Call user callback, if requested
-        f(rootfs)
-
-        # Remove special `dev` files, take ownership, force symlinks to be relative, etc...
-        rootfs_info="""
-                    rootfs_type=debootstrap
-                    release=$(release)
-                    variant=$(variant)
-                    packages=$(packages_string)
-                    build_date=$(Dates.now())
-                    """
-        cleanup_rootfs(rootfs; rootfs_info)
-
-        # Remove `_apt` user so that `apt` doesn't try to `setgroups()`
-        @info("Removing `_apt` user")
-        open(joinpath(rootfs, "etc", "passwd"), write=true, read=true) do io
-            filtered_lines = filter(l -> !startswith(l, "_apt:"), readlines(io))
-            truncate(io, 0)
-            seek(io, 0)
-            for l in filtered_lines
-                println(io, l)
-            end
-        end
-
-        # Set up the one true locale
-        @info("Setting up UTF-8 locale")
-        open(joinpath(rootfs, "etc", "locale.gen"), "a") do io
-            println(io, "en_US.UTF-8 UTF-8")
-        end
-        chroot(rootfs, "locale-gen")
-    end
-end
-# If no user callback is provided, default to doing nothing
-debootstrap(arch::String, name::String; kwargs...) = debootstrap(p -> nothing, arch, name; kwargs...)
-
-# Helper structure for installing alpine packages that may or may not be part of an older Alpine release
-struct AlpinePackage
-    name::String
-    repo::Union{Nothing,String}
-
-    AlpinePackage(name, repo=nothing) = new(name, repo)
-end
-function repository_arg(repo)
-    if startswith(repo, "https://")
-        return "--repository=$(repo)"
-    end
-    return "--repository=http://dl-cdn.alpinelinux.org/alpine/$(repo)/main"
-end
-
-function alpine_bootstrap(f::Function, name::String; release::VersionNumber=v"3.13.5", variant="minirootfs",
-                          packages::Vector{AlpinePackage}=AlpinePackage[], force::Bool=false)
-    return create_rootfs(name; force) do rootfs
-        rootfs_url = "https://github.com/alpinelinux/docker-alpine/raw/v$(release.major).$(release.minor)/x86_64/alpine-$(variant)-$(release)-x86_64.tar.gz"
-        @info("Downloading Alpine rootfs", url=rootfs_url)
-        rm(rootfs)
-        Pkg.Artifacts.download_verify_unpack(rootfs_url, nothing, rootfs; verbose=true)
-
-        # Call user callback, if requested
-        f(rootfs)
-
-        # Remove special `dev` files, take ownership, force symlinks to be relative, etc...
-        rootfs_info = """
-                    rootfs_type=alpine
-                    release=$(release)
-                    variant=$(variant)
-                    packages=$(join([pkg.name for pkg in packages], ","))
-                    build_date=$(Dates.now())
-                    """
-        cleanup_rootfs(rootfs; rootfs_info)
-
-        # Generate one `apk` invocation per repository
-        repos = unique([pkg.repo for pkg in packages])
-        for repo in repos
-            apk_args = ["/sbin/apk", "add", "--no-chown"]
-            if repo !== nothing
-                push!(apk_args, repository_arg(repo))
-            end
-            for pkg in filter(pkg -> pkg.repo == repo, packages)
-                push!(apk_args, pkg.name)
-            end
-            chroot(rootfs, apk_args...)
-        end
-    end
-end
-# If no user callback is provided, default to doing nothing
-alpine_bootstrap(name::String; kwargs...) = alpine_bootstrap(p -> nothing, name; kwargs...)
 
 function upload_rootfs_image(tarball_path::String;
                              github_repo::String,
@@ -373,25 +224,4 @@ function upload_rootfs_image_github_actions(tarball_path::String)
         github_repo,
         tag_name,
     )
-end
-
-function test_sandbox(artifact_hash)
-    test_cmd = `$(Base.julia_cmd())`
-    push!(test_cmd.exec, "--project=$(Base.active_project())")
-    push!(test_cmd.exec, joinpath(@__DIR__, "test_rootfs.jl"))
-    push!(test_cmd.exec, "")
-    push!(test_cmd.exec, "$(artifact_hash)")
-    push!(test_cmd.exec, "/bin/bash")
-    push!(test_cmd.exec, "-c")
-    push!(test_cmd.exec, "echo Hello from inside the sandbox")
-    @testset "Test sandbox" begin
-        @testset begin
-            run(test_cmd)
-        end
-        @testset begin
-            @test success(test_cmd)
-            @test read(test_cmd, String) == "Hello from inside the sandbox\n"
-        end
-    end
-    return nothing
 end

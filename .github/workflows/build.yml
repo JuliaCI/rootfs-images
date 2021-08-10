@@ -83,8 +83,9 @@ jobs:
       - run: sudo apt-get update
       - run: sudo apt-get -y install binfmt-support debootstrap qemu-user-static
       - run: update-binfmts --display
-      - run: julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
-      - run: julia --color=yes --project=. -e 'using Pkg; Pkg.precompile()'
+      - run: julia --color=yes --project=. -e 'using Pkg; @time Pkg.instantiate()'
+      - run: julia --color=yes --project=. -e 'using Pkg; @time Pkg.precompile()'
+      - run: julia --color=yes --project=. -e '@time using RootfsUtils'
       - run: |
           IMAGE_NAME=$(echo ${{ matrix.image }} | cut -d. -f1)
           IMAGE_ARCH=$(echo ${{ matrix.image }} | cut -d. -f2)

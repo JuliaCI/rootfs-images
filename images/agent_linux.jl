@@ -2,8 +2,9 @@
 ## to run inside of.  Most CI steps will be run within a different image
 ## nested inside of this one.
 
-include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
-arch, = parse_args(ARGS)
+using RootfsUtils
+
+arch, = parse_build_args(ARGS)
 image = "$(splitext(basename(@__FILE__))[1]).$(arch)"
 
 # Build debian-based image with the following extra packages:
