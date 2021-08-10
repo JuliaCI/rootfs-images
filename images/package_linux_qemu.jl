@@ -4,8 +4,7 @@
 
 using RootfsUtils
 
-arch, = parse_build_args(ARGS)
-image = "$(splitext(basename(@__FILE__))[1]).$(arch)"
+arch, image, = parse_build_args(ARGS, @__FILE__)
 
 # Build debian-based image with the following extra packages:
 packages = [
