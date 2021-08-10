@@ -1,8 +1,9 @@
 ## This rootfs includes everything that must be installed to build Julia
 ## within an alpine-based environment with GCC 9.
 
-include(joinpath(dirname(@__DIR__), "rootfs_utils.jl"))
-arch, = parse_args(ARGS)
+using RootfsUtils
+
+arch, = parse_build_args(ARGS)
 image = "$(splitext(basename(@__FILE__))[1]).$(arch)"
 
 # Build alpine-based image with the following extra packages:
