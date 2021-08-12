@@ -1,18 +1,10 @@
-## This rootfs does not include the compiler toolchain.
-
 using RootfsUtils
 
 arch, image, = parse_build_args(ARGS, @__FILE__)
 
 # Build debian-based image with the following extra packages:
-packages = [
-    "bash",
-    "curl",
-    "gdb",
-    "locales",
-    "vim",
-]
-artifact_hash, tarball_path, = debootstrap(arch, image; packages)
+packages = String[]
+artifact_hash, tarball_path, = debootstrap(arch, image; packages, locale = false)
 
 # Upload it
 upload_rootfs_image_github_actions(tarball_path)

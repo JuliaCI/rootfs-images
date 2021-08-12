@@ -13,6 +13,7 @@ packages = [
     "git",
     "less",
     "libatomic1",
+    "locales",
     "m4",
     "perl",
     "pkg-config",

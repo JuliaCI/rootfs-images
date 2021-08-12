@@ -30,6 +30,10 @@ jobs:
           - 'agent_linux.armv7l'
           - 'agent_linux.ppc64le'
           - 'agent_linux.x86_64'
+          
+          # The `debian_minimal` image is a `debian`-based image that
+          # contains no packages.
+          - 'debian_minimal.x86_64'
 
           # The `package_linux` images are all `debian`-based.
           - 'package_linux.aarch64'
