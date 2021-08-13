@@ -96,3 +96,4 @@ jobs:
         with:
           name: ${{ steps.build.outputs.tarball_name }}
           path: ${{ steps.build.outputs.tarball_path }}
+          if-no-files-found: error
