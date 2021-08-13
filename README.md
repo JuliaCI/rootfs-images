@@ -11,6 +11,17 @@ Most images are based on Debian, making use of `debootstrap` to provide a quick 
 This repository contains the scripts to build the rootfs images.
 The other configuration files for Base Julia CI are located in the [`.buildkite`](https://github.com/JuliaLang/julia/tree/master/.buildkite) directory in the [Julia](https://github.com/JuliaLang/julia) repository.
 
+## Instantiating the environment
+
+```
+julia --project -e 'import Pkg; Pkg.instantiate()'
+```
+
 ## Testing out a rootfs image
 
 If you want to test a rootfs image locally, you can use the `test_roofs.jl` script, passing in the URL of the rootfs you want to test.  It will drop you into a shell within the build environment, where you can recreate build failures more reliably.
+
+To see the help, run:
+```
+julia --project test_roofs.jl --help
+```

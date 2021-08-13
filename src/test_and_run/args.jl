@@ -4,18 +4,18 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
     )
     default_command = "/bin/bash"
     ArgParse.@add_arg_table! settings begin
-        "--url"
+        "--url", "-u"
             required = false
             default = ""
             help = "URL from which to download the rootfs image"
-        "--treehash"
+        "--treehash", "-t"
             required = false
             default = ""
             help = "Tree hash of the rootfs image"
         "command"
             required = false
             default = Any[]
-            nargs = 'R' # all remaining tokens
+            nargs = 'R' # 'R' = all remaining tokens
             help = "The command to run. If not specified, defaults to $(default_command)"
     end
     parsed_args = ArgParse.parse_args(args, settings)
