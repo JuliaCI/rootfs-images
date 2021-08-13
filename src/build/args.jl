@@ -7,7 +7,7 @@ function parse_build_args(args::AbstractVector, file::AbstractString)
         description = "Build a rootfs image",
     )
     ArgParse.@add_arg_table! settings begin
-        "--arch"
+        "--arch", "-a"
             arg_type = String
             required = true
             help = "The architecture for which you would like to build"
