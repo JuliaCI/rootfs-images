@@ -30,7 +30,7 @@ jobs:
           - 'agent_linux.armv7l'
           - 'agent_linux.ppc64le'
           - 'agent_linux.x86_64'
-          
+
           # The `debian_minimal` image is a `debian`-based image that
           # contains no packages.
           - 'debian_minimal.x86_64'
@@ -86,5 +86,13 @@ jobs:
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "IMAGE_ARCH=$IMAGE_ARCH" >> $GITHUB_ENV
       - run: julia --color=yes --project=. images/${{ env.IMAGE_NAME }}.jl --arch=${{ env.IMAGE_ARCH }}
+        id: build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: echo "The tarball name is ${{ steps.build.outputs.tarball_name }}"
+      - run: echo "The tarball path is ${{ steps.build.outputs.tarball_path }}"
+      - uses: actions/upload-artifact@v2
+        if: steps.build.outputs.tarball_name != '' && steps.build.outputs.tarball_path != ''
+        with:
+          name: ${{ steps.build.outputs.tarball_name }}
+          path: ${{ steps.build.outputs.tarball_path }}

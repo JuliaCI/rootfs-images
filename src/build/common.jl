@@ -98,6 +98,14 @@ function create_rootfs(f::Function, name::String; force::Bool=false)
     end
     @info "Archiving" artifact_hash tarball_path
     archive_artifact(artifact_hash, tarball_path)
+    if is_github_actions()
+        is_push = is_github_actions_push()
+        is_main = get_github_actions_ref() == "refs/heads/main"
+        if is_push && is_main
+            github_actions_set_output("tarball_name" => basename(tarball_path))
+            github_actions_set_output("tarball_path" => tarball_path)
+        end
+    end
     return (; artifact_hash, tarball_path)
 end
 
@@ -162,25 +170,35 @@ function upload_rootfs_image(tarball_path::String;
     error("Unable to upload!")
 end
 
+get_github_actions_event_name() = convert(String, strip(ENV["GITHUB_EVENT_NAME"]))::String
+get_github_actions_ref()        = convert(String, strip(ENV["GITHUB_REF"]))::String
+get_github_actions_repo()       = convert(String, strip(ENV["GITHUB_REPOSITORY"]))::String
+
 function is_github_actions()
-    is_ci  = get(ENV, "CI", "")              == "true"
-    is_gha = get(ENV, "GITHUB_ACTIONS", "")  == "true"
+    ci =  lowercase(strip(get(ENV, "CI",             "")))
+    gha = lowercase(strip(get(ENV, "GITHUB_ACTIONS", "")))
+    is_ci  = (ci ==  "1") || (ci ==  "true")
+    is_gha = (gha == "1") || (gha == "true")
     return is_ci && is_gha
 end
-function _is_github_actions_event(event_name::AbstractString)
-    is_gha = is_github_actions()
-    is_event = get(ENV, "GITHUB_EVENT_NAME", "") == event_name
-    return is_gha && is_event
+
+function is_github_actions_event(event_name::AbstractString)
+    is_github_actions() || return false
+    return get_github_actions_event_name() == event_name
 end
-function is_github_actions_pr()
-    return _is_github_actions_event("pull_request")
+
+is_github_actions_pr() = is_github_actions_event("pull_request")
+is_github_actions_push() = is_github_actions_event("push")
+is_github_actions_release() = is_github_actions_event("release")
+
+function github_actions_set_output(io::IO, p::Pair{String, String})
+    name = p[1]::String
+    value = p[2]::String
+    @debug "Setting GitHub Actions output" name value
+    println(io, "::set-output name=$(name)::$(value)")
+    return nothing
 end
-function is_github_actions_release()
-    return _is_github_actions_event("release")
-end
-get_github_actions_event_name() = convert(String, ENV["GITHUB_EVENT_NAME"])::String
-get_github_actions_ref()        = convert(String, ENV["GITHUB_REF"])::String
-get_github_actions_repo()       = convert(String, ENV["GITHUB_REPOSITORY"])::String
+github_actions_set_output(p::Pair) = github_actions_set_output(stdout, p)
 
 function upload_rootfs_image_github_actions(tarball_path::Nothing)
     if !is_github_actions_pr()
@@ -191,13 +209,13 @@ function upload_rootfs_image_github_actions(tarball_path::Nothing)
     GITHUB_EVENT_NAME = get_github_actions_event_name()
     GITHUB_REF        = get_github_actions_ref()
 
-    @info "Skipping upload because the build is a `pull_request` build" GITHUB_EVENT_NAME GITHUB_REF
+    @info "Skipping release artifact upload because the build is a `pull_request` build" GITHUB_EVENT_NAME GITHUB_REF
     return nothing
 end
 
 function upload_rootfs_image_github_actions(tarball_path::String)
     if !is_github_actions()
-        @info "Skipping upload because this is not a GitHub Actions build"
+        @info "Skipping release artifact upload because this is not a GitHub Actions build"
         return nothing
     end
 
@@ -206,7 +224,7 @@ function upload_rootfs_image_github_actions(tarball_path::String)
     m = match(r"^refs\/tags\/(.*?)$", GITHUB_REF)
 
     if !is_github_actions_release()
-        @info "Skipping upload because this is not a `release` build" GITHUB_EVENT_NAME GITHUB_REF
+        @info "Skipping release artifact upload because this is not a `release` build" GITHUB_EVENT_NAME GITHUB_REF
         return nothing
     end
 
