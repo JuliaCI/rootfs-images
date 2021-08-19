@@ -27,9 +27,11 @@ include("build/alpine.jl")
 include("build/args.jl")
 include("build/common.jl")
 include("build/debian.jl")
-include("build/utils.jl")
 
 include("test_and_run/args.jl")
 include("test_and_run/test.jl")
+
+include("utils/args.jl")
+include("utils/chroot.jl")
 
 end # module
