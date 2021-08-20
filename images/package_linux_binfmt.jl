@@ -9,6 +9,7 @@ arch, image, = parse_build_args(ARGS, @__FILE__)
 packages = [
     "automake",
     "bash",
+    "binfmt-support",
     "bison",
     "cmake",
     "curl",
