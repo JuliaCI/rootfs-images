@@ -42,6 +42,15 @@ jobs:
           - 'package_linux.powerpc64le'
           - 'package_linux.x86_64'
 
+          # The `package_linux_binfmt` images are all `debian`-based.
+          # They are similar to the `package_linux` images, except that they also include
+          # the `binfmt-support` apt package inside the image.
+          - 'package_linux_binfmt.aarch64'
+          # - 'package_linux.armv7l'
+          # - 'package_linux.i686'
+          # - 'package_linux.powerpc64le'
+          # - 'package_linux.x86_64'
+
           # The `package_musl` image is `alpine`-based.
           - 'package_musl.x86_64'
 
