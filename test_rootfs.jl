@@ -1,11 +1,17 @@
+using Base.BinaryPlatforms
 using Pkg.Artifacts
 using RootfsUtils
 using Sandbox
 
-command, treehash, url, = parse_test_args(ARGS, @__FILE__)
+arch, command, treehash, url, = parse_test_args(ARGS, @__FILE__)
 
 # If the artifact is not locally existent, download it
 ensure_artifact_exists_locally(; treehash, url)
+
+multiarch = Platform[]
+if arch !== nothing
+    push!(multiarch, Platform(arch, "linux"; libc="glibc"))
+end
 
 config = SandboxConfig(
     Dict("/" => artifact_path(treehash)),
@@ -20,6 +26,7 @@ config = SandboxConfig(
     stderr,
     uid=Sandbox.getuid(),
     gid=Sandbox.getgid(),
+    multiarch,
 )
 
 with_executor() do exe

@@ -13,7 +13,8 @@ function parse_build_args(args::AbstractVector, file::AbstractString)
             help = "The architecture for which you would like to build"
     end
     parsed_args = ArgParse.parse_args(args, settings)
-    arch = parsed_args["arch"]::String
+    # arch = parsed_args["arch"]
+    arch = _process_required_string_arg(parsed_args, "arch")
     image = generate_image_name(arch, file)
     return (; arch, image)
 end
