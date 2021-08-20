@@ -91,7 +91,8 @@ function create_rootfs(f::Function, name::String; force::Bool=false)
     artifact_hash = create_artifact(f)
 
     # Archive it into a `.tar.gz` file (but only if this is not a pull request build).
-    if is_github_actions_pr()
+    # if is_github_actions_pr() # TODO: uncomment this line
+    if false # TODO: delete this line
         info_msg = "Skipping tarball creation because the build is a `pull_request` build"
         @info info_msg artifact_hash basename(tarball_path)
         return (; artifact_hash, tarball_path = nothing)
@@ -101,7 +102,8 @@ function create_rootfs(f::Function, name::String; force::Bool=false)
     if is_github_actions()
         is_push = is_github_actions_push()
         is_main = get_github_actions_ref() == "refs/heads/main"
-        if is_push && is_main
+        # if is_push && is_main # TODO: uncomment this line
+        if true # TODO: delete this line
             github_actions_set_output("tarball_name" => basename(tarball_path))
             github_actions_set_output("tarball_path" => tarball_path)
         end
