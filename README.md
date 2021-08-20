@@ -11,6 +11,8 @@ Most images are based on Debian, making use of `debootstrap` to provide a quick 
 This repository contains the scripts to build the rootfs images.
 The other configuration files for Base Julia CI are located in the [`.buildkite`](https://github.com/JuliaLang/julia/tree/master/.buildkite) directory in the [Julia](https://github.com/JuliaLang/julia) repository.
 
+The documentation for the Base Julia CI setup is located in the [base-buildkite-docs](https://github.com/JuliaCI/base-buildkite-docs) repository.
+
 ## Instantiating the environment
 
 ```
