@@ -26,21 +26,21 @@ jobs:
       matrix:
         image:
           # Build a bunch of different "agent" rootfs images.
-          - 'agent_linux.aarch64'
-          - 'agent_linux.armv7l'
-          - 'agent_linux.ppc64le'
-          - 'agent_linux.x86_64'
+          # - 'agent_linux.aarch64'
+          # - 'agent_linux.armv7l'
+          # - 'agent_linux.ppc64le'
+          # - 'agent_linux.x86_64'
 
           # The `debian_minimal` image is a `debian`-based image that
           # contains no packages.
-          - 'debian_minimal.x86_64'
+          # - 'debian_minimal.x86_64'
 
           # The `package_linux` images are all `debian`-based.
-          - 'package_linux.aarch64'
-          - 'package_linux.armv7l'
-          - 'package_linux.i686'
-          - 'package_linux.powerpc64le'
-          - 'package_linux.x86_64'
+          # - 'package_linux.aarch64'
+          # - 'package_linux.armv7l'
+          # - 'package_linux.i686'
+          # - 'package_linux.powerpc64le'
+          # - 'package_linux.x86_64'
 
           # The `package_linux_binfmt` images are all `debian`-based.
           # They are similar to the `package_linux` images, except that they also include
@@ -52,22 +52,22 @@ jobs:
           - 'package_linux.x86_64'
 
           # The `package_musl` image is `alpine`-based.
-          - 'package_musl.x86_64'
+          # - 'package_musl.x86_64'
 
           # The `tester_linux` images are all `debian`-based.
           # They do not include the compiler toolchain.
-          - 'tester_linux.aarch64'
-          - 'tester_linux.armv7l'
-          - 'tester_linux.i686'
-          - 'tester_linux.powerpc64le'
-          - 'tester_linux.x86_64'
+          # - 'tester_linux.aarch64'
+          # - 'tester_linux.armv7l'
+          # - 'tester_linux.i686'
+          # - 'tester_linux.powerpc64le'
+          # - 'tester_linux.x86_64'
 
           # The `tester_musl` image is `alpine`-based.
           # It does not include the compiler toolchain.
-          - 'tester_musl.x86_64'
+          # - 'tester_musl.x86_64'
 
           # The `llvm_passes` image is a short-term solution for the `analyzegc` builder.
-          - 'llvm_passes.x86_64'
+          # - 'llvm_passes.x86_64'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
