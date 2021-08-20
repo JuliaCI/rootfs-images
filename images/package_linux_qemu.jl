@@ -27,7 +27,6 @@ packages = [
     "pkg-config",
     "python",
     "python3",
-    "qemu-user-static",
     "wget",
     "vim",
 ]
