@@ -42,6 +42,15 @@ jobs:
           - 'package_linux.powerpc64le'
           - 'package_linux.x86_64'
 
+          # The `package_linux_qemu` images are all `debian`-based.
+          # They are similar to the `package_linux` images, but they also include
+          # the `binfmt-support` and `qemu-user-static` apt packages inside the image.
+          - 'package_linux_qemu.aarch64'
+          - 'package_linux_qemu.armv7l'
+          - 'package_linux_qemu.i686'
+          - 'package_linux_qemu.powerpc64le'
+          - 'package_linux_qemu.x86_64'
+
           # The `package_musl` image is `alpine`-based.
           - 'package_musl.x86_64'
 
