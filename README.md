@@ -23,7 +23,7 @@ julia --project -e 'import Pkg; Pkg.instantiate()'
 
 If you want to test a rootfs image locally, you can use the `test_roofs.jl` script, passing in the URL of the rootfs you want to test.  It will drop you into a shell within the build environment, where you can recreate build failures more reliably.
 
-To see the help, run:
+To see the instructions for running the `test_roofs.jl` script, run:
 ```
 julia --project test_roofs.jl --help
 ```
