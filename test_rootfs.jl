@@ -26,6 +26,7 @@ config = SandboxConfig(
     stderr,
     uid=Sandbox.getuid(),
     gid=Sandbox.getgid(),
+    tmpfs_size = "2G",
     multiarch,
 )
 
