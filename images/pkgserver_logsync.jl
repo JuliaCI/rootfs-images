@@ -10,6 +10,7 @@ packages = String[
     "curl",
     "jq",
     "zstd",
+    "locales",
 ]
 artifact_hash, tarball_path, = debootstrap(arch, image; packages)
 
