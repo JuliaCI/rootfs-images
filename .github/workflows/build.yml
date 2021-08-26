@@ -59,6 +59,9 @@ jobs:
 
           # The `llvm_passes` image is a short-term solution for the `analyzegc` builder.
           - 'llvm_passes.x86_64'
+          
+          # The `pkgserver_logsync` image is a helper for https://github.com/JuliaPackaging/PkgServerLogAnalysis.jl
+          - 'pkgserver_logsync.x86_64'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
