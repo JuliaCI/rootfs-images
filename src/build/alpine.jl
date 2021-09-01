@@ -5,7 +5,7 @@ function repository_arg(repo)
     return "--repository=http://dl-cdn.alpinelinux.org/alpine/$(repo)/main"
 end
 
-function alpine_bootstrap(f::Function, name::String; release::VersionNumber=v"3.13.5", variant="minirootfs",
+function alpine_bootstrap(f::Function, name::String; release::VersionNumber=v"3.13.6", variant="minirootfs",
                           packages::Vector{AlpinePackage}=AlpinePackage[], force::Bool=false)
     return create_rootfs(name; force) do rootfs
         rootfs_url = "https://github.com/alpinelinux/docker-alpine/raw/v$(release.major).$(release.minor)/x86_64/alpine-$(variant)-$(release)-x86_64.tar.gz"
