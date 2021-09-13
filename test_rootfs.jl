@@ -13,9 +13,12 @@ if arch !== nothing
     push!(multiarch, Platform(arch, "linux"; libc="glibc"))
 end
 
+build_dir = joinpath(@__DIR__, "build")
+mkpath(build_dir)
+
 config = SandboxConfig(
     Dict("/" => artifact_path(treehash)),
-    Dict{String,String}(),
+    Dict("/build" => build_dir),
     Dict(
         "PATH" => "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin",
         "HOME" => "/home/juliaci",
@@ -26,7 +29,8 @@ config = SandboxConfig(
     stderr,
     uid=Sandbox.getuid(),
     gid=Sandbox.getgid(),
-    tmpfs_size = "2G",
+    tmpfs_size="2G",
+    pwd="/build",
     multiarch,
 )
 
