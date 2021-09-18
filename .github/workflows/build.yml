@@ -68,6 +68,11 @@ jobs:
         with:
           version: '1.6'
           arch: x64
+      - run: |
+          import Pkg
+          ENV["JULIA_PKG_SERVER"] = ""
+          Pkg.Registry.add("General")
+        shell: julia --color=yes {0}
       - run: sudo apt-get update
       - run: sudo apt-get -y install binfmt-support debootstrap qemu-user-static
       - run: update-binfmts --display
