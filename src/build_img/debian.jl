@@ -19,6 +19,19 @@ function debootstrap(f::Function, arch::String, name::String;
         error("Must install `debootstrap`!")
     end
 
+    if locale
+        if "locales" ∉ packages
+            msg = string(
+                "You have set the `locale` keyword argument to `true`. ",
+                "However, the `packages` vector does not include the `locales` package. ",
+                "Either ",
+                "(1) add the `locales` package to the `packages` vector, or ",
+                "(2) set the `locale` keyword arguement to `false`.",
+            )
+            throw(ArgumentError(msg))
+        end
+    end
+
     arch = normalize_arch(arch)
     if !can_run_natively(arch) && !qemu_installed(arch)
         error("Must install qemu-user-static and binfmt_misc!")

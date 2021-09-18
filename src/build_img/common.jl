@@ -82,13 +82,13 @@ function cleanup_rootfs(rootfs; rootfs_info=nothing)
 end
 
 function create_rootfs(f::Function, name::String; force::Bool=false)
-    tarball_path = joinpath(@get_scratch!("rootfs-images"), "$(name).tar.gz")
+    tarball_path = joinpath(Scratch.@get_scratch!("rootfs-images"), "$(name).tar.gz")
     if !force && isfile(tarball_path)
         @error("Refusing to overwrite tarball without `force` set", tarball_path)
         error()
     end
 
-    artifact_hash = create_artifact(f)
+    artifact_hash = Pkg.Artifacts.create_artifact(f)
 
     # Archive it into a `.tar.gz` file (but only if this is not a pull request build).
     if is_github_actions_pr()
@@ -97,7 +97,7 @@ function create_rootfs(f::Function, name::String; force::Bool=false)
         return (; artifact_hash, tarball_path = nothing)
     end
     @info "Archiving" artifact_hash tarball_path
-    archive_artifact(artifact_hash, tarball_path)
+    Pkg.Artifacts.archive_artifact(artifact_hash, tarball_path)
     if is_github_actions()
         is_push = is_github_actions_push()
         is_main = get_github_actions_ref() == "refs/heads/main"
@@ -128,7 +128,7 @@ function normalize_arch(image_arch::String)
 end
 
 function can_run_natively(image_arch::String)
-    native_arch = Base.BinaryPlatforms.arch(HostPlatform())
+    native_arch = Base.BinaryPlatforms.arch(Base.BinaryPlatforms.HostPlatform())
     if native_arch == "x86_64"
         # We'll assume all `x86_64` chips can run `i686` code
         return image_arch in ("x86_64", "i686")
@@ -200,7 +200,7 @@ function github_actions_set_output(io::IO, p::Pair{String, String})
 end
 github_actions_set_output(p::Pair) = github_actions_set_output(stdout, p)
 
-function upload_rootfs_image_github_actions(tarball_path::Nothing)
+function upload_gha(tarball_path::Nothing)
     if !is_github_actions_pr()
         error_msg = "You are only allowed to skip tarball creation if the build is a `pull_request` build"
         throw(ErrorException(error_msg))
@@ -213,7 +213,7 @@ function upload_rootfs_image_github_actions(tarball_path::Nothing)
     return nothing
 end
 
-function upload_rootfs_image_github_actions(tarball_path::String)
+function upload_gha(tarball_path::String)
     if !is_github_actions()
         @info "Skipping release artifact upload because this is not a GitHub Actions build"
         return nothing
