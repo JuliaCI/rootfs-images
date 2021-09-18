@@ -52,7 +52,10 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
         read_write_maps["/build"] = build_dir_persist
         working_dir   = "/build"
     elseif map_build_dir == "temp"
-        read_write_maps["/build"] = mktempdir(; cleanup = true)
+        build_dir_temp = mktempdir(; cleanup = true)
+        isdir(build_dir_temp) || throw(ErrorException("The temporary directory was not created"))
+        isempty(readdir(build_dir_temp)) || throw(ErrorException("The temporary directory is not empty"))
+        read_write_maps["/build"] = build_dir_temp
         working_dir   = "/build"
     elseif map_build_dir == "no"
         working_dir = "/"
