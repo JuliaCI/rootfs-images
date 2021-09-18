@@ -23,13 +23,13 @@ export upload_rootfs_image_github_actions
 
 include("types.jl")
 
-include("build/alpine.jl")
-include("build/args.jl")
-include("build/common.jl")
-include("build/debian.jl")
+include("build_img/alpine.jl")
+include("build_img/args.jl")
+include("build_img/common.jl")
+include("build_img/debian.jl")
 
-include("test_and_run/args.jl")
-include("test_and_run/test.jl")
+include("test_img/args.jl")
+include("test_img/test.jl")
 
 include("utils/args.jl")
 include("utils/chroot.jl")
