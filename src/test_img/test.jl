@@ -20,15 +20,15 @@ function test_sandbox(artifact_hash)
 end
 
 function ensure_artifact_exists_locally(; treehash, url)
-    if !artifact_exists(treehash)
+    if !Pkg.Artifacts.artifact_exists(treehash)
         if url === nothing
             error_msg = "The artifact does not exist locally, so you must provide the URL."
             throw(ArgumentError(error_msg))
         end
         @info("Artifact did not exist locally, downloading")
-        was_success = download_artifact(treehash, url; verbose=true)
+        was_success = Pkg.Artifacts.download_artifact(treehash, url; verbose=true)
         was_success || throw(ErrorException("Download was not a success"))
     end
-    artifact_exists(treehash) || throw(ErrorException("Could not download the artifact"))
+    Pkg.Artifacts.artifact_exists(treehash) || throw(ErrorException("Could not download the artifact"))
     return nothing
 end

@@ -1,25 +1,23 @@
-using Base.BinaryPlatforms
-using Pkg.Artifacts
-using RootfsUtils
-using Sandbox
+using Pkg.Artifacts: artifact_path
+using RootfsUtils: parse_test_args, ensure_artifact_exists_locally
+using Sandbox: Sandbox, SandboxConfig, with_executor
 
-arch, command, treehash, url, = parse_test_args(ARGS, @__FILE__)
+args            = parse_test_args(ARGS, @__FILE__)
+
+command         = args.command
+multiarch       = args.multiarch
+read_write_maps = args.read_write_maps
+treehash        = args.treehash
+url             = args.url
+working_dir     = args.working_dir
 
 # If the artifact is not locally existent, download it
 ensure_artifact_exists_locally(; treehash, url)
 
-multiarch = Platform[]
-if arch !== nothing
-    push!(multiarch, Platform(arch, "linux"; libc="glibc"))
-end
-
-build_dir = joinpath(@__DIR__, "build")
-mkpath(build_dir)
-
 config = SandboxConfig(
-    Dict("/" => artifact_path(treehash)),
-    Dict("/build" => build_dir),
-    Dict(
+    Dict("/" => artifact_path(treehash)), # read-only maps
+    read_write_maps,
+    Dict(   # environment variables
         "PATH" => "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin",
         "HOME" => "/home/juliaci",
         "USER" => "juliaci",
@@ -27,11 +25,11 @@ config = SandboxConfig(
     stdin,
     stdout,
     stderr,
-    uid=Sandbox.getuid(),
-    gid=Sandbox.getgid(),
-    tmpfs_size="2G",
-    pwd="/build",
     multiarch,
+    uid        = Sandbox.getuid(),
+    gid        = Sandbox.getgid(),
+    tmpfs_size = "2G",
+    pwd        = working_dir,
 )
 
 with_executor() do exe

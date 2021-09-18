@@ -59,7 +59,7 @@ jobs:
 
           # The `llvm_passes` image is a short-term solution for the `analyzegc` builder.
           - 'llvm_passes.x86_64'
-          
+
           # The `pkgserver_logsync` image is a helper for https://github.com/JuliaPackaging/PkgServerLogAnalysis.jl
           - 'pkgserver_logsync.x86_64'
     steps:
@@ -76,9 +76,9 @@ jobs:
       - run: sudo apt-get update
       - run: sudo apt-get -y install binfmt-support debootstrap qemu-user-static
       - run: update-binfmts --display
-      - run: julia --color=yes --project=. -e 'using Pkg; @time Pkg.instantiate()'
-      - run: julia --color=yes --project=. -e 'using Pkg; @time Pkg.precompile()'
-      - run: julia --color=yes --project=. -e '@time using RootfsUtils'
+      - run: julia --color=yes --project=. -e 'import Pkg; @time Pkg.instantiate()'
+      - run: julia --color=yes --project=. -e 'import Pkg; @time Pkg.precompile()'
+      - run: julia --color=yes --project=. -e '@time import RootfsUtils'
       - run: |
           IMAGE_NAME=$(echo ${{ matrix.image }} | cut -d. -f1)
           IMAGE_ARCH=$(echo ${{ matrix.image }} | cut -d. -f2)
