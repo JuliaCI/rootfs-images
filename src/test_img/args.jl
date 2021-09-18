@@ -47,12 +47,21 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
 
     read_write_maps = Dict{String, String}()
     if map_build_dir == "persist"
+        # If `${REPOSITORY_ROOT}` represents the root directory of the repository,
+        # then `build_dir_persist` is the `${REPOSITORY_ROOT}/build/` directory.
+        # This of course assumes that the `test_rootfs.jl` script is located at the
+        # top-level of the repository.
         build_dir_persist = joinpath(dirname(file), "build")
         mkpath(build_dir_persist)
         read_write_maps["/build"] = build_dir_persist
         working_dir   = "/build"
     elseif map_build_dir == "temp"
-        build_dir_temp = mktempdir(; cleanup = true)
+        # If `${REPOSITORY_ROOT}` represents the root directory of the repository,
+        # then `build_dir_temp_parent` is the `${REPOSITORY_ROOT}/temp/` directory.
+        # This of course assumes that the `test_rootfs.jl` script is located at the
+        # top-level of the repository.
+        build_dir_temp_parent = joinpath(dirname(file), "temp")
+        build_dir_temp = mktempdir(build_dir_temp_parent; cleanup = true)
         isdir(build_dir_temp) || throw(ErrorException("The temporary directory was not created"))
         isempty(readdir(build_dir_temp)) || throw(ErrorException("The temporary directory is not empty"))
         read_write_maps["/build"] = build_dir_temp
