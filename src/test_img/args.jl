@@ -11,26 +11,30 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
             arg_type = String
             required = false
             default = ""
-            help = "Architecture of the rootfs image"
+            help = "Architecture of the rootfs image."
         "--map-build-dir"
             arg_type = String
             required = false
             default = "persist"
             help = string(
                 "Whether to map a persistant build directory into the sandbox. ",
-                "Possible values: persist, temp, no. ",
-                "If not specified, defaults to persist",
+                "Possible values: persist, temp, no.",
             )
         "--url", "-u"
             arg_type = String
             required = false
             default = ""
-            help = "URL from which to download the rootfs image"
+            help = "URL from which to download the rootfs image."
+        "--tmpfs-size"
+            arg_type = String
+            required = false
+            default = "2G"
+            help = "Size of the temporary filesystem."
         "--treehash", "-t"
             arg_type = String
             required = false
             default = ""
-            help = "Tree hash of the rootfs image"
+            help = "Tree hash of the rootfs image."
         "command"
             required = false
             default = Any[]
@@ -39,11 +43,14 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
     end
     parsed_args = ArgParse.parse_args(args, settings)
 
+    map_build_dir     = _process_required_string_arg(  parsed_args, "map-build-dir")
+    tmpfs_size        = _process_required_string_arg(  parsed_args, "tmpfs-size")
+
     arch              = _process_optional_string_arg(  parsed_args, "arch")
-    command           = _process_optional_command_args(parsed_args, "command"; default_command)
-    map_build_dir     = _process_optional_string_arg(  parsed_args, "map-build-dir")
     url               = _process_optional_string_arg(  parsed_args, "url")
     treehash          = _process_optional_treehash_arg(parsed_args, "treehash")
+
+    command           = _process_optional_command_args(parsed_args, "command"; default_command)
 
     read_write_maps = Dict{String, String}()
     if map_build_dir == "persist"
@@ -85,6 +92,7 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
         command,
         multiarch,
         read_write_maps,
+        tmpfs_size,
         treehash,
         url,
         working_dir,

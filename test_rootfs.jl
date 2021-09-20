@@ -7,6 +7,7 @@ args            = parse_test_args(ARGS, @__FILE__)
 command         = args.command
 multiarch       = args.multiarch
 read_write_maps = args.read_write_maps
+tmpfs_size      = args.tmpfs_size
 treehash        = args.treehash
 url             = args.url
 working_dir     = args.working_dir
@@ -26,10 +27,10 @@ config = SandboxConfig(
     stdout,
     stderr,
     multiarch,
+    tmpfs_size,
+    pwd        = working_dir,
     uid        = Sandbox.getuid(),
     gid        = Sandbox.getgid(),
-    tmpfs_size = "2G",
-    pwd        = working_dir,
 )
 
 with_executor() do exe
