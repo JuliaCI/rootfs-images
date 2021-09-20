@@ -28,7 +28,7 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
         "--tmpfs-size"
             arg_type = String
             required = false
-            default = "2G"
+            default = "1G"
             help = "Size of the temporary filesystem."
         "--treehash", "-t"
             arg_type = String
