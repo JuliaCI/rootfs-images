@@ -11,6 +11,11 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  # Skip intermediate builds: always.
+  # Cancel intermediate builds: only if it is a pull request build.
+  group: ${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
   all:
     name: all
