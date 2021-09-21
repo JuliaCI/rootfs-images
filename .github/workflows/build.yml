@@ -12,12 +12,6 @@ on:
 permissions:
   contents: write
 jobs:
-  all:
-    name: all
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "All build jobs have completed."
   build:
     name: ${{ matrix.image }}
     runs-on: ubuntu-latest
@@ -64,6 +58,5 @@ jobs:
           - 'pkgserver_logsync.x86_64'
     steps:
       - uses: actions/checkout@v2
-      - run: echo The head ref is ${{ github.head_ref }}
-      - run: echo The ref is ${{ github.ref }}
+      - run: echo The github.ref is ${{ github.ref }}
       - run: exit 1
