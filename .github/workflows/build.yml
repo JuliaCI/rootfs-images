@@ -66,3 +66,4 @@ jobs:
       - uses: actions/checkout@v2
       - run: echo The head ref is ${{ github.head_ref }}
       - run: echo The ref is ${{ github.ref }}
+      - run: exit 1
