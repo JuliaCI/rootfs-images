@@ -64,35 +64,6 @@ jobs:
           - 'pkgserver_logsync.x86_64'
     steps:
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
-        with:
-          version: '1.6'
-          arch: x64
-      - run: |
-          import Pkg
-          ENV["JULIA_PKG_SERVER"] = ""
-          Pkg.Registry.add("General")
-        shell: julia --color=yes {0}
-      - run: sudo apt-get update
-      - run: sudo apt-get -y install binfmt-support debootstrap qemu-user-static
-      - run: update-binfmts --display
-      - run: julia --color=yes --project=. -e 'import Pkg; @time Pkg.instantiate()'
-      - run: julia --color=yes --project=. -e 'import Pkg; @time Pkg.precompile()'
-      - run: julia --color=yes --project=. -e '@time import RootfsUtils'
-      - run: |
-          IMAGE_NAME=$(echo ${{ matrix.image }} | cut -d. -f1)
-          IMAGE_ARCH=$(echo ${{ matrix.image }} | cut -d. -f2)
-          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
-          echo "IMAGE_ARCH=$IMAGE_ARCH" >> $GITHUB_ENV
-      - run: julia --color=yes --project=. images/${{ env.IMAGE_NAME }}.jl --arch=${{ env.IMAGE_ARCH }}
-        id: build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: echo "The tarball name is ${{ steps.build.outputs.tarball_name }}"
-      - run: echo "The tarball path is ${{ steps.build.outputs.tarball_path }}"
-      - uses: actions/upload-artifact@v2
-        if: steps.build.outputs.tarball_name != '' && steps.build.outputs.tarball_path != ''
-        with:
-          name: ${{ steps.build.outputs.tarball_name }}
-          path: ${{ steps.build.outputs.tarball_path }}
-          if-no-files-found: error
+      - run: echo The head ref is ${{ github.head_ref }}
+      - run: echo The ref is ${{ github.ref }}
+      - run: exit 1
