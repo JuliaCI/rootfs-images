@@ -68,6 +68,11 @@ jobs:
           # The `pkgserver_logsync` image is a helper for https://github.com/JuliaPackaging/PkgServerLogAnalysis.jl
           - 'pkgserver_logsync.x86_64'
     steps:
+      - run: |
+          echo Without quotes: ${{ github.workflow }}/${{ github.ref }}
+      - run: |
+          echo With    quotes: "${{ github.workflow }}/${{ github.ref }}"
+      - run: exit 1
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
