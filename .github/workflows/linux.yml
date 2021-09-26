@@ -89,7 +89,7 @@ jobs:
           IMAGE_ARCH=$(echo ${{ matrix.image }} | cut -d. -f2)
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "IMAGE_ARCH=$IMAGE_ARCH" >> $GITHUB_ENV
-      - run: julia --color=yes --project=. images/${{ env.IMAGE_NAME }}.jl --arch=${{ env.IMAGE_ARCH }}
+      - run: julia --color=yes --project=. linux/${{ env.IMAGE_NAME }}.jl --arch=${{ env.IMAGE_ARCH }}
         id: build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
