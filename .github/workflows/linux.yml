@@ -24,7 +24,7 @@ jobs:
     steps:
       - run: echo "All build jobs have completed successfully."
   build_linux:
-    name: build_linux_${{ matrix.image }}
+    name: build_linux / ${{ matrix.image }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
