@@ -1,0 +1,44 @@
+name: Windows
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+  workflow_dispatch:
+permissions:
+  contents: none
+concurrency:
+  # Skip intermediate builds: always.
+  # Cancel intermediate builds: only if it is a pull request build.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+jobs:
+  windows:
+    name: windows
+    needs: build_windows
+    runs-on: windows-latest
+    steps:
+      - run: true
+  build_windows:
+    name: build_windows / ${{ matrix.image }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - 'package_win32'
+          - 'package_win64'
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker --version
+      - run: docker build -t ${{ matrix.image }} .
+        working-directory: windows/${{ matrix.image }}
+      - run: docker images ${{ matrix.image }} --no-trunc
+      - run: docker images ${{ matrix.image }} --digests
+      - run: docker inspect ${{ matrix.image }}
+      - run: docker run -d ${{ matrix.image }}
+      - run: docker ps

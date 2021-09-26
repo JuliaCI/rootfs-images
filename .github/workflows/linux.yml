@@ -14,15 +14,15 @@ permissions:
 concurrency:
   # Skip intermediate builds: always.
   # Cancel intermediate builds: only if it is a pull request build.
-  group: ${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
   linux:
     name: linux
-    needs: build_linux # these jobs must complete successfully
+    needs: build_linux
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All build jobs have completed successfully."
+      - run: true
   build_linux:
     name: build_linux / ${{ matrix.image }}
     runs-on: ubuntu-latest
