@@ -1,4 +1,4 @@
-name: Build
+name: Linux
 on:
   pull_request:
     branches:
@@ -17,14 +17,14 @@ concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
-  all:
-    name: all
-    needs: build
+  linux:
+    name: linux
+    needs: build_linux # these jobs must complete successfully
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All build jobs have completed."
-  build:
-    name: ${{ matrix.image }}
+      - run: echo "All build jobs have completed successfully."
+   build_linux:
+    name: build_linux_${{ matrix.image }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
