@@ -1,9 +1,13 @@
 # Rootfs images for Base Julia CI
 
-[![Build][build-img]][build-url]
+[![Build (Linux)][linux-img]][linux-url]
+[![Build (Windows)][windows-img]][windows-url]
 
-[build-img]: https://github.com/JuliaCI/rootfs-images/actions/workflows/build.yml/badge.svg "Build"
-[build-url]: https://github.com/JuliaCI/rootfs-images/actions/workflows/build.yml?query=branch%3Amain
+[linux-img]: https://github.com/JuliaCI/rootfs-images/actions/workflows/linux.yml/badge.svg "Build (Linux)"
+[linux-url]: https://github.com/JuliaCI/rootfs-images/actions/workflows/linux.yml?query=branch%3Amain
+
+[windows-img]: https://github.com/JuliaCI/rootfs-images/actions/workflows/windows.yml/badge.svg "Build (Windows)"
+[windows-url]: https://github.com/JuliaCI/rootfs-images/actions/workflows/windows.yml?query=branch%3Amain
 
 The [Base Julia](https://github.com/JuliaLang/julia) CI setup makes use of rootfs images that contain our build tools.
 Most images are based on Debian, making use of `debootstrap` to provide a quick and easy rootfs with packages installed through an initial `apt` invocation.
