@@ -31,3 +31,19 @@ To see the instructions for running the `test_rootfs.jl` script, run:
 ```
 julia --project test_rootfs.jl --help
 ```
+
+#### Example
+
+Suppose that you want to test the rootfs image at `https://github.com/JuliaCI/rootfs-images/releases/download/v3.18/package_linux.x86_64.tar.gz`. First, run the following command:
+```
+julia --project test_rootfs.jl --url https://github.com/JuliaCI/rootfs-images/releases/download/v3.18/package_linux.x86_64.tar.gz
+```
+
+This will print out a message with the tree hash of the rootfs. Now, run the following command:
+```
+julia --project test_rootfs.jl --treehash 1234567890000000000000000000000000000000 --url https://github.com/JuliaCI/rootfs-images/releases/download/v3.18/package_linux.x86_64.tar.gz
+```
+
+(Replace `1234567890000000000000000000000000000000` with the tree hash that was printed in the previous step.)
+
+This will drop you into a shell within the build environment
