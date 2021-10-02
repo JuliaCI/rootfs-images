@@ -68,6 +68,7 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
         # This of course assumes that the `test_rootfs.jl` script is located at the
         # top-level of the repository.
         build_dir_temp_parent = joinpath(dirname(file), "temp")
+        mkpath(build_dir_temp_parent)
         build_dir_temp = mktempdir(build_dir_temp_parent; cleanup = true)
         isdir(build_dir_temp) || throw(ErrorException("The temporary directory was not created"))
         isempty(readdir(build_dir_temp)) || throw(ErrorException("The temporary directory is not empty"))
