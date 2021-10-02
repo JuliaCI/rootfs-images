@@ -3,7 +3,8 @@ function test_sandbox(artifact_hash)
     append!(test_cmd.exec, String[
         "--project=$(Base.active_project())",
         joinpath(dirname(dirname(@__DIR__)), "test_rootfs.jl"),
-        "--treehash", "$(artifact_hash)",
+        "--map-build-dir=temp",
+        "--treehash=$(artifact_hash)",
         "--",
         "/bin/bash", "-c", "echo Hello from inside the sandbox",
     ])
