@@ -81,7 +81,9 @@ function cleanup_rootfs(rootfs; rootfs_info=nothing)
     force_relative(rootfs)
 end
 
-function create_rootfs(f::Function, name::String; force::Bool=false)
+function create_rootfs(f::Function, name::String;
+                       archive::Bool=true,
+                       force::Bool=false)
     tarball_path = joinpath(Scratch.@get_scratch!("rootfs-images"), "$(name).tar.gz")
     if !force && isfile(tarball_path)
         @error("Refusing to overwrite tarball without `force` set", tarball_path)
@@ -90,12 +92,21 @@ function create_rootfs(f::Function, name::String; force::Bool=false)
 
     artifact_hash = Pkg.Artifacts.create_artifact(f)
 
-    # Archive it into a `.tar.gz` file (but only if this is not a pull request build).
+    # If the `--no-archive` command-line flag was passed, we will skip the tarball creation.
+    if !archive
+        info_msg = "Skipping tarball creation because the `--no-archive` command-line flag was passed"
+        @info info_msg artifact_hash basename(tarball_path)
+        return (; artifact_hash, tarball_path = nothing)
+    end
+
+    # If this is a pull request build, we will skip the tarball creation.
     if is_github_actions_pr()
         info_msg = "Skipping tarball creation because the build is a `pull_request` build"
         @info info_msg artifact_hash basename(tarball_path)
         return (; artifact_hash, tarball_path = nothing)
     end
+
+    # Archive the artifact into a `.tar.gz` file.
     @info "Archiving" artifact_hash tarball_path
     Pkg.Artifacts.archive_artifact(artifact_hash, tarball_path)
     if is_github_actions()
@@ -201,6 +212,11 @@ end
 github_actions_set_output(p::Pair) = github_actions_set_output(stdout, p)
 
 function upload_gha(tarball_path::Nothing)
+    if !is_github_actions()
+        @info "Skipping release artifact upload because this is not a GitHub Actions build"
+        return nothing
+    end
+
     if !is_github_actions_pr()
         error_msg = "You are only allowed to skip tarball creation if the build is a `pull_request` build"
         throw(ErrorException(error_msg))

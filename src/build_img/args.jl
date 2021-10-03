@@ -11,10 +11,14 @@ function parse_build_args(args::AbstractVector, file::AbstractString)
             arg_type = String
             required = true
             help = "The architecture for which you would like to build"
+        "--no-archive"
+            action = :store_true
+            help = "When this flag is provided, the .tar.gz archive will not be created"
     end
     parsed_args = ArgParse.parse_args(args, settings)
-    # arch = parsed_args["arch"]
-    arch = _process_required_string_arg(parsed_args, "arch")
-    image = generate_image_name(arch, file)
-    return (; arch, image)
+    arch = _process_required_string_arg(parsed_args, "arch")::String
+    image = generate_image_name(arch, file)::String
+    no_archive = parsed_args["no-archive"]::Bool
+    archive = !no_archive
+    return (; arch, archive, image)
 end
