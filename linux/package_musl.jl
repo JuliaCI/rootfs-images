@@ -12,10 +12,13 @@ packages = [
     AlpinePackage("less"),
     AlpinePackage("lldb"),
     AlpinePackage("m4"),
+    AlpinePackage("make"),
     AlpinePackage("perl"),
     AlpinePackage("python3"),
+    AlpinePackage("tar"),
     AlpinePackage("wget"),
 
+    # Install GCC 9, specifically
     AlpinePackage("g++~9", "v3.11"),
     AlpinePackage("gcc~9", "v3.11"),
     AlpinePackage("gdb"),
