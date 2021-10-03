@@ -5,7 +5,6 @@ arch         = args.arch
 archive      = args.archive
 image        = args.image
 
-# Build alpine-based args.image with the following extra packages:
 packages = [
     AlpinePackage("bash"),
     AlpinePackage("curl"),
