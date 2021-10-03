@@ -1,11 +1,10 @@
-## This rootfs includes everything that must be installed to build Julia
-## within a debian-based environment with GCC 9.
-
 using RootfsUtils: parse_build_args, debootstrap, chroot, upload_gha, test_sandbox
 
-arch, image, = parse_build_args(ARGS, @__FILE__)
+args         = parse_build_args(ARGS, @__FILE__)
+arch         = args.arch
+archive      = args.archive
+image        = args.image
 
-# Build debian-based image with the following extra packages:
 packages = [
     "automake",
     "bash",
@@ -26,10 +25,11 @@ packages = [
     "pkg-config",
     "python",
     "python3",
-    "wget",
     "vim",
+    "wget",
 ]
-artifact_hash, tarball_path, = debootstrap(arch, image; packages) do rootfs
+
+artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs
     # Install GCC 9, specifically
     @info("Installing gcc-9")
     gcc_install_cmd = """
@@ -47,8 +47,5 @@ artifact_hash, tarball_path, = debootstrap(arch, image; packages) do rootfs
     chroot(rootfs, "bash", "-c", gcc_install_cmd; uid=0, gid=0)
 end
 
-# Upload it
 upload_gha(tarball_path)
-
-# Test that we can use our new rootfs image with Sandbox.jl
 test_sandbox(artifact_hash)

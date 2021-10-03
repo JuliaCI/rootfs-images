@@ -3,7 +3,6 @@ using RootfsUtils: parse_test_args, ensure_artifact_exists_locally
 using Sandbox: Sandbox, SandboxConfig, with_executor
 
 args            = parse_test_args(ARGS, @__FILE__)
-
 command         = args.command
 multiarch       = args.multiarch
 read_write_maps = args.read_write_maps

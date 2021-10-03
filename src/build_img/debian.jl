@@ -10,6 +10,7 @@ function debian_arch(image_arch::String)
 end
 
 function debootstrap(f::Function, arch::String, name::String;
+                     archive::Bool = true,
                      force::Bool = false,
                      locale::Bool = true,
                      packages::Vector{String} = String[],
@@ -37,7 +38,7 @@ function debootstrap(f::Function, arch::String, name::String;
         error("Must install qemu-user-static and binfmt_misc!")
     end
 
-    return create_rootfs(name; force) do rootfs
+    return create_rootfs(name; archive, force) do rootfs
         @info("Running debootstrap", release, variant, packages)
         debootstrap_cmd = `sudo debootstrap`
         push!(debootstrap_cmd.exec, "--arch=$(debian_arch(arch))")
