@@ -72,6 +72,8 @@ jobs:
 
           # The `pkgserver_logsync` image is a helper for https://github.com/JuliaPackaging/PkgServerLogAnalysis.jl
           - 'pkgserver_logsync.x86_64'
+          
+          - 'npm_linux.x86_64'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
