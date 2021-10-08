@@ -72,8 +72,16 @@ jobs:
 
           # The `pkgserver_logsync` image is a helper for https://github.com/JuliaPackaging/PkgServerLogAnalysis.jl
           - 'pkgserver_logsync.x86_64'
-          
+         
+          # The `npm_linux` image is a helper for ecosystem jobs that need to build NPM packages 
           - 'npm_linux.x86_64'
+
+          # The `python_latex_kitchen_sink` image is a helper for ecosystem jobs, such as SciMLBenchmarks
+          # that require a large number of tools.  We're kind of throwing everything (including, yes, the
+          # proverbial  kitchen sink) in here, in the hope that we'll be able to re-use this image across
+          # many similar jobs.  If you're using this image, you're throwing in the towel on providing a
+          # small, lean environment, but that's probably necessary.
+          - 'python_latex_kitchen_sink.x86_64'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
