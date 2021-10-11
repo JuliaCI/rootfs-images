@@ -10,6 +10,7 @@ packages = [
     "bash",
     "bison",
     "bzip2",
+    "ccache",
     "cmake",
     "curl",
     "flex",
