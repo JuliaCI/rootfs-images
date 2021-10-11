@@ -46,7 +46,7 @@ jobs:
           - 'aws_uploader.x86_64'
 
           # The `package_linux` images are all `debian`-based.
-          # - 'package_linux.aarch64'
+          - 'package_linux.aarch64'
           - 'package_linux.armv7l'
           - 'package_linux.i686'
           - 'package_linux.powerpc64le'
