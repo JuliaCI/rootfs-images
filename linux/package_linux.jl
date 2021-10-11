@@ -35,7 +35,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     # Install GCC 9, specifically
     @info("Installing gcc-9")
     gcc_install_cmd = """
-    echo 'deb http://deb.debian.org/debian testing main' >> /etc/apt/sources.list && \\
+    echo 'deb http://deb.debian.org/debian stable main' >> /etc/apt/sources.list && \\
     apt-get update && \\
     DEBIAN_FRONTEND=noninteractive apt-get install -y \\
         gcc-9 g++-9 gfortran-9
@@ -47,6 +47,9 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     done
     """
     chroot(rootfs, "bash", "-c", gcc_install_cmd; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "gcc --version"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "g++ --version"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "gfortran --version"; uid=0, gid=0)
 end
 
 upload_gha(tarball_path)
