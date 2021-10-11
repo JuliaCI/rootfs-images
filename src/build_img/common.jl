@@ -168,7 +168,7 @@ function upload_rootfs_image(tarball_path::String;
                              num_retries::Int = 3)
     # Upload it to `github_repo`
     tarball_url = "https://github.com/$(github_repo)/releases/download/$(tag_name)/$(basename(tarball_path))"
-    @info("Uploading to $(github_repo)@$(tag_name)", tarball_url)
+    @info("Uploading to $(github_repo)@$(tag_name)", tarball_url, size=filesize(tarball_path))
     cmd = ghr_jll.ghr()
     append!(cmd.exec, ["-u", dirname(github_repo), "-r", basename(github_repo)])
     append!(cmd.exec, [tag_name, tarball_path])
