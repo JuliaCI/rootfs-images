@@ -43,6 +43,18 @@ function cleanup_rootfs(rootfs; rootfs_info=nothing)
     @info("Chown'ing rootfs")
     run(`sudo chown $(getuid()):$(getgid()) -R "$(rootfs)"`)
 
+    # Remove `/var/apt/cache`, as that's mostly downloaded archives
+    if isdir(joinpath(rootfs, "var", "apt", "cache"))
+        @info("Removing `/var/apt/cache`...")
+        rm(joinpath(rootfs, "var", "apt", "cache"); recursive=true, force=true)
+    end
+
+    # Remove `/usr/share/doc`, as that's not particularly useful
+    if isdir(joinpath(rootfs, "usr", "share", "doc"))
+        @info("Removing `/usr/share/doc`...")
+        rm(joinpath(rootfs, "usr", "share", "doc"); recursive=true, force=true)
+    end
+
     # Add `juliaci` user and group
     @info("Adding 'juliaci' user and group as 1000:1000")
     open(joinpath(rootfs, "etc", "passwd"), append=true) do io
