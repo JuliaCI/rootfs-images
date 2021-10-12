@@ -92,6 +92,9 @@ function debootstrap(f::Function, arch::String, name::String;
             end
             chroot(rootfs, "locale-gen")
         end
+
+        # Run `apt clean`
+        chroot(rootfs, "apt", "clean")
     end
 end
 
