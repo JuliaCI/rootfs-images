@@ -17,6 +17,7 @@ packages = [
     "python3",
     "vim",
     "wget",
+    "yq",
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs
