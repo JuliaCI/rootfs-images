@@ -28,6 +28,22 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     DEBIAN_FRONTEND=noninteractive apt-get install -y buildkite-agent
     """
     chroot(rootfs, "bash", "-c", buildkite_install_cmd; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "which buildkite-agent"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "which -a buildkite-agent"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "buildkite-agent --help"; uid=0, gid=0)
+    
+    @info("Installing yq...")
+    yq_install_cmd = """
+    mkdir /tmp-install-yq && \\
+    cd /tmp-install-yq && \\
+    wget https://github.com/mikefarah/yq/releases/download/v4.13.4/yq_linux_amd64.tar.gz -O - | tar xzv && mv yq_linux_amd64 /usr/bin/yq && \\
+    cd / && \\
+    rm -rfv /tmp-install-yq
+    """
+    chroot(rootfs, "bash", "-c", yq_install_cmd; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "which yq"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "which -a yq"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "yq --version"; uid=0, gid=0)
 end
 
 upload_gha(tarball_path)
