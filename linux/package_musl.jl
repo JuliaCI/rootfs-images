@@ -8,6 +8,7 @@ packages = [
     AlpinePackage("bash"),
     AlpinePackage("cmake"),
     AlpinePackage("curl"),
+    AlpinePackage("gdb"),
     AlpinePackage("git"),
     AlpinePackage("less"),
     AlpinePackage("lldb"),
@@ -21,7 +22,6 @@ packages = [
     # Install GCC 9, specifically
     AlpinePackage("g++~9", "v3.11"),
     AlpinePackage("gcc~9", "v3.11"),
-    AlpinePackage("gdb"),
     AlpinePackage("gfortran~9", "v3.11"),
 ]
 
