@@ -48,6 +48,12 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     done
     """
     chroot(rootfs, "bash", "-c", gcc_install_cmd; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "which gcc"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "which -a gcc"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "which g++"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "which -a g++"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "which gfortran"; uid=0, gid=0)
+    chroot(rootfs, "bash", "-c", "which -a gfortran"; uid=0, gid=0)
     chroot(rootfs, "bash", "-c", "gcc --version"; uid=0, gid=0)
     chroot(rootfs, "bash", "-c", "g++ --version"; uid=0, gid=0)
     chroot(rootfs, "bash", "-c", "gfortran --version"; uid=0, gid=0)
