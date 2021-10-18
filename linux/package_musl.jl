@@ -20,8 +20,8 @@ packages = [
     AlpinePackage("wget"),
 
     # Install GCC 9, specifically
-    AlpinePackage("g++~9", "v3.11"),
     AlpinePackage("gcc~9", "v3.11"),
+    AlpinePackage("g++~9", "v3.11"),
     AlpinePackage("gfortran~9", "v3.11"),
 ]
 
