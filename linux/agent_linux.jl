@@ -1,4 +1,6 @@
-using RootfsUtils: parse_build_args, debootstrap, chroot, upload_gha, test_sandbox
+using RootfsUtils: parse_build_args, upload_gha, test_sandbox
+using RootfsUtils: debootstrap
+using RootfsUtils: root_chroot
 
 args         = parse_build_args(ARGS, @__FILE__)
 arch         = args.arch
@@ -20,7 +22,7 @@ packages = [
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
-    root_chroot(args...) = chroot(args...; ENV=chroot_ENV, uid=0, gid=0)
+    my_chroot(args...) = root_chroot(args...; ENV=chroot_ENV)
 
     @info("Installing buildkite-agent...")
     buildkite_install_cmd = """
@@ -29,11 +31,11 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     apt-get update && \\
     DEBIAN_FRONTEND=noninteractive apt-get install -y buildkite-agent
     """
-    root_chroot(rootfs, "bash", "-c", buildkite_install_cmd)
-    root_chroot(rootfs, "bash", "-c", "which buildkite-agent")
-    root_chroot(rootfs, "bash", "-c", "which -a buildkite-agent")
-    root_chroot(rootfs, "bash", "-c", "buildkite-agent --help")
-    
+    my_chroot(rootfs, "bash", "-c", buildkite_install_cmd)
+    my_chroot(rootfs, "bash", "-c", "which buildkite-agent")
+    my_chroot(rootfs, "bash", "-c", "which -a buildkite-agent")
+    my_chroot(rootfs, "bash", "-c", "buildkite-agent --help")
+
     @info("Installing yq...")
     yq_install_cmd = """
     mkdir /tmp-install-yq && \\
@@ -42,10 +44,10 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     cd / && \\
     rm -rfv /tmp-install-yq
     """
-    root_chroot(rootfs, "bash", "-c", yq_install_cmd)
-    root_chroot(rootfs, "bash", "-c", "which yq")
-    root_chroot(rootfs, "bash", "-c", "which -a yq")
-    root_chroot(rootfs, "bash", "-c", "yq --version")
+    my_chroot(rootfs, "bash", "-c", yq_install_cmd)
+    my_chroot(rootfs, "bash", "-c", "which yq")
+    my_chroot(rootfs, "bash", "-c", "which -a yq")
+    my_chroot(rootfs, "bash", "-c", "yq --version")
 end
 
 upload_gha(tarball_path)

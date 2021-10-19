@@ -1,4 +1,5 @@
-using RootfsUtils: AlpinePackage, parse_build_args, alpine_bootstrap, chroot, upload_gha, test_sandbox
+using RootfsUtils: parse_build_args, upload_gha, test_sandbox
+using RootfsUtils: AlpinePackage, alpine_bootstrap
 
 args         = parse_build_args(ARGS, @__FILE__)
 arch         = args.arch
