@@ -12,7 +12,7 @@ end
 function debootstrap(f::Function, arch::String, name::String;
                      archive::Bool = true,
                      force::Bool = false,
-                     locale::Bool = true,
+                     locale::Union{Nothing,String} = "en_US.UTF-8 UTF-8",
                      packages::Vector{String} = String[],
                      release::String = "buster",
                      variant::String = "minbase")
@@ -20,7 +20,7 @@ function debootstrap(f::Function, arch::String, name::String;
         error("Must install `debootstrap`!")
     end
 
-    if locale
+    if locale !== nothing
         if "locales" ∉ packages
             msg = string(
                 "You have set the `locale` keyword argument to `true`. ",
@@ -38,7 +38,25 @@ function debootstrap(f::Function, arch::String, name::String;
         error("Must install qemu-user-static and binfmt_misc!")
     end
 
+    chroot_ENV = Dict{String,String}(
+        "PATH" => "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    )
+
+    # If `locale` is set, pass that through as `LANG`
+    if locale !== nothing
+        chroot_ENV["LANG"] = first(split(locale))
+    end
+
     return create_rootfs(name; archive, force) do rootfs
+        # If `locale` is set, the first thing we do is to pre-populate `/etc/locales.gen`
+        if locale !== nothing
+            @info("Setting up locale", locale)
+            mkpath(joinpath(rootfs, "etc"))
+            open(joinpath(rootfs, "etc", "locale.gen"), "a") do io
+                println(io, locale)
+            end
+        end
+
         @info("Running debootstrap", release, variant, packages)
         debootstrap_cmd = `sudo debootstrap`
         push!(debootstrap_cmd.exec, "--arch=$(debian_arch(arch))")
@@ -51,17 +69,17 @@ function debootstrap(f::Function, arch::String, name::String;
         end
         push!(debootstrap_cmd.exec, "$(release)")
         push!(debootstrap_cmd.exec, "$(rootfs)")
-        run(debootstrap_cmd)
+        run(setenv(debootstrap_cmd, chroot_ENV))
 
         # This is necessary on any 32-bit userspaces to work around the
         # following bad interaction between qemu, linux and openssl:
         # https://serverfault.com/questions/1045118/debootstrap-armhd-buster-unable-to-get-local-issuer-certificate
         if isfile(joinpath(rootfs, "usr", "bin", "c_rehash"))
-            chroot(rootfs, "/usr/bin/c_rehash"; uid=0, gid=0)
+            chroot(rootfs, "/usr/bin/c_rehash"; ENV=chroot_ENV, uid=0, gid=0)
         end
 
         # Call user callback, if requested
-        f(rootfs)
+        f(rootfs, chroot_ENV)
 
         # Remove special `dev` files, take ownership, force symlinks to be relative, etc...
         rootfs_info="""
@@ -84,19 +102,15 @@ function debootstrap(f::Function, arch::String, name::String;
             end
         end
 
-        # Set up the one true locale
-        if locale
-            @info("Setting up UTF-8 locale")
-            open(joinpath(rootfs, "etc", "locale.gen"), "a") do io
-                println(io, "en_US.UTF-8 UTF-8")
-            end
-            chroot(rootfs, "locale-gen")
+        # If we have locale support, ensure that `locale-gen` is run at least once.
+        if locale !== nothing
+            chroot(rootfs, "locale-gen"; ENV=chroot_ENV)
         end
 
         # Run `apt clean`
-        chroot(rootfs, "apt", "clean")
+        chroot(rootfs, "apt", "clean"; ENV=chroot_ENV)
     end
 end
 
 # If no user callback is provided, default to doing nothing
-debootstrap(arch::String, name::String; kwargs...) = debootstrap(p -> nothing, arch, name; kwargs...)
+debootstrap(arch::String, name::String; kwargs...) = debootstrap((p, e) -> nothing, arch, name; kwargs...)

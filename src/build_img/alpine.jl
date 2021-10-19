@@ -19,7 +19,10 @@ function alpine_bootstrap(f::Function, name::String;
         Pkg.Artifacts.download_verify_unpack(rootfs_url, nothing, rootfs; verbose=true)
 
         # Call user callback, if requested
-        f(rootfs)
+        chroot_ENV = Dict{String,String}(
+            "PATH" => "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        )
+        f(rootfs, chroot_ENV)
 
         # Remove special `dev` files, take ownership, force symlinks to be relative, etc...
         rootfs_info = """
@@ -41,9 +44,9 @@ function alpine_bootstrap(f::Function, name::String;
             for pkg in filter(pkg -> pkg.repo == repo, packages)
                 push!(apk_args, pkg.name)
             end
-            chroot(rootfs, apk_args...)
+            chroot(rootfs, apk_args...; ENV=chroot_ENV)
         end
     end
 end
 # If no user callback is provided, default to doing nothing
-alpine_bootstrap(name::String; kwargs...) = alpine_bootstrap(p -> nothing, name; kwargs...)
+alpine_bootstrap(name::String; kwargs...) = alpine_bootstrap((p, e) -> nothing, name; kwargs...)

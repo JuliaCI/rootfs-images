@@ -19,7 +19,9 @@ packages = [
     "wget",
 ]
 
-artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs
+artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
+    root_chroot(args...) = chroot(args...; ENV=chroot_ENV, uid=0, gid=0)
+
     @info("Installing buildkite-agent...")
     buildkite_install_cmd = """
     echo 'deb https://apt.buildkite.com/buildkite-agent stable main' >> /etc/apt/sources.list && \\
@@ -27,10 +29,10 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     apt-get update && \\
     DEBIAN_FRONTEND=noninteractive apt-get install -y buildkite-agent
     """
-    chroot(rootfs, "bash", "-c", buildkite_install_cmd; uid=0, gid=0)
-    chroot(rootfs, "bash", "-c", "which buildkite-agent"; uid=0, gid=0)
-    chroot(rootfs, "bash", "-c", "which -a buildkite-agent"; uid=0, gid=0)
-    chroot(rootfs, "bash", "-c", "buildkite-agent --help"; uid=0, gid=0)
+    root_chroot(rootfs, "bash", "-c", buildkite_install_cmd)
+    root_chroot(rootfs, "bash", "-c", "which buildkite-agent")
+    root_chroot(rootfs, "bash", "-c", "which -a buildkite-agent")
+    root_chroot(rootfs, "bash", "-c", "buildkite-agent --help")
     
     @info("Installing yq...")
     yq_install_cmd = """
@@ -40,10 +42,10 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     cd / && \\
     rm -rfv /tmp-install-yq
     """
-    chroot(rootfs, "bash", "-c", yq_install_cmd; uid=0, gid=0)
-    chroot(rootfs, "bash", "-c", "which yq"; uid=0, gid=0)
-    chroot(rootfs, "bash", "-c", "which -a yq"; uid=0, gid=0)
-    chroot(rootfs, "bash", "-c", "yq --version"; uid=0, gid=0)
+    root_chroot(rootfs, "bash", "-c", yq_install_cmd)
+    root_chroot(rootfs, "bash", "-c", "which yq")
+    root_chroot(rootfs, "bash", "-c", "which -a yq")
+    root_chroot(rootfs, "bash", "-c", "yq --version")
 end
 
 upload_gha(tarball_path)

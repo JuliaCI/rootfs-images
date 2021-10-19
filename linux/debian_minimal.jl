@@ -6,7 +6,7 @@ archive      = args.archive
 image        = args.image
 
 packages = String[]
-locale = false
+locale = nothing
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, locale)
 upload_gha(tarball_path)
