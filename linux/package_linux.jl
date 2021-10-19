@@ -51,17 +51,17 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         ln -sf "\${tool}-9" "/usr/bin/\${tool}"
     done
     """
-    root_chroot(rootfs, "bash", "-c", gcc_install_cmd)
-    root_chroot(rootfs, "bash", "-c", gcc_symlink_cmd)
-    root_chroot(rootfs, "bash", "-c", "which gcc")
-    root_chroot(rootfs, "bash", "-c", "which -a gcc")
-    root_chroot(rootfs, "bash", "-c", "which g++")
-    root_chroot(rootfs, "bash", "-c", "which -a g++")
-    root_chroot(rootfs, "bash", "-c", "which gfortran")
-    root_chroot(rootfs, "bash", "-c", "which -a gfortran")
-    root_chroot(rootfs, "bash", "-c", "gcc --version")
-    root_chroot(rootfs, "bash", "-c", "g++ --version")
-    root_chroot(rootfs, "bash", "-c", "gfortran --version")
+    my_chroot(rootfs, "bash", "-c", gcc_install_cmd)
+    my_chroot(rootfs, "bash", "-c", gcc_symlink_cmd)
+    my_chroot(rootfs, "bash", "-c", "which gcc")
+    my_chroot(rootfs, "bash", "-c", "which -a gcc")
+    my_chroot(rootfs, "bash", "-c", "which g++")
+    my_chroot(rootfs, "bash", "-c", "which -a g++")
+    my_chroot(rootfs, "bash", "-c", "which gfortran")
+    my_chroot(rootfs, "bash", "-c", "which -a gfortran")
+    my_chroot(rootfs, "bash", "-c", "gcc --version")
+    my_chroot(rootfs, "bash", "-c", "g++ --version")
+    my_chroot(rootfs, "bash", "-c", "gfortran --version")
 end
 
 upload_gha(tarball_path)
