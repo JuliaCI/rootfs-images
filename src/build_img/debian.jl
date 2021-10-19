@@ -12,7 +12,7 @@ end
 function debootstrap(f::Function, arch::String, name::String;
                      archive::Bool = true,
                      force::Bool = false,
-                     locale::Bool = true,
+                     locale::Union{Nothing,String} = "en_US.UTF-8 UTF-8",
                      packages::Vector{String} = String[],
                      release::String = "buster",
                      variant::String = "minbase")
@@ -20,7 +20,7 @@ function debootstrap(f::Function, arch::String, name::String;
         error("Must install `debootstrap`!")
     end
 
-    if locale
+    if locale !== nothing
         if "locales" ∉ packages
             msg = string(
                 "You have set the `locale` keyword argument to `true`. ",
@@ -39,6 +39,15 @@ function debootstrap(f::Function, arch::String, name::String;
     end
 
     return create_rootfs(name; archive, force) do rootfs
+        # If `locale` is set, the first thing we do is to pre-populate `/etc/locales.gen`
+        if locale !== nothing
+            @info("Setting up locale", locale)
+            mkpath(joinpath(rootfs, "etc"))
+            open(joinpath(rootfs, "etc", "locale.gen"), "a") do io
+                println(io, locale)
+            end
+        end
+
         @info("Running debootstrap", release, variant, packages)
         debootstrap_cmd = `sudo debootstrap`
         push!(debootstrap_cmd.exec, "--arch=$(debian_arch(arch))")
@@ -84,12 +93,8 @@ function debootstrap(f::Function, arch::String, name::String;
             end
         end
 
-        # Set up the one true locale
-        if locale
-            @info("Setting up UTF-8 locale")
-            open(joinpath(rootfs, "etc", "locale.gen"), "a") do io
-                println(io, "en_US.UTF-8 UTF-8")
-            end
+        # If we have locale support, ensure that `locale-gen` is run at least once.
+        if locale !== nothing
             chroot(rootfs, "locale-gen")
         end
 
