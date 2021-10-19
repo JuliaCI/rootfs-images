@@ -1,6 +1,8 @@
 # This image is a bit of an anomaly; we install pdflatex, python3.... pretty much the kitchen sink
 # It is used by pipelines that use the SciML ecosystem such as the SciMLBenchmarks repository.
-using RootfsUtils: parse_build_args, debootstrap, chroot, upload_gha, test_sandbox
+
+using RootfsUtils: parse_build_args, upload_gha, test_sandbox
+using RootfsUtils: debootstrap
 
 args         = parse_build_args(ARGS, @__FILE__)
 arch         = args.arch
@@ -10,7 +12,7 @@ image        = args.image
 packages = [
     "bash",
     "locales",
-    
+
     # Work around bug in debootstrap where virtual dependencies are not properly installed
     # X-ref: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=878961
     # X-ref: https://bugs.launchpad.net/ubuntu/+source/debootstrap/+bug/86536

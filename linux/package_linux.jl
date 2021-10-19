@@ -1,4 +1,6 @@
-using RootfsUtils: parse_build_args, debootstrap, chroot, upload_gha, test_sandbox
+using RootfsUtils: parse_build_args, upload_gha, test_sandbox
+using RootfsUtils: debootstrap
+using RootfsUtils: root_chroot
 
 args         = parse_build_args(ARGS, @__FILE__)
 arch         = args.arch
@@ -33,16 +35,16 @@ packages = [
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
-    root_chroot(args...) = chroot(args...; ENV=chroot_ENV, uid=0, gid=0)
+    my_chroot(args...) = root_chroot(args...; ENV=chroot_ENV)
 
     # Install GCC 9, specifically
     @info("Installing gcc-9")
     gcc_install_cmd = """
     echo 'deb http://deb.debian.org/debian stable main' >> /etc/apt/sources.list && \\
     apt-get update && \\
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \\
-        gcc-9 g++-9 gfortran-9
-
+    DEBIAN_FRONTEND=noninteractive apt-get install -y gcc-9 g++-9 gfortran-9
+    """
+    gcc_symlink_cmd = """
     # Create symlinks for `gcc` -> `gcc-9`, etc...
     for tool_path in /usr/bin/*-9; do
         tool="\$(basename "\${tool_path}" | sed -e 's/-9//')"
@@ -50,6 +52,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     done
     """
     root_chroot(rootfs, "bash", "-c", gcc_install_cmd)
+    root_chroot(rootfs, "bash", "-c", gcc_symlink_cmd)
     root_chroot(rootfs, "bash", "-c", "which gcc")
     root_chroot(rootfs, "bash", "-c", "which -a gcc")
     root_chroot(rootfs, "bash", "-c", "which g++")
