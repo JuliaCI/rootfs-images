@@ -49,4 +49,4 @@ function alpine_bootstrap(f::Function, name::String;
     end
 end
 # If no user callback is provided, default to doing nothing
-alpine_bootstrap(name::String; kwargs...) = alpine_bootstrap(p -> nothing, name; kwargs...)
+alpine_bootstrap(name::String; kwargs...) = alpine_bootstrap((p, e) -> nothing, name; kwargs...)

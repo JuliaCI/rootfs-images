@@ -113,4 +113,4 @@ function debootstrap(f::Function, arch::String, name::String;
 end
 
 # If no user callback is provided, default to doing nothing
-debootstrap(arch::String, name::String; kwargs...) = debootstrap(p -> nothing, arch, name; kwargs...)
+debootstrap(arch::String, name::String; kwargs...) = debootstrap((p, e) -> nothing, arch, name; kwargs...)
