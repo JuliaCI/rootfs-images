@@ -7,6 +7,7 @@ image        = args.image
 
 packages = [
     AlpinePackage("bash"),
+    AlpinePackage("bzip2"),
     AlpinePackage("cmake"),
     AlpinePackage("curl"),
     AlpinePackage("gdb"),
