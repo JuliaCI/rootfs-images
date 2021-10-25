@@ -8,6 +8,7 @@ image        = args.image
 
 packages = [
     "build-essential",
+    "bzip2",
     "cmake",
     "curl",
     "gfortran",
