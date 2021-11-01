@@ -33,6 +33,7 @@ packages = [
     "curl",
     "vim",
     "gdb",
+    "lldb",
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages)

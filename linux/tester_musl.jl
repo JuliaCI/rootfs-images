@@ -10,6 +10,7 @@ packages = [
     AlpinePackage("bash"),
     AlpinePackage("curl"),
     AlpinePackage("gdb"),
+    AlpinePackage("lldb"),
     AlpinePackage("vim"),
 ]
 
