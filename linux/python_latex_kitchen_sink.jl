@@ -12,6 +12,7 @@ image        = args.image
 packages = [
     "bash",
     "locales",
+    "zip",
 
     # Work around bug in debootstrap where virtual dependencies are not properly installed
     # X-ref: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=878961
