@@ -11,6 +11,7 @@ packages = [
     "awscli",
     "bash",
     "curl",
+    "git",
     "locales",
     "vim",
 ]
