@@ -85,7 +85,7 @@ jobs:
 
           # The docker agent contains just the docker/docker from https://download.docker.com/linux/static/stable/x86_64/docker-20.10.10.tgz
           # This also contains AWS-CLI v2
-          - 'docker_agent.jl'
+          - 'docker_agent.x86_64'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
