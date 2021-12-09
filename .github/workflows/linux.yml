@@ -18,14 +18,14 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
   linux:
-    timeout-minutes: 120
+    timeout-minutes: 10
     name: linux
     needs: build_linux
     runs-on: ubuntu-latest
     steps:
       - run: true
   build_linux:
-    timeout-minutes: 60
+    timeout-minutes: 120
     name: build_linux / ${{ matrix.image }}
     runs-on: ubuntu-latest
     strategy:
