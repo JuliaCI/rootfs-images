@@ -18,12 +18,14 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
   linux:
+    timeout-minutes: 60
     name: linux
     needs: build_linux
     runs-on: ubuntu-latest
     steps:
       - run: true
   build_linux:
+    timeout-minutes: 60
     name: build_linux / ${{ matrix.image }}
     runs-on: ubuntu-latest
     strategy:
@@ -72,8 +74,8 @@ jobs:
 
           # The `pkgserver_logsync` image is a helper for https://github.com/JuliaPackaging/PkgServerLogAnalysis.jl
           - 'pkgserver_logsync.x86_64'
-         
-          # The `npm_linux` image is a helper for ecosystem jobs that need to build NPM packages 
+
+          # The `npm_linux` image is a helper for ecosystem jobs that need to build NPM packages
           - 'npm_linux.x86_64'
 
           # The `python_latex_kitchen_sink` image is a helper for ecosystem jobs, such as SciMLBenchmarks

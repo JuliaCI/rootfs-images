@@ -18,12 +18,14 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
   windows:
+    timeout-minutes: 60
     name: windows
     needs: build_windows
     runs-on: windows-latest
     steps:
       - run: true
   build_windows:
+    timeout-minutes: 60
     name: build_windows / ${{ matrix.image }}
     runs-on: windows-latest
     strategy:
