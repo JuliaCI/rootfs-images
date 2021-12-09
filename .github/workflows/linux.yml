@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
   linux:
-    timeout-minutes: 60
+    timeout-minutes: 120
     name: linux
     needs: build_linux
     runs-on: ubuntu-latest
