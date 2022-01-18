@@ -10,6 +10,7 @@ packages = [
     "bash",
     "curl",
     "gdb",
+    "git",
     "lldb",
     "locales",
     "vim",
