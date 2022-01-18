@@ -1,5 +1,5 @@
 using RootfsUtils: parse_build_args, upload_gha, test_sandbox
-using RootfsUtils: debootstrap
+using RootfsUtils: debootstrap, root_chroot
 
 args         = parse_build_args(ARGS, @__FILE__)
 arch         = args.arch
