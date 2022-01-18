@@ -15,6 +15,11 @@ packages = [
     "vim",
 ]
 
-artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages)
+artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
+    my_chroot(args...) = root_chroot(args...; ENV=chroot_ENV)
+
+    my_chroot(rootfs, "bash", "-c", "git --version")
+end
+
 upload_gha(tarball_path)
 test_sandbox(artifact_hash)
