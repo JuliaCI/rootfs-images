@@ -23,5 +23,6 @@ include("test_img/test.jl")
 
 include("utils/args.jl")
 include("utils/chroot.jl")
+include("utils/tmp.jl")
 
 end # module

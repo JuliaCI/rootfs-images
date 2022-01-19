@@ -20,6 +20,14 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
                 "Whether to map a persistant build directory into the sandbox. ",
                 "Possible values: persist, temp, no.",
             )
+        "--override-tmp-dir"
+            arg_type = Bool
+            required = false
+            default = true # TODO: change this to false
+            help = string(
+                "Whether to create a mapping for /tmp. ",
+                "Possible values: true, false.",
+            )
         "--url", "-u"
             arg_type = String
             required = false
@@ -43,36 +51,33 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
     end
     parsed_args = ArgParse.parse_args(args, settings)
 
+    override_tmp_dir = parsed_args["override-tmp-dir"]::Bool
+
     map_build_dir     = _process_required_string_arg(  parsed_args, "map-build-dir")
     tmpfs_size        = _process_required_string_arg(  parsed_args, "tmpfs-size")
 
     arch              = _process_optional_string_arg(  parsed_args, "arch")
-    url               = _process_optional_string_arg(  parsed_args, "url")
     treehash          = _process_optional_treehash_arg(parsed_args, "treehash")
+    url               = _process_optional_string_arg(  parsed_args, "url")
 
     command           = _process_optional_command_args(parsed_args, "command"; default_command)
 
     read_write_maps = Dict{String, String}()
+    # `repo_root` is the root directory of the repository.
+    # This of course assumes that the `test_rootfs.jl` script is located at the
+    # top-level of the repository.
+    repo_root = dirname(file)
+    repo_root_subdir_build = joinpath(repo_root, "build") # $repo_root/build/
+    repo_root_subdir_temp = joinpath(repo_root, "temp") # $repo_root/temp/
+    if override_tmp_dir
+        read_write_maps["/tmp"] = _create_temp_directory(; parent = repo_root_subdir_temp)
+    end
     if map_build_dir == "persist"
-        # If `${REPOSITORY_ROOT}` represents the root directory of the repository,
-        # then `build_dir_persist` is the `${REPOSITORY_ROOT}/build/` directory.
-        # This of course assumes that the `test_rootfs.jl` script is located at the
-        # top-level of the repository.
-        build_dir_persist = joinpath(dirname(file), "build")
-        mkpath(build_dir_persist)
-        read_write_maps["/build"] = build_dir_persist
+        mkpath(repo_root_subdir_build)
+        read_write_maps["/build"] = repo_root_subdir_build
         working_dir   = "/build"
     elseif map_build_dir == "temp"
-        # If `${REPOSITORY_ROOT}` represents the root directory of the repository,
-        # then `build_dir_temp_parent` is the `${REPOSITORY_ROOT}/temp/` directory.
-        # This of course assumes that the `test_rootfs.jl` script is located at the
-        # top-level of the repository.
-        build_dir_temp_parent = joinpath(dirname(file), "temp")
-        mkpath(build_dir_temp_parent)
-        build_dir_temp = mktempdir(build_dir_temp_parent; cleanup = true)
-        isdir(build_dir_temp) || throw(ErrorException("The temporary directory was not created"))
-        isempty(readdir(build_dir_temp)) || throw(ErrorException("The temporary directory is not empty"))
-        read_write_maps["/build"] = build_dir_temp
+        read_write_maps["/build"] = _create_temp_directory(; parent = repo_root_subdir_temp)
         working_dir   = "/build"
     elseif map_build_dir == "no"
         working_dir = "/"
@@ -84,6 +89,7 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
         )
         throw(ArgumentError(msg))
     end
+
     multiarch = Base.BinaryPlatforms.Platform[]
     if arch !== nothing
         push!(multiarch, Base.BinaryPlatforms.Platform(arch, "linux"; libc="glibc"))
