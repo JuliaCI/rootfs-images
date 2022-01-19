@@ -57,6 +57,10 @@ jobs:
           # The `package_musl` image is `alpine`-based.
           - 'package_musl.x86_64'
 
+          # The `rr` image is `debian`-based.
+          # It is used for building rr from source and running the rr test suite.
+          - 'rr.x86_64'
+
           # The `tester_linux` images are all `debian`-based.
           # They do not include the compiler toolchain.
           - 'tester_linux.aarch64'
