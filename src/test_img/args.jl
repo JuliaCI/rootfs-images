@@ -23,7 +23,7 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
         "--override-tmp-dir"
             arg_type = Bool
             required = false
-            default = true # TODO: change this to false
+            default = true
             help = string(
                 "Whether to create a mapping for /tmp. ",
                 "Possible values: true, false.",
