@@ -1,6 +1,7 @@
 using RootfsUtils: parse_build_args, upload_gha, test_sandbox
 using RootfsUtils: debootstrap
 using RootfsUtils: root_chroot
+using RootfsUtils: root_chroot_command
 
 args         = parse_build_args(ARGS, @__FILE__)
 arch         = args.arch
@@ -12,10 +13,10 @@ packages = [
     "build-essential",
     "capnproto",
     "ccache",
+    "cmake",
     "coreutils",
     "curl",
     "g++-multilib",
-    "gdb",
     "git",
     "libcapnp-dev",
     "locales",
@@ -27,20 +28,28 @@ packages = [
     "vim",
 ]
 
-artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
-    my_chroot(args...) = root_chroot(args...; ENV=chroot_ENV)
+release = "bookworm"
 
-    # We need cmake 3.21+ for the `--output-xunit` feature
-    @info("Installing cmake")
-    cmake_install_cmd = """
-    echo 'deb http://deb.debian.org/debian testing main' >> /etc/apt/sources.list && \\
-    apt-get update && \\
-    DEBIAN_FRONTEND=noninteractive apt-get install -y cmake
-    """
-    my_chroot(rootfs, "bash", "-c", cmake_install_cmd)
-    my_chroot(rootfs, "bash", "-c", "which cmake")
-    my_chroot(rootfs, "bash", "-c", "which -a cmake")
-    my_chroot(rootfs, "bash", "-c", "cmake --version")
+artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, release) do rootfs, chroot_ENV
+    my_chroot(args...)         = root_chroot(rootfs, args...; ENV=chroot_ENV)
+    my_chroot_command(args...) = root_chroot_command(rootfs, args...; ENV=chroot_ENV)
+
+    my_chroot("bash", "-c", "apt-get update")
+    my_chroot("bash", "-c", "DEBIAN_FRONTEND=noninteractive apt-get install -y gdb")
+
+    my_chroot("bash", "-c", "cmake --version")
+
+    let
+        str = read(my_chroot_command("bash", "-c", "cmake --version"), String)
+        m = match(r"cmake version ([\d]*)\.([\d]*)\.([\d]*)", str)
+        installed_ver = VersionNumber("$(m[1]).$(m[2]).$(m[3])")
+        desired_ver = v"3.22.1"
+        @info "cmake version" installed_ver desired_ver
+        if installed_ver < desired_ver
+            msg = "Failed to install a sufficiently recent version of cmake"
+            throw(ErrorException(msg))
+        end
+    end
 end
 
 upload_gha(tarball_path)
