@@ -69,7 +69,20 @@ function debootstrap(f::Function, arch::String, name::String;
         end
         push!(debootstrap_cmd.exec, "$(release)")
         push!(debootstrap_cmd.exec, "$(rootfs)")
-        run(setenv(debootstrap_cmd, chroot_ENV))
+        p = run(setenv(debootstrap_cmd, chroot_ENV), (stdin, stdout, stderr); wait = false)
+        wait(p)
+        if !success(p)
+            debootstrap_log_filename = joinpath(rootfs, "debootstrap", "debootstrap.log")
+            @info "" debootstrap_log_filename
+            debootstrap_log_contents = strip(read(debootstrap_log_filename, String))
+            println(stderr, "# BEGIN contents of debootstrap.log")
+            println(stderr)
+            println(stderr, debootstrap_log_contents)
+            println(stderr)
+            println(stderr, "# END contents of debootstrap.log")
+
+            throw(ProcessFailedException(p))
+        end
 
         # This is necessary on any 32-bit userspaces to work around the
         # following bad interaction between qemu, linux and openssl:
