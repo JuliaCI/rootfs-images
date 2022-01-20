@@ -31,16 +31,15 @@ packages = [
 release = "bookworm"
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, release) do rootfs, chroot_ENV
-    my_chroot(args...)         = root_chroot(rootfs, args...; ENV=chroot_ENV)
-    my_chroot_command(args...) = root_chroot_command(rootfs, args...; ENV=chroot_ENV)
+    my_chroot(args...)         = root_chroot(        "bash", "-c", rootfs, args...; ENV=chroot_ENV)
+    my_chroot_command(args...) = root_chroot_command("bash", "-c", rootfs, args...; ENV=chroot_ENV)
 
-    my_chroot("bash", "-c", "apt-get update")
-    my_chroot("bash", "-c", "DEBIAN_FRONTEND=noninteractive apt-get install -y gdb")
-
-    my_chroot("bash", "-c", "cmake --version")
+    my_chroot("apt-get update")
+    my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y gdb")
+    my_chroot("cmake --version")
 
     let
-        str = read(my_chroot_command("bash", "-c", "cmake --version"), String)
+        str = read(my_chroot_command("cmake --version"), String)
         m = match(r"cmake version ([\d]*)\.([\d]*)\.([\d]*)", str)
         installed_ver = VersionNumber("$(m[1]).$(m[2]).$(m[3])")
         desired_ver = v"3.22.1"

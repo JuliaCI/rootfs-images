@@ -35,7 +35,7 @@ packages = [
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
-    my_chroot(args...) = root_chroot(args...; ENV=chroot_ENV)
+    my_chroot(args...) = root_chroot(rootfs, "bash", "-c", args...; ENV=chroot_ENV)
 
     # Install GCC 9, specifically
     @info("Installing gcc-9")
@@ -51,17 +51,17 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         ln -sf "\${tool}-9" "/usr/bin/\${tool}"
     done
     """
-    my_chroot(rootfs, "bash", "-c", gcc_install_cmd)
-    my_chroot(rootfs, "bash", "-c", gcc_symlink_cmd)
-    my_chroot(rootfs, "bash", "-c", "which gcc")
-    my_chroot(rootfs, "bash", "-c", "which -a gcc")
-    my_chroot(rootfs, "bash", "-c", "which g++")
-    my_chroot(rootfs, "bash", "-c", "which -a g++")
-    my_chroot(rootfs, "bash", "-c", "which gfortran")
-    my_chroot(rootfs, "bash", "-c", "which -a gfortran")
-    my_chroot(rootfs, "bash", "-c", "gcc --version")
-    my_chroot(rootfs, "bash", "-c", "g++ --version")
-    my_chroot(rootfs, "bash", "-c", "gfortran --version")
+    my_chroot(gcc_install_cmd)
+    my_chroot(gcc_symlink_cmd)
+    my_chroot("which gcc")
+    my_chroot("which -a gcc")
+    my_chroot("which g++")
+    my_chroot("which -a g++")
+    my_chroot("which gfortran")
+    my_chroot("which -a gfortran")
+    my_chroot("gcc --version")
+    my_chroot("g++ --version")
+    my_chroot("gfortran --version")
 end
 
 upload_gha(tarball_path)
