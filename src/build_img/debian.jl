@@ -67,6 +67,7 @@ function debootstrap(f::Function, arch::String, name::String;
             packages_string = join(strip.(packages), ",")
             push!(debootstrap_cmd.exec, "--include=$(packages_string)")
         end
+        push!(debootstrap_cmd.exec, "--verbose")
         push!(debootstrap_cmd.exec, "$(release)")
         push!(debootstrap_cmd.exec, "$(rootfs)")
         p = run(setenv(debootstrap_cmd, chroot_ENV), (stdin, stdout, stderr); wait = false)
