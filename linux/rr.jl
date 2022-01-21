@@ -31,8 +31,8 @@ packages = [
 release = "bookworm"
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, release) do rootfs, chroot_ENV
-    my_chroot(args...)         = root_chroot(        "bash", "-c", rootfs, args...; ENV=chroot_ENV)
-    my_chroot_command(args...) = root_chroot_command("bash", "-c", rootfs, args...; ENV=chroot_ENV)
+    my_chroot(args...)         = root_chroot(        rootfs, "bash", "-c", args...; ENV=chroot_ENV)
+    my_chroot_command(args...) = root_chroot_command(rootfs, "bash", "-c", args...; ENV=chroot_ENV)
 
     my_chroot("apt-get update")
     my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y gdb")
