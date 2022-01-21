@@ -22,7 +22,7 @@ packages = [
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
-    my_chroot(args...) = root_chroot(args...; ENV=chroot_ENV)
+    my_chroot(args...) = root_chroot(rootfs, "bash", "-c", args...; ENV=chroot_ENV)
 
     @info("Installing buildkite-agent...")
     buildkite_install_cmd = """
@@ -31,10 +31,10 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     apt-get update && \\
     DEBIAN_FRONTEND=noninteractive apt-get install -y buildkite-agent
     """
-    my_chroot(rootfs, "bash", "-c", buildkite_install_cmd)
-    my_chroot(rootfs, "bash", "-c", "which buildkite-agent")
-    my_chroot(rootfs, "bash", "-c", "which -a buildkite-agent")
-    my_chroot(rootfs, "bash", "-c", "buildkite-agent --help")
+    my_chroot(buildkite_install_cmd)
+    my_chroot("which buildkite-agent")
+    my_chroot("which -a buildkite-agent")
+    my_chroot("buildkite-agent --help")
 
     @info("Installing yq...")
     yq_install_cmd = """
@@ -44,10 +44,10 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     cd / && \\
     rm -rfv /tmp-install-yq
     """
-    my_chroot(rootfs, "bash", "-c", yq_install_cmd)
-    my_chroot(rootfs, "bash", "-c", "which yq")
-    my_chroot(rootfs, "bash", "-c", "which -a yq")
-    my_chroot(rootfs, "bash", "-c", "yq --version")
+    my_chroot(yq_install_cmd)
+    my_chroot("which yq")
+    my_chroot("which -a yq")
+    my_chroot("yq --version")
 end
 
 upload_gha(tarball_path)
