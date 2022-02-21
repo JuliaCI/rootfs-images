@@ -32,62 +32,50 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          # Build a bunch of different "agent" rootfs images.
-          - 'agent_linux.aarch64'
-          - 'agent_linux.armv7l'
-          - 'agent_linux.ppc64le'
-          - 'agent_linux.x86_64'
+#           - 'agent_linux.aarch64'
+#           - 'agent_linux.armv7l'
+#           - 'agent_linux.ppc64le'
+#           - 'agent_linux.x86_64'
 
-          # The `debian_minimal` image is a `debian`-based image that
-          # contains no packages.
-          - 'debian_minimal.x86_64'
+#           - 'aws_uploader.x86_64'
 
-          # The `aws_uploader` image is a `debian`-based image that
-          # contains just `awscli`, for usage in secured pipelines
-          # that need to upload to AWS.
-          - 'aws_uploader.x86_64'
+#           - 'debian_minimal.x86_64'
 
-          # The `package_linux` images are all `debian`-based.
-          # - 'package_linux.aarch64'
-          - 'package_linux.armv7l'
-          - 'package_linux.i686'
-          - 'package_linux.powerpc64le'
-          - 'package_linux.x86_64'
+          # - 'julia.aarch64' # Issue 131
+          - 'julia.armv7l'
+          - 'julia.i686'
+          - 'julia.x86_64'
 
-          # The `package_musl` image is `alpine`-based.
-          - 'package_musl.x86_64'
+#           # - 'package_linux.aarch64' # Issue 131
+#           - 'package_linux.armv7l'
+#           - 'package_linux.i686'
+#           - 'package_linux.powerpc64le'
+#           - 'package_linux.x86_64'
 
-          # The `rr` image is `debian`-based.
-          # It is used for building rr from source and running the rr test suite.
-          - 'rr.x86_64'
+#           - 'package_musl.x86_64'
 
-          # The `tester_linux` images are all `debian`-based.
-          # They do not include the compiler toolchain.
-          - 'tester_linux.aarch64'
-          - 'tester_linux.armv7l'
-          - 'tester_linux.i686'
-          - 'tester_linux.powerpc64le'
-          - 'tester_linux.x86_64'
+#           - 'llvm_passes.x86_64'
 
-          # The `tester_musl` image is `alpine`-based.
-          # It does not include the compiler toolchain.
-          - 'tester_musl.x86_64'
+#           - 'npm_linux.x86_64'
 
-          # The `llvm_passes` image is a short-term solution for the `analyzegc` builder.
-          - 'llvm_passes.x86_64'
+#           - 'pkgserver_logsync.x86_64'
 
-          # The `pkgserver_logsync` image is a helper for https://github.com/JuliaPackaging/PkgServerLogAnalysis.jl
-          - 'pkgserver_logsync.x86_64'
+#           - 'rr.x86_64'
 
-          # The `npm_linux` image is a helper for ecosystem jobs that need to build NPM packages
-          - 'npm_linux.x86_64'
+#           - 'tester_linux.aarch64'
+#           - 'tester_linux.armv7l'
+#           - 'tester_linux.i686'
+#           - 'tester_linux.powerpc64le'
+#           - 'tester_linux.x86_64'
+
+#           - 'tester_musl.x86_64'
 
           # The `python_latex_kitchen_sink` image is a helper for ecosystem jobs, such as SciMLBenchmarks
           # that require a large number of tools.  We're kind of throwing everything (including, yes, the
           # proverbial  kitchen sink) in here, in the hope that we'll be able to re-use this image across
           # many similar jobs.  If you're using this image, you're throwing in the towel on providing a
           # small, lean environment, but that's probably necessary.
-          - 'python_latex_kitchen_sink.x86_64'
+#           - 'python_latex_kitchen_sink.x86_64'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
