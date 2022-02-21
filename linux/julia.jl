@@ -29,7 +29,7 @@ packages = [
 
 julia_longarch_dict = Dict(
     "aarch64" => "aarch64",
-    "armv7l"  => "",
+    "armv7l"  => "armv7l",
     "i686"    => "i686",
     "x86_64"  => "x86_64",
 )
