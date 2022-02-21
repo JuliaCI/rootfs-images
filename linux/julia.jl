@@ -58,8 +58,8 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     julia_install_cmd = """
     mkdir /tmp-install-julia && \\
     cd /tmp-install-julia && \\
-    wget $(julia_url)
-    tar xzvf $(julia_tarball)
+    wget --no-verbose $(julia_url)
+    tar xzf $(julia_tarball)
     rm $(julia_tarball)
     mv julia-$(julia_version_str) julia
     mkdir -p /opt
