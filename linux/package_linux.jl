@@ -51,7 +51,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         curl -L $(repo_release_url)/LinuxKernelHeaders.v5.15.14.x86_64-linux-target_os+linux-target_arch+x86_64.tar.gz | tar zx
         """
         gcc_symlink_cmd = """
-        # Create symlinks for `gcc` -> `gcc-9`, etc...
+        # Create symlinks for `gcc` -> `x86_64-linux-gnu-gcc`, etc...
         for tool_path in /usr/local/bin/$(host_triplet)-*; do
             tool="\$(basename "\${tool_path}" | sed -e 's/$(host_triplet)-//')"
             ln -sf "$(host_triplet)-\${tool}" "/usr/local/bin/\${tool}"
