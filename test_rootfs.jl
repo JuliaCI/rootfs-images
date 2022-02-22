@@ -4,6 +4,7 @@ using Sandbox: Sandbox, SandboxConfig, with_executor
 
 args            = parse_test_args(ARGS, @__FILE__)
 command         = args.command
+mount_julia     = args.mount_julia # TODO: implement this line
 multiarch       = args.multiarch
 read_write_maps = args.read_write_maps
 tmpfs_size      = args.tmpfs_size
@@ -14,14 +15,29 @@ working_dir     = args.working_dir
 # If the artifact is not locally existent, download it
 ensure_artifact_exists_locally(; treehash, url)
 
+read_only_maps = Dict{String, String}()
+read_only_maps["/"] = artifact_path(treehash)
+
+path_list = String[
+    "/usr/local/bin",
+    "/usr/bin",
+    "/bin",
+]
+
+if mount_julia
+    read_only_maps["/opt/julia/"] = dirname(abspath(Sys.BINDIR))
+    pushfirst!(path_list, "/opt/julia/bin")
+end
+
+environment_variables = Dict{String, String}()
+environment_variables["PATH"] = join(path_list, ":")
+environment_variables["HOME"] = "/home/juliaci"
+environment_variables["USER"] = "juliaci"
+
 config = SandboxConfig(
-    Dict("/" => artifact_path(treehash)), # read-only maps
+    read_only_maps,
     read_write_maps,
-    Dict(   # environment variables
-        "PATH" => "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin",
-        "HOME" => "/home/juliaci",
-        "USER" => "juliaci",
-    );
+    environment_variables;
     stdin,
     stdout,
     stderr,
