@@ -4,7 +4,7 @@ using Sandbox: Sandbox, SandboxConfig, with_executor
 
 args            = parse_test_args(ARGS, @__FILE__)
 command         = args.command
-mount_julia     = args.mount_julia # TODO: implement this line
+mount_julia     = args.mount_julia
 multiarch       = args.multiarch
 read_write_maps = args.read_write_maps
 tmpfs_size      = args.tmpfs_size
