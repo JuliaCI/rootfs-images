@@ -20,6 +20,14 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
                 "Whether to map a persistant build directory into the sandbox. ",
                 "Possible values: persist, temp, no.",
             )
+        "--mount-julia"
+            arg_type = Bool
+            required = false
+            default = false
+            help = string(
+                "Whether to mount the current Julia binary into the sandbox. ",
+                "Possible values: true, false.",
+            )
         "--override-tmp-dir"
             arg_type = Bool
             required = false
@@ -51,7 +59,8 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
     end
     parsed_args = ArgParse.parse_args(args, settings)
 
-    override_tmp_dir = parsed_args["override-tmp-dir"]::Bool
+    mount_julia       = parsed_args["mount-julia"]::Bool
+    override_tmp_dir  = parsed_args["override-tmp-dir"]::Bool
 
     map_build_dir     = _process_required_string_arg(  parsed_args, "map-build-dir")
     tmpfs_size        = _process_required_string_arg(  parsed_args, "tmpfs-size")
@@ -97,6 +106,7 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
 
     result = (;
         command,
+        mount_julia,
         multiarch,
         read_write_maps,
         tmpfs_size,
