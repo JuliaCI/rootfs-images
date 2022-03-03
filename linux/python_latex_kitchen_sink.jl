@@ -26,6 +26,7 @@ packages = [
     "build-essential",
     # Get latex, so that we can invoke `pdflatex` and friends
     "texlive-full",
+    "pdf2svg",
     # Some of our packages require PyCall.jl/Conda.jl deps
     "python3",
     "liblapack3",
