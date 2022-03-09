@@ -12,6 +12,7 @@ packages = [
     "bash",
     "curl",
     "git",
+    "gpg",
     "locales",
     "vim",
 ]
