@@ -13,6 +13,7 @@ packages = [
     "curl",
     "git",
     "gpg",
+    "gpg-agent",
     "locales",
     "vim",
 ]
