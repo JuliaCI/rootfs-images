@@ -26,6 +26,7 @@ packages = [
     "pkg-config",
     "python3-pexpect",
     "vim",
+    "tree",
 ]
 
 release = "bookworm"
