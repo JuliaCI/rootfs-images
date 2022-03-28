@@ -34,6 +34,8 @@ environment_variables["PATH"] = join(path_list, ":")
 environment_variables["HOME"] = "/home/juliaci"
 environment_variables["USER"] = "juliaci"
 
+read_only_maps["/path/inside/sandbox"] = "/path/to/folder/on/host/system"
+
 config = SandboxConfig(
     read_only_maps,
     read_write_maps,
