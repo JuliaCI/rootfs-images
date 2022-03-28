@@ -44,8 +44,8 @@ config = SandboxConfig(
     multiarch,
     tmpfs_size,
     pwd        = working_dir,
-    uid        = Sandbox.getuid(),
-    gid        = Sandbox.getgid(),
+    uid        = 0,
+    gid        = 0,
 )
 
 with_executor() do exe
