@@ -26,6 +26,8 @@ packages = [
     "pkg-config",
     "python3-pexpect",
     "vim",
+    "zlib1g",
+    "zlib1g-dev",
 ]
 
 release = "bookworm"
