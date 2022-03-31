@@ -49,6 +49,14 @@ function cleanup_rootfs(rootfs; rootfs_info=nothing)
         rm(joinpath(rootfs, "var", "apt", "cache"); recursive=true, force=true)
     end
 
+    # Also remove `/var/lib/apt/lists/*` as those files get out of date
+    apt_lists_dir = joinpath(rootfs, "var", "lib", "apt", "lists")
+    if isdir(apt_lists_dir)
+        @info("Removing `/var/lib/apt/lists/*`...")
+        rm(apt_lists_dir; recursive=true, force=true)
+        mkdir(apt_lists_dir)
+    end
+
     # Remove `/usr/share/doc`, as that's not particularly useful
     if isdir(joinpath(rootfs, "usr", "share", "doc"))
         @info("Removing `/usr/share/doc`...")
