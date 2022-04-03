@@ -6,13 +6,15 @@ arch         = args.arch
 archive      = args.archive
 image        = args.image
 
-packages = [
-    AlpinePackage("bash"),
-    AlpinePackage("curl"),
-    AlpinePackage("gdb"),
-    AlpinePackage("lldb"),
-    AlpinePackage("vim"),
-]
+packages = AlpinePackage.([
+    "bash",
+    "curl",
+    "gdb",
+    "git",
+    "lldb",
+    "make",
+    "vim",
+])
 
 artifact_hash, tarball_path, = alpine_bootstrap(image; archive, packages)
 upload_gha(tarball_path)
