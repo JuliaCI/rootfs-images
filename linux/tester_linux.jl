@@ -14,6 +14,7 @@ packages = [
     "lldb",
     "locales",
     "make",
+    "procps",
     "vim",
 ]
 
