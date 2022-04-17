@@ -22,6 +22,8 @@ packages = [
     "python",
     "python3",
     "wget",
+    "zlib1g",
+    "zlib1g-dev",
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages)
