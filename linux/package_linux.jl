@@ -44,7 +44,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         gcc_install_cmd = """
         cd /usr/local
         curl -L $(repo_release_url)/GCC.v9.1.0.$(host_triplet)-target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz | tar zx
-        curl -L $(repo_release_url)/Binutils.v2.38.0.x86_64-linux-gnu-target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz | tar zx
+        curl -L $(repo_release_url)/Binutils.v2.38.0.$(host_triplet)-target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz | tar zx
         curl -L $(repo_release_url)/Zlib.v1.2.12.$(host_triplet).tar.gz | tar zx
         cd /usr/local/$(host_triplet)/
         curl -L $(repo_release_url)/Glibc.v2.12.2.$(host_triplet).tar.gz | tar zx
