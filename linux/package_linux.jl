@@ -39,9 +39,11 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
 
     host_triplet = "$(arch)-linux-gnu"
     target_subdir = host_triplet
+    cross_tags = "target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz"
     if arch == "armv7l"
         host_triplet = "armv7l-linux-gnueabihf"
         target_subdir = "arm-linux-gnueabihf"
+        cross_tags = "target_libc+glibc-target_os+linux-target_call_abi+eabihf-target_arch+$(arch).tar.gz"
     end
     glibc_version_dict = Dict(
         "x86_64" => v"2.12.2",
@@ -50,12 +52,14 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         "armv7l" => v"2.19",
         "powerpc64le" => v"2.17",
     )
+    
+    
     # Install GCC 9 from Elliot's repo
     repo_release_url = "https://github.com/staticfloat/linux-gcc-toolchains/releases/download/GCC-v9.1.0-$(host_triplet)"
     gcc_install_cmd = """
     cd /usr/local
-    curl -L $(repo_release_url)/GCC.v9.1.0.$(host_triplet)-target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz | tar zx
-    curl -L $(repo_release_url)/Binutils.v2.38.0.$(host_triplet)-target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz | tar zx
+    curl -L $(repo_release_url)/GCC.v9.1.0.$(host_triplet)-$(cross_tags).tar.gz | tar zx
+    curl -L $(repo_release_url)/Binutils.v2.38.0.$(host_triplet)-$(cross_tags).tar.gz | tar zx
     curl -L $(repo_release_url)/Zlib.v1.2.12.$(host_triplet).tar.gz | tar zx
     cd /usr/local/$(target_subdir)/
     curl -L $(repo_release_url)/Glibc.$(glibc_version_dict[arch]).$(host_triplet).tar.gz | tar zx
