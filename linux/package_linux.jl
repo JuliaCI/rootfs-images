@@ -37,7 +37,7 @@ packages = [
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
     my_chroot(args...) = root_chroot(rootfs, "bash", "-c", args...; ENV=chroot_ENV)
 
-    if arch ∈ ("x86_64", "i686")
+    if arch ∈ ("x86_64", "i686", "aarch64")
         host_triplet = "$(arch)-linux-gnu"
         # Install GCC 9 from Elliot's repo
         repo_release_url = "https://github.com/staticfloat/linux-gcc-toolchains/releases/download/GCC-v9.1.0-$(host_triplet)"
