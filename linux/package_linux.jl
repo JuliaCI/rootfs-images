@@ -49,7 +49,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         cd /usr/local/$(host_triplet)/
         curl -L $(repo_release_url)/Glibc.v2.12.2.$(host_triplet).tar.gz | tar zx
         cd /usr/local/x86_64-linux-gnu/usr
-        curl -L $(repo_release_url)/LinuxKernelHeaders.v5.15.14.x86_64-linux-target_os+linux-target_arch+$(arch).tar.gz | tar zx
+        curl -L $(repo_release_url)/LinuxKernelHeaders.v5.15.14.$(arch)-linux-target_os+linux-target_arch+$(arch).tar.gz | tar zx
         """
         gcc_symlink_cmd = """
         # Create symlinks for `gcc` -> `$(host_triplet)-gcc`, etc...
