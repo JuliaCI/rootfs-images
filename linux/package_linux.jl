@@ -45,6 +45,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         "armv7l" => v"2.19",
         "powerpc64le" => v"2.17",
     )
+    target_subdir = replace(host_triplet, "armv7l" => "arm")
     # Install GCC 9 from Elliot's repo
     repo_release_url = "https://github.com/staticfloat/linux-gcc-toolchains/releases/download/GCC-v9.1.0-$(host_triplet)"
     gcc_install_cmd = """
@@ -52,9 +53,9 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     curl -L $(repo_release_url)/GCC.v9.1.0.$(host_triplet)-target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz | tar zx
     curl -L $(repo_release_url)/Binutils.v2.38.0.$(host_triplet)-target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz | tar zx
     curl -L $(repo_release_url)/Zlib.v1.2.12.$(host_triplet).tar.gz | tar zx
-    cd /usr/local/$(host_triplet)/
+    cd /usr/local/$(target_subdir)/
     curl -L $(repo_release_url)/Glibc.$(glibc_version_dict[arch]).$(host_triplet).tar.gz | tar zx
-    cd /usr/local/$(host_triplet)/usr
+    cd /usr/local/$(target_subdir)/usr
     curl -L $(repo_release_url)/LinuxKernelHeaders.v5.15.14.$(host_triplet)-host+any.tar.gz | tar zx
     """
     gcc_symlink_cmd = """
