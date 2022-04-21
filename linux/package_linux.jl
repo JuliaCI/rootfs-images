@@ -38,6 +38,11 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     my_chroot(args...) = root_chroot(rootfs, "bash", "-c", args...; ENV=chroot_ENV)
 
     host_triplet = "$(arch)-linux-gnu"
+    target_subdir = host_triplet
+    if arch == "armv7l"
+        host_triplet = "armv7l-linux-gnueabihf"
+        target_subdir = "arm-linux-gnueabihf"
+    end
     glibc_version_dict = Dict(
         "x86_64" => v"2.12.2",
         "i686" => v"2.12.2",
@@ -45,7 +50,6 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         "armv7l" => v"2.19",
         "powerpc64le" => v"2.17",
     )
-    target_subdir = replace(host_triplet, "armv7l" => "arm")
     # Install GCC 9 from Elliot's repo
     repo_release_url = "https://github.com/staticfloat/linux-gcc-toolchains/releases/download/GCC-v9.1.0-$(host_triplet)"
     gcc_install_cmd = """
