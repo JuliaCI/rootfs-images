@@ -37,22 +37,22 @@ packages = [
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
     my_chroot(args...) = root_chroot(rootfs, "bash", "-c", args...; ENV=chroot_ENV)
 
-    if arch == "x86_64"
-        host_triplet = "x86_64-linux-gnu"
+    if arch ∈ ("x86_64", "i686")
+        host_triplet = "$(arch)-linux-gnu"
         # Install GCC 9 from Elliot's repo
-        repo_release_url = "https://github.com/staticfloat/linux-gcc-toolchains/releases/download/GCC-v9.1.0-x86_64-linux-gnu"
+        repo_release_url = "https://github.com/staticfloat/linux-gcc-toolchains/releases/download/GCC-v9.1.0-$(host_triplet)"
         gcc_install_cmd = """
         cd /usr/local
-        curl -L $(repo_release_url)/GCC.v9.1.0.$(host_triplet)-target_libc+glibc-target_os+linux-target_arch+x86_64.tar.gz | tar zx
-        curl -L $(repo_release_url)/Binutils.v2.38.0.x86_64-linux-gnu-target_libc+glibc-target_os+linux-target_arch+x86_64.tar.gz | tar zx
+        curl -L $(repo_release_url)/GCC.v9.1.0.$(host_triplet)-target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz | tar zx
+        curl -L $(repo_release_url)/Binutils.v2.38.0.$(host_triplet)-target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz | tar zx
         curl -L $(repo_release_url)/Zlib.v1.2.12.$(host_triplet).tar.gz | tar zx
         cd /usr/local/$(host_triplet)/
         curl -L $(repo_release_url)/Glibc.v2.12.2.$(host_triplet).tar.gz | tar zx
-        cd /usr/local/x86_64-linux-gnu/usr
-        curl -L $(repo_release_url)/LinuxKernelHeaders.v5.15.14.x86_64-linux-target_os+linux-target_arch+x86_64.tar.gz | tar zx
+        cd /usr/local/$(host_triplet)/usr
+        curl -L $(repo_release_url)/LinuxKernelHeaders.v5.15.14.$(host_triplet)-host+any.tar.gz | tar zx
         """
         gcc_symlink_cmd = """
-        # Create symlinks for `gcc` -> `x86_64-linux-gnu-gcc`, etc...
+        # Create symlinks for `gcc` -> `$(host_triplet)-gcc`, etc...
         for tool_path in /usr/local/bin/$(host_triplet)-*; do
             tool="\$(basename "\${tool_path}" | sed -e 's/$(host_triplet)-//')"
             ln -sf "$(host_triplet)-\${tool}" "/usr/local/bin/\${tool}"
@@ -63,7 +63,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         libstdcxx_replace_cmd = """
         # Copy g++'s libstdc++.so over the system-wide one,
         # so that we can run things built by our g++
-        cp -fv /usr/local/$(host_triplet)/lib*/libstdc++*.so* /lib/$(host_triplet)/
+        cp -fv /usr/local/$(host_triplet)/lib*/libstdc++*.so* /lib/*-linux-*/
         """
         my_chroot(libstdcxx_replace_cmd)
     else
