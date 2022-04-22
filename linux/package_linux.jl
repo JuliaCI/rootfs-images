@@ -62,7 +62,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     curl -L $(repo_release_url)/Binutils.v2.38.0.$(host_triplet)-$(cross_tags).tar.gz | tar zx
     curl -L $(repo_release_url)/Zlib.v1.2.12.$(host_triplet).tar.gz | tar zx
     cd /usr/local/$(target_subdir)/
-    curl -L $(repo_release_url)/Glibc.$(glibc_version_dict[arch]).$(host_triplet).tar.gz | tar zx
+    curl -L $(repo_release_url)/Glibc.v$(glibc_version_dict[arch]).$(host_triplet).tar.gz | tar zx
     cd /usr/local/$(target_subdir)/usr
     curl -L $(repo_release_url)/LinuxKernelHeaders.v5.15.14.$(host_triplet)-host+any.tar.gz | tar zx
     """
@@ -78,7 +78,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     libstdcxx_replace_cmd = """
     # Copy g++'s libstdc++.so over the system-wide one,
     # so that we can run things built by our g++
-    cp -fv /usr/local/$(host_triplet)/lib*/libstdc++*.so* /lib/*-linux-*/
+    cp -fv /usr/local/$(target_subdir)/lib*/libstdc++*.so* /lib/*-linux-*/
     """
     my_chroot(libstdcxx_replace_cmd)
     
