@@ -35,7 +35,7 @@ packages = [
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
-    my_chroot(args...) = root_chroot(rootfs, "bash", "-c", args...; ENV=chroot_ENV)
+    my_chroot(args...) = root_chroot(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
 
     host_triplet = "$(arch)-linux-gnu"
     target_subdir = host_triplet
