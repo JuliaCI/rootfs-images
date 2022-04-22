@@ -35,61 +35,60 @@ packages = [
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
-    my_chroot(args...) = root_chroot(rootfs, "bash", "-c", args...; ENV=chroot_ENV)
+    my_chroot(args...) = root_chroot(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
 
-    if arch ∈ ("x86_64", "i686", "aarch64")
-        host_triplet = "$(arch)-linux-gnu"
-        # Install GCC 9 from Elliot's repo
-        repo_release_url = "https://github.com/staticfloat/linux-gcc-toolchains/releases/download/GCC-v9.1.0-$(host_triplet)"
-        gcc_install_cmd = """
-        cd /usr/local
-        curl -L $(repo_release_url)/GCC.v9.1.0.$(host_triplet)-target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz | tar zx
-        curl -L $(repo_release_url)/Binutils.v2.38.0.$(host_triplet)-target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz | tar zx
-        curl -L $(repo_release_url)/Zlib.v1.2.12.$(host_triplet).tar.gz | tar zx
-        cd /usr/local/$(host_triplet)/
-        curl -L $(repo_release_url)/Glibc.v2.12.2.$(host_triplet).tar.gz | tar zx
-        cd /usr/local/$(host_triplet)/usr
-        curl -L $(repo_release_url)/LinuxKernelHeaders.v5.15.14.$(host_triplet)-host+any.tar.gz | tar zx
-        """
-        gcc_symlink_cmd = """
-        # Create symlinks for `gcc` -> `$(host_triplet)-gcc`, etc...
-        for tool_path in /usr/local/bin/$(host_triplet)-*; do
-            tool="\$(basename "\${tool_path}" | sed -e 's/$(host_triplet)-//')"
-            ln -sf "$(host_triplet)-\${tool}" "/usr/local/bin/\${tool}"
-        done
-        """
-        my_chroot(gcc_install_cmd)
-        my_chroot(gcc_symlink_cmd)
-        libstdcxx_replace_cmd = """
-        # Copy g++'s libstdc++.so over the system-wide one,
-        # so that we can run things built by our g++
-        cp -fv /usr/local/$(host_triplet)/lib*/libstdc++*.so* /lib/*-linux-*/
-        """
-        my_chroot(libstdcxx_replace_cmd)
-    else
-        # Install GCC 9 from apt
-        @info("Installing gcc-9")
-        gcc_install_cmd = """
-        echo 'deb http://deb.debian.org/debian stable main' >> /etc/apt/sources.list && \\
-        apt-get update && \\
-        DEBIAN_FRONTEND=noninteractive apt-get install -y gcc-9 g++-9 gfortran-9
-        """
-        gcc_symlink_cmd = """
-        # Create symlinks for `gcc` -> `gcc-9`, etc...
-        for tool_path in /usr/bin/*-9; do
-            tool="\$(basename "\${tool_path}" | sed -e 's/-9//')"
-            ln -sf "\${tool}-9" "/usr/bin/\${tool}"
-        done
-        """
-        my_chroot(gcc_install_cmd)
-        my_chroot(gcc_symlink_cmd)
+    host_triplet = "$(arch)-linux-gnu"
+    gcc_triplet = host_triplet
+    cross_tags = "target_libc+glibc-target_os+linux-target_arch+$(arch)"
+    if arch == "armv7l"
+        host_triplet = "armv7l-linux-gnueabihf"
+        gcc_triplet = "arm-linux-gnueabihf"
+        cross_tags = "target_libc+glibc-target_os+linux-target_call_abi+eabihf-target_arch+$(arch)"
     end
+    glibc_version_dict = Dict(
+        "x86_64" => v"2.12.2",
+        "i686" => v"2.12.2",
+        "aarch64" => v"2.19",
+        "armv7l" => v"2.19",
+        "powerpc64le" => v"2.17",
+    )
+    
+    
+    # Install GCC 9 from Elliot's repo
+    repo_release_url = "https://github.com/staticfloat/linux-gcc-toolchains/releases/download/GCC-v9.1.0-$(host_triplet)"
+    gcc_install_cmd = """
+    cd /usr/local
+    curl -fL $(repo_release_url)/GCC.v9.1.0.$(host_triplet)-$(cross_tags).tar.gz | tar zx
+    curl -fL $(repo_release_url)/Binutils.v2.38.0.$(host_triplet)-$(cross_tags).tar.gz | tar zx
+    curl -fL $(repo_release_url)/Zlib.v1.2.12.$(host_triplet).tar.gz | tar zx
+    cd /usr/local/$(gcc_triplet)/
+    curl -fL $(repo_release_url)/Glibc.v$(glibc_version_dict[arch]).$(host_triplet).tar.gz | tar zx
+    cd /usr/local/$(gcc_triplet)/usr
+    curl -fL $(repo_release_url)/LinuxKernelHeaders.v5.15.14.$(host_triplet)-host+any.tar.gz | tar zx
+    """
+    gcc_symlink_cmd = """
+    # Create symlinks for `gcc` -> `$(gcc_triplet)-gcc`, etc...
+    for tool_path in /usr/local/bin/$(gcc_triplet)-*; do
+        tool="\$(basename "\${tool_path}" | sed -e 's/$(gcc_triplet)-//')"
+        ln -vsf "$(gcc_triplet)-\${tool}" "/usr/local/bin/\${tool}"
+    done
+    """
+    my_chroot(gcc_install_cmd)
+    my_chroot(gcc_symlink_cmd)
+    libstdcxx_replace_cmd = """
+    # Copy g++'s libstdc++.so over the system-wide one,
+    # so that we can run things built by our g++
+    cp -fv /usr/local/$(gcc_triplet)/lib*/libstdc++*.so* /lib/*-linux-*/
+    """
+    my_chroot(libstdcxx_replace_cmd)
+    
+    # Show what is installed
     my_chroot("which gcc")
     my_chroot("which -a gcc")
     my_chroot("which g++")
     my_chroot("which -a g++")
 
-    # We're not going to even install gfortran in some cases.  :)
+    # We're not going to even install gfortran anymore :)
     #my_chroot("which gfortran")
     #my_chroot("which -a gfortran")
     #my_chroot("gfortran --version")
