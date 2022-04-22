@@ -39,11 +39,11 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
 
     host_triplet = "$(arch)-linux-gnu"
     target_subdir = host_triplet
-    cross_tags = "target_libc+glibc-target_os+linux-target_arch+$(arch).tar.gz"
+    cross_tags = "target_libc+glibc-target_os+linux-target_arch+$(arch)"
     if arch == "armv7l"
         host_triplet = "armv7l-linux-gnueabihf"
         target_subdir = "arm-linux-gnueabihf"
-        cross_tags = "target_libc+glibc-target_os+linux-target_call_abi+eabihf-target_arch+$(arch).tar.gz"
+        cross_tags = "target_libc+glibc-target_os+linux-target_call_abi+eabihf-target_arch+$(arch)"
     end
     glibc_version_dict = Dict(
         "x86_64" => v"2.12.2",
