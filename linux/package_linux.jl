@@ -38,11 +38,11 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     my_chroot(args...) = root_chroot(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
 
     host_triplet = "$(arch)-linux-gnu"
-    target_subdir = host_triplet
+    gcc_triplet = host_triplet
     cross_tags = "target_libc+glibc-target_os+linux-target_arch+$(arch)"
     if arch == "armv7l"
         host_triplet = "armv7l-linux-gnueabihf"
-        target_subdir = "arm-linux-gnueabihf"
+        gcc_triplet = "arm-linux-gnueabihf"
         cross_tags = "target_libc+glibc-target_os+linux-target_call_abi+eabihf-target_arch+$(arch)"
     end
     glibc_version_dict = Dict(
@@ -61,16 +61,16 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     curl -fL $(repo_release_url)/GCC.v9.1.0.$(host_triplet)-$(cross_tags).tar.gz | tar zx
     curl -fL $(repo_release_url)/Binutils.v2.38.0.$(host_triplet)-$(cross_tags).tar.gz | tar zx
     curl -fL $(repo_release_url)/Zlib.v1.2.12.$(host_triplet).tar.gz | tar zx
-    cd /usr/local/$(target_subdir)/
+    cd /usr/local/$(gcc_triplet)/
     curl -fL $(repo_release_url)/Glibc.v$(glibc_version_dict[arch]).$(host_triplet).tar.gz | tar zx
-    cd /usr/local/$(target_subdir)/usr
+    cd /usr/local/$(gcc_triplet)/usr
     curl -fL $(repo_release_url)/LinuxKernelHeaders.v5.15.14.$(host_triplet)-host+any.tar.gz | tar zx
     """
     gcc_symlink_cmd = """
     # Create symlinks for `gcc` -> `$(host_triplet)-gcc`, etc...
     for tool_path in /usr/local/bin/$(host_triplet)-*; do
-        tool="\$(basename "\${tool_path}" | sed -e 's/$(host_triplet)-//')"
-        ln -sf "$(host_triplet)-\${tool}" "/usr/local/bin/\${tool}"
+        tool="\$(basename "\${tool_path}" | sed -e 's/$(gcc_triplet)-//')"
+        ln -vsf "$(gcc_triplet)-\${tool}" "/usr/local/bin/\${tool}"
     done
     """
     my_chroot(gcc_install_cmd)
@@ -78,7 +78,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     libstdcxx_replace_cmd = """
     # Copy g++'s libstdc++.so over the system-wide one,
     # so that we can run things built by our g++
-    cp -fv /usr/local/$(target_subdir)/lib*/libstdc++*.so* /lib/*-linux-*/
+    cp -fv /usr/local/$(gcc_triplet)/lib*/libstdc++*.so* /lib/*-linux-*/
     """
     my_chroot(libstdcxx_replace_cmd)
     
