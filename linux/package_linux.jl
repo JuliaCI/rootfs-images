@@ -67,8 +67,8 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     curl -fL $(repo_release_url)/LinuxKernelHeaders.v5.15.14.$(host_triplet)-host+any.tar.gz | tar zx
     """
     gcc_symlink_cmd = """
-    # Create symlinks for `gcc` -> `$(host_triplet)-gcc`, etc...
-    for tool_path in /usr/local/bin/$(host_triplet)-*; do
+    # Create symlinks for `gcc` -> `$(gcc_triplet)-gcc`, etc...
+    for tool_path in /usr/local/bin/$(gcc_triplet)-*; do
         tool="\$(basename "\${tool_path}" | sed -e 's/$(gcc_triplet)-//')"
         ln -vsf "$(gcc_triplet)-\${tool}" "/usr/local/bin/\${tool}"
     done
