@@ -58,13 +58,13 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     repo_release_url = "https://github.com/staticfloat/linux-gcc-toolchains/releases/download/GCC-v9.1.0-$(host_triplet)"
     gcc_install_cmd = """
     cd /usr/local
-    curl -L $(repo_release_url)/GCC.v9.1.0.$(host_triplet)-$(cross_tags).tar.gz | tar zx
-    curl -L $(repo_release_url)/Binutils.v2.38.0.$(host_triplet)-$(cross_tags).tar.gz | tar zx
-    curl -L $(repo_release_url)/Zlib.v1.2.12.$(host_triplet).tar.gz | tar zx
+    curl -fL $(repo_release_url)/GCC.v9.1.0.$(host_triplet)-$(cross_tags).tar.gz | tar zx
+    curl -fL $(repo_release_url)/Binutils.v2.38.0.$(host_triplet)-$(cross_tags).tar.gz | tar zx
+    curl -fL $(repo_release_url)/Zlib.v1.2.12.$(host_triplet).tar.gz | tar zx
     cd /usr/local/$(target_subdir)/
-    curl -L $(repo_release_url)/Glibc.v$(glibc_version_dict[arch]).$(host_triplet).tar.gz | tar zx
+    curl -fL $(repo_release_url)/Glibc.v$(glibc_version_dict[arch]).$(host_triplet).tar.gz | tar zx
     cd /usr/local/$(target_subdir)/usr
-    curl -L $(repo_release_url)/LinuxKernelHeaders.v5.15.14.$(host_triplet)-host+any.tar.gz | tar zx
+    curl -fL $(repo_release_url)/LinuxKernelHeaders.v5.15.14.$(host_triplet)-host+any.tar.gz | tar zx
     """
     gcc_symlink_cmd = """
     # Create symlinks for `gcc` -> `$(host_triplet)-gcc`, etc...
