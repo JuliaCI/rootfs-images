@@ -36,6 +36,14 @@ packages = [
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
     my_chroot(args...) = root_chroot(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
+    
+    my_chroot("which curl")
+    my_chroot("which -a curl")
+
+    my_chroot("curl --version")
+    my_chroot("curl https://julialang.org/robots.txt")
+    my_chroot("curl --fail https://julialang.org/robots.txt")
+    my_chroot("curl --fail-with-body https://julialang.org/robots.txt")
 
     host_triplet = "$(arch)-linux-gnu"
     gcc_triplet = host_triplet
