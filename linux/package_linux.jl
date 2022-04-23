@@ -52,8 +52,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         "armv7l" => v"2.19",
         "powerpc64le" => v"2.17",
     )
-    
-    
+
     # Install GCC 9 from Elliot's repo
     repo_release_url = "https://github.com/staticfloat/linux-gcc-toolchains/releases/download/GCC-v9.1.0-$(host_triplet)"
     gcc_install_cmd = """
@@ -81,17 +80,13 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     cp -fv /usr/local/$(gcc_triplet)/lib*/libstdc++*.so* /lib/*-linux-*/
     """
     my_chroot(libstdcxx_replace_cmd)
-    
+
     # Show what is installed
     my_chroot("which gcc")
     my_chroot("which -a gcc")
     my_chroot("which g++")
     my_chroot("which -a g++")
 
-    # We're not going to even install gfortran anymore :)
-    #my_chroot("which gfortran")
-    #my_chroot("which -a gfortran")
-    #my_chroot("gfortran --version")
     my_chroot("gcc --version")
     my_chroot("g++ --version")
 end
