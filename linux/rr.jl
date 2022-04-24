@@ -50,7 +50,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, relea
     my_chroot("which -a cmake")
     my_chroot("cmake --version")
 
-    # my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y g++-multilib")
+    my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y g++-multilib")
 end
 
 upload_gha(tarball_path)
