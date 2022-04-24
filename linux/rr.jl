@@ -13,10 +13,8 @@ packages = [
     "build-essential",
     "capnproto",
     "ccache",
-    "cmake",
     "coreutils",
     "curl",
-    "g++-multilib",
     "git",
     "libcapnp-dev",
     "locales",
@@ -31,26 +29,28 @@ packages = [
 ]
 
 release = "bookworm"
+cmake_version = "3.23.1"
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, release) do rootfs, chroot_ENV
     my_chroot(args...) = root_chroot(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
     my_chroot_command(args...) = root_chroot_command(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
 
     my_chroot("apt-get update")
+    my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y cmake")
     my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y gdb")
+
+    cmake_url = "https://github.com/Kitware/CMake/releases/download/v$(cmake_version)/cmake-$(cmake_version)-linux-$(arch).tar.gz"
+    cmake_install_cmd = """
+    cd /usr/local
+    curl -fL $(cmake_url) | tar zx
+    """
+    my_chroot(cmake_install_cmd)
+
+    my_chroot("which cmake")
+    my_chroot("which -a cmake")
     my_chroot("cmake --version")
 
-    let
-        str = read(my_chroot_command("cmake --version"), String)
-        m = match(r"cmake version ([\d]*)\.([\d]*)\.([\d]*)", str)
-        installed_ver = VersionNumber("$(m[1]).$(m[2]).$(m[3])")
-        desired_ver = v"3.22.1"
-        @info "cmake version" installed_ver desired_ver
-        if installed_ver < desired_ver
-            msg = "Failed to install a sufficiently recent version of cmake"
-            throw(ErrorException(msg))
-        end
-    end
+    # my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y g++-multilib")
 end
 
 upload_gha(tarball_path)
