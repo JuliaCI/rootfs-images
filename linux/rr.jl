@@ -50,10 +50,12 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, relea
     my_chroot("which -a cmake")
     my_chroot("cmake --version")
     
-    if arch == :
+    if arch == :aarch64
+        gpp = "g++"
     else
+        gpp = "g++-multilib"
     end
-    my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y g++-multilib")
+    my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y $(gpp)")
     cmd = """
     mkdir -p /tmp/build
     cd /tmp/build
