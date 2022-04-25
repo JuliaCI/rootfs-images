@@ -60,6 +60,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, relea
     mkdir -p /tmp/build
     cd /tmp/build
     git clone https://github.com/rr-debugger/rr.git
+    cd rr
     cmake --version
     rm -rf obj
     mkdir obj
