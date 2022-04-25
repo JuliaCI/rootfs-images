@@ -14,6 +14,8 @@ packages = [
     "git",
     "gpg",
     "gpg-agent",
+    "groff",
+    "less",
     "locales",
     "vim",
 ]
