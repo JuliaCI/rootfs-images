@@ -67,7 +67,6 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, relea
     cd obj
     cmake ..
     make --output-sync -j2
-    ctest
     cd /
     rm -rf /tmp/build
     """
