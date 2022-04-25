@@ -50,6 +50,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, relea
     my_chroot("which -a cmake")
     my_chroot("cmake --version")
     
+    @info "" arch typeof(arch)
     if arch == :aarch64
         gpp = "g++"
     else
