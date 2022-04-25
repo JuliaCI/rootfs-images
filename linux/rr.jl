@@ -49,8 +49,26 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, relea
     my_chroot("which cmake")
     my_chroot("which -a cmake")
     my_chroot("cmake --version")
-
+    
+    if arch == :
+    else
+    end
     my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y g++-multilib")
+    cmd = """
+    mkdir -p /tmp/build
+    cd /tmp/build
+    git clone https://github.com/rr-debugger/rr.git
+    cmake --version
+    rm -rf obj
+    mkdir obj
+    cd obj
+    cmake ..
+    make --output-sync -j2
+    ctest --output-on-failure
+    cd /
+    rm -rf /tmp/build
+    """
+    my_chroot(cmd)
 end
 
 upload_gha(tarball_path)
