@@ -60,6 +60,7 @@ jobs:
 
           # The `rr` image is `debian`-based.
           # It is used for building rr from source and running the rr test suite.
+          - 'rr.aarch64'
           - 'rr.x86_64'
 
           # The `tester_linux` images are all `debian`-based.

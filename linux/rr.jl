@@ -16,7 +16,6 @@ packages = [
     "cmake",
     "coreutils",
     "curl",
-    "g++-multilib",
     "git",
     "libcapnp-dev",
     "locales",
@@ -36,21 +35,17 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, relea
     my_chroot(args...) = root_chroot(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
     my_chroot_command(args...) = root_chroot_command(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
 
+    if arch in ("aarch64",)
+        gpp = "g++"
+    else
+        gpp = "g++-multilib"
+    end
+
     my_chroot("apt-get update")
     my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y gdb")
-    my_chroot("cmake --version")
+    my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y $(gpp)")
 
-    let
-        str = read(my_chroot_command("cmake --version"), String)
-        m = match(r"cmake version ([\d]*)\.([\d]*)\.([\d]*)", str)
-        installed_ver = VersionNumber("$(m[1]).$(m[2]).$(m[3])")
-        desired_ver = v"3.22.1"
-        @info "cmake version" installed_ver desired_ver
-        if installed_ver < desired_ver
-            msg = "Failed to install a sufficiently recent version of cmake"
-            throw(ErrorException(msg))
-        end
-    end
+    my_chroot("cmake --version")
 end
 
 upload_gha(tarball_path)
