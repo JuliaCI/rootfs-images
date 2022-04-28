@@ -50,7 +50,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         "i686" => v"2.12.2",
         "aarch64" => v"2.19",
         "armv7l" => v"2.19",
-        "powerpc64le" => v"2.17",
+        "powerpc64le" => v"2.19",
     )
 
     # Install GCC 9 from Elliot's repo
