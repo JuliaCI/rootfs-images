@@ -15,6 +15,7 @@ packages = [
     "gpg",
     "gpg-agent",
     "locales",
+    "make",
     "vim",
 ]
 
