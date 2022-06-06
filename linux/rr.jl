@@ -24,6 +24,7 @@ packages = [
     "ninja-build",
     "pkg-config",
     "python3-pexpect",
+    "sysvinit-utils",
     "vim",
     "zlib1g",
     "zlib1g-dev",
