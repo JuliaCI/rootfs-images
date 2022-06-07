@@ -14,6 +14,7 @@ packages = AlpinePackage.([
     "lldb",
     "make",
     "vim",
+    "zstd",
 ])
 
 artifact_hash, tarball_path, = alpine_bootstrap(image; archive, packages)
