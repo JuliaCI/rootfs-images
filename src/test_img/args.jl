@@ -51,6 +51,11 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
             required = false
             default = ""
             help = "Tree hash of the rootfs image."
+        "--run-as-root", "-r"
+            arg_type = Bool
+            required = false
+            default = false
+            help = "Run as root within sandbox."
         "command"
             required = false
             default = Any[]
@@ -61,6 +66,7 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
 
     mount_julia       = parsed_args["mount-julia"]::Bool
     override_tmp_dir  = parsed_args["override-tmp-dir"]::Bool
+    run_as_root       = parsed_args["run-as-root"]::Bool
 
     map_build_dir     = _process_required_string_arg(  parsed_args, "map-build-dir")
     tmpfs_size        = _process_required_string_arg(  parsed_args, "tmpfs-size")
@@ -113,6 +119,7 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
         treehash,
         url,
         working_dir,
+        run_as_root,
     )
 
     return result
