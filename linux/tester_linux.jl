@@ -16,6 +16,7 @@ packages = [
     "make",
     "procps",
     "vim",
+    "zstd",
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages)

@@ -11,6 +11,7 @@ tmpfs_size      = args.tmpfs_size
 treehash        = args.treehash
 url             = args.url
 working_dir     = args.working_dir
+run_as_root     = args.run_as_root
 
 # If the artifact is not locally existent, download it
 ensure_artifact_exists_locally(; treehash, url)
@@ -34,6 +35,13 @@ environment_variables["PATH"] = join(path_list, ":")
 environment_variables["HOME"] = "/home/juliaci"
 environment_variables["USER"] = "juliaci"
 
+uid = Sandbox.getuid()
+gid = Sandbox.getgid()
+if run_as_root
+    uid = 0
+    gid = 0
+end
+
 config = SandboxConfig(
     read_only_maps,
     read_write_maps,
@@ -43,9 +51,9 @@ config = SandboxConfig(
     stderr,
     multiarch,
     tmpfs_size,
-    pwd        = working_dir,
-    uid        = Sandbox.getuid(),
-    gid        = Sandbox.getgid(),
+    uid,
+    gid,
+    pwd = working_dir,
 )
 
 with_executor() do exe
