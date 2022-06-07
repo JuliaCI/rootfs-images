@@ -9,6 +9,7 @@ image        = args.image
 packages = AlpinePackage.([
     "bash",
     "curl",
+    "file",
     "gdb",
     "git",
     "lldb",

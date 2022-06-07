@@ -9,6 +9,7 @@ image        = args.image
 packages = [
     "bash",
     "curl",
+    "file",
     "gdb",
     "git",
     "lldb",
