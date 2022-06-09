@@ -39,6 +39,12 @@ function cleanup_rootfs(rootfs; rootfs_info=nothing)
         end
     end
 
+    # Ensure that `/dev/fd` exists, so that `bash` can do command substitution
+    dev_fd = joinpath(rootfs, "dev", "fd")
+    if !ispath(dev_fd)
+        symlink("../proc/self/fd", joinpath(rootfs, "dev", "fd"))
+    end
+
     # take ownership of the entire rootfs
     @info("Chown'ing rootfs")
     run(`sudo chown $(getuid()):$(getgid()) -R "$(rootfs)"`)
