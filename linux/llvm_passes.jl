@@ -17,6 +17,7 @@ packages = [
     "gdb",
     "less",
     "libatomic1",
+    "lldb",
     "locales",
     "m4",
     "perl",
