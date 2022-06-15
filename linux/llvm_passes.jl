@@ -11,8 +11,10 @@ packages = [
     "bzip2",
     "cmake",
     "curl",
+    "file",
     "gfortran",
     "git",
+    "gdb",
     "less",
     "libatomic1",
     "locales",
@@ -24,6 +26,7 @@ packages = [
     "wget",
     "zlib1g",
     "zlib1g-dev",
+    "zstd",
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages)
