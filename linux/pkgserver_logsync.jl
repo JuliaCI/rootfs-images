@@ -12,6 +12,7 @@ packages = String[
     "jq",
     "locales",
     "openssh-client",
+    "parallel",
     "rsync",
     "zstd",
 ]
