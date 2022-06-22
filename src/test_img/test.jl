@@ -28,7 +28,10 @@ function ensure_artifact_exists_locally(; treehash, url)
         end
         @info("Artifact did not exist locally, downloading")
         was_success = Pkg.Artifacts.download_artifact(treehash, url; verbose=true)
-        was_success || throw(ErrorException("Download was not a success"))
+        if was_success !== true
+            @error was_success
+            throw(ErrorException("Download was not a success"))
+        end
     end
     Pkg.Artifacts.artifact_exists(treehash) || throw(ErrorException("Could not download the artifact"))
     return nothing
