@@ -14,6 +14,7 @@ packages = AlpinePackage.([
     "git",
     "lldb",
     "make",
+    "openssl",
     "vim",
     "zstd",
 ])
