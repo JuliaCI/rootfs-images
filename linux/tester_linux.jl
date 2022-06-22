@@ -15,6 +15,7 @@ packages = [
     "lldb",
     "locales",
     "make",
+    "openssl",
     "procps",
     "vim",
     "zstd",
