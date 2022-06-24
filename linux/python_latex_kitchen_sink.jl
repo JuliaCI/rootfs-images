@@ -13,6 +13,8 @@ packages = [
     "bash",
     "locales",
     "zip",
+    "unzip",
+    "zstd",
 
     # Work around bug in debootstrap where virtual dependencies are not properly installed
     # X-ref: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=878961
