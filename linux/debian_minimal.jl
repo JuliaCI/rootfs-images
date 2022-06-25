@@ -7,8 +7,8 @@ archive      = args.archive
 image        = args.image
 
 packages = String[]
-locale = nothing
+locales = String[]
 
-artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, locale)
+artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, locales)
 upload_gha(tarball_path)
 test_sandbox(artifact_hash)

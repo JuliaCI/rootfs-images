@@ -21,6 +21,13 @@ packages = [
     "zstd",
 ]
 
-artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages)
+# The test suites use a non-english locale as part of their tests;
+# we provide it in the testing image.
+locales = [
+    "en_US.UTF-8 UTF-8",
+    "ko_KR.EUC-KR EUC-KR",
+]
+
+artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, locales)
 upload_gha(tarball_path)
 test_sandbox(artifact_hash)
