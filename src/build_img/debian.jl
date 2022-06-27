@@ -12,7 +12,7 @@ end
 function debootstrap(f::Function, arch::String, name::String;
                      archive::Bool = true,
                      force::Bool = false,
-                     locale::Union{Nothing,String} = "en_US.UTF-8 UTF-8",
+                     locales::Vector{String} = ["en_US.UTF-8 UTF-8"],
                      packages::Vector{String} = String[],
                      release::String = "buster",
                      variant::String = "minbase")
@@ -20,14 +20,14 @@ function debootstrap(f::Function, arch::String, name::String;
         error("Must install `debootstrap`!")
     end
 
-    if locale !== nothing
+    if !isempty(locales)
         if "locales" ∉ packages
             msg = string(
-                "You have set the `locale` keyword argument to `true`. ",
+                "You have set the `locales` keyword argument. ",
                 "However, the `packages` vector does not include the `locales` package. ",
                 "Either ",
                 "(1) add the `locales` package to the `packages` vector, or ",
-                "(2) set the `locale` keyword arguement to `false`.",
+                "(2) set the `locale` keyword arguement to an empty vector.",
             )
             throw(ArgumentError(msg))
         end
@@ -42,18 +42,20 @@ function debootstrap(f::Function, arch::String, name::String;
         "PATH" => "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
     )
 
-    # If `locale` is set, pass that through as `LANG`
-    if locale !== nothing
-        chroot_ENV["LANG"] = first(split(locale))
+    # If `locale` is set, pass the first element through as `LANG`
+    if !isempty(locales)
+        chroot_ENV["LANG"] = first(split(first(locales)))
     end
 
     return create_rootfs(name; archive, force) do rootfs
         # If `locale` is set, the first thing we do is to pre-populate `/etc/locales.gen`
-        if locale !== nothing
-            @info("Setting up locale", locale)
+        if !isempty(locales)
+            @info("Setting up locale", locales)
             mkpath(joinpath(rootfs, "etc"))
             open(joinpath(rootfs, "etc", "locale.gen"), "a") do io
-                println(io, locale)
+                for locale in locales
+                    println(io, locale)
+                end
             end
         end
 
@@ -116,7 +118,7 @@ function debootstrap(f::Function, arch::String, name::String;
         end
 
         # If we have locale support, ensure that `locale-gen` is run at least once.
-        if locale !== nothing
+        if !isempty(locales)
             chroot(rootfs, "locale-gen"; ENV=chroot_ENV)
         end
 
