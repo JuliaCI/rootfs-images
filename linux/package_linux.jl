@@ -71,6 +71,9 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         tool="\$(basename "\${tool_path}" | sed -e 's/$(gcc_triplet)-//')"
         ln -vsf "$(gcc_triplet)-\${tool}" "/usr/local/bin/\${tool}"
     done
+    # Also create symlinks for `cc` and `c++`.
+    ln -vsf "/usr/local/bin/gcc" "/usr/local/bin/cc"
+    ln -vsf "/usr/local/bin/g++" "/usr/local/bin/c++"
     """
     my_chroot(gcc_install_cmd)
     my_chroot(gcc_symlink_cmd)
