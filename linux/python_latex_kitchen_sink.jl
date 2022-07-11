@@ -12,6 +12,7 @@ image        = args.image
 packages = [
     "bash",
     "locales",
+    "localepurge",
     "zip",
     "unzip",
     "zstd",

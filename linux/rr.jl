@@ -19,6 +19,7 @@ packages = [
     "git",
     "libcapnp-dev",
     "locales",
+    "localepurge",
     "make",
     "manpages-dev",
     "ninja-build",

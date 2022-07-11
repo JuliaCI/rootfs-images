@@ -23,6 +23,7 @@ packages = [
     "libtool",
     "lldb",
     "locales",
+    "localepurge",
     "m4",
     "make",
     "patch",

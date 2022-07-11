@@ -14,6 +14,7 @@ packages = [
     "gnupg2",
     "jq",
     "locales",
+    "localepurge",
     "openssh-client",
     "openssl",
     "python3",
