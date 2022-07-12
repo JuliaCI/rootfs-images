@@ -11,6 +11,7 @@ packages = String[
     "curl",
     "jq",
     "locales",
+    "localepurge",
     "openssh-client",
     "parallel",
     "rsync",

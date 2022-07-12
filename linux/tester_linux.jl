@@ -14,6 +14,7 @@ packages = [
     "git",
     "lldb",
     "locales",
+    "localepurge",
     "make",
     "openssl",
     "procps",

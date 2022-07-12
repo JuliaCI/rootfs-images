@@ -11,6 +11,7 @@ packages = [
     "curl",
     "git",
     "locales",
+    "localepurge",
     "npm",
     "vim",
     "wget",

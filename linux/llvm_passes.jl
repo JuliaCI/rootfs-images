@@ -19,6 +19,7 @@ packages = [
     "libatomic1",
     "lldb",
     "locales",
+    "localepurge",
     "m4",
     "perl",
     "pkg-config",
