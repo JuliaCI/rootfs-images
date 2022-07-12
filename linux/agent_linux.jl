@@ -12,6 +12,7 @@ packages = [
     "curl",
     "git",
     "gnupg2",
+    "iproute2",
     "jq",
     "locales",
     "localepurge",
