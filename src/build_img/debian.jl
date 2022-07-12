@@ -22,12 +22,12 @@ function debootstrap(f::Function, arch::String, name::String;
 
     if !isempty(locales)
         for needed_pkg in ("locales", "localepurge")
-            if "locales" ∉ packages
+            if needed_pkg ∉ packages
                 msg = string(
                     "You have set the `locales` keyword argument. ",
-                    "However, the `packages` vector does not include the `locales` package. ",
+                    "However, the `packages` vector does not include the `$(needed_pkg)` package. ",
                     "Either ",
-                    "(1) add the `locales` package to the `packages` vector, or ",
+                    "(1) add the `$(needed_pkg)` package to the `packages` vector, or ",
                     "(2) set the `locale` keyword arguement to an empty vector.",
                 )
                 throw(ArgumentError(msg))
