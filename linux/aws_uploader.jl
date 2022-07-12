@@ -17,6 +17,7 @@ packages = [
     "locales",
     "localepurge",
     "make",
+    "openssh-client",
     "vim",
 ]
 
