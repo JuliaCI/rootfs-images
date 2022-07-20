@@ -39,6 +39,7 @@ packages = [
     "vim",
     "gdb",
     "lldb",
+    "wget",
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages)
