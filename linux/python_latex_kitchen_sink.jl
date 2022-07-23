@@ -40,6 +40,7 @@ packages = [
     "gdb",
     "lldb",
     "make",
+    "g++",
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages)
