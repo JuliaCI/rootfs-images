@@ -27,6 +27,7 @@ packages = [
     "m4",
     "make",
     "patch",
+    "patchelf",
     "perl",
     "pkg-config",
     "python",
