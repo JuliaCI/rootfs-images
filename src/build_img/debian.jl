@@ -14,7 +14,7 @@ function debootstrap(f::Function, arch::String, name::String;
                      force::Bool = false,
                      locales::Vector{String} = ["en_US.UTF-8 UTF-8"],
                      packages::Vector{String} = String[],
-                     release::String = "buster",
+                     release::String = "bullseye",
                      variant::String = "minbase")
     if Sys.which("debootstrap") === nothing
         error("Must install `debootstrap`!")
