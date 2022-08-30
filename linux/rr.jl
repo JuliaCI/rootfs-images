@@ -43,9 +43,14 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, relea
         gpp = "g++-multilib"
     end
 
-    my_chroot("apt-get update")
-    my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y gdb")
-    my_chroot("DEBIAN_FRONTEND=noninteractive apt-get install -y $(gpp)")
+    apt_update_and_upgrade = () -> begin
+        my_chroot("DEBIAN_FRONTEND=noninteractive apt update")
+        my_chroot("DEBIAN_FRONTEND=noninteractive apt upgrade -y")
+    end
+    apt_update_and_upgrade()
+    my_chroot("DEBIAN_FRONTEND=noninteractive apt install -y gdb")
+    my_chroot("DEBIAN_FRONTEND=noninteractive apt install -y $(gpp)")
+    apt_update_and_upgrade()
 
     my_chroot("cmake --version")
 end

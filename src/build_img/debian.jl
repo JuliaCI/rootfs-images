@@ -71,16 +71,10 @@ function debootstrap(f::Function, arch::String, name::String;
             end
         end
 
-        @info("Running debootstrap", release, variant, packages)
+        @info("Running debootstrap", release, variant, arch)
         debootstrap_cmd = `sudo debootstrap`
         push!(debootstrap_cmd.exec, "--arch=$(debian_arch(arch))")
         push!(debootstrap_cmd.exec, "--variant=$(variant)")
-        if isempty(packages)
-            packages_string = "(no packages)"
-        else
-            packages_string = join(strip.(packages), ",")
-            push!(debootstrap_cmd.exec, "--include=$(packages_string)")
-        end
         push!(debootstrap_cmd.exec, "$(release)")
         push!(debootstrap_cmd.exec, "$(rootfs)")
         p = run(setenv(debootstrap_cmd, chroot_ENV), (stdin, stdout, stderr); wait = false)
@@ -105,17 +99,38 @@ function debootstrap(f::Function, arch::String, name::String;
             chroot(rootfs, "/usr/bin/c_rehash"; ENV=chroot_ENV, uid=0, gid=0)
         end
 
+        apt_packages = filter!(x -> !isempty(x), strip.(packages))
+        @info("Installing and upgrading apt packages", apt_packages)
+        apt_env = copy(chroot_ENV)
+        apt_env["DEBIAN_FRONTEND"] = "noninteractive"
+        apt_update_and_upgrade = () -> begin
+            chroot(rootfs, "apt", "update"; ENV=apt_env, uid=0, gid=0)
+            chroot(rootfs, "apt", "upgrade", "-y"; ENV=apt_env, uid=0, gid=0)
+        end
+        apt_update_and_upgrade()
+        if !isempty(apt_packages)
+            chroot(rootfs, "apt", "install", "-y", apt_packages...; ENV=apt_env, uid=0, gid=0)
+        end
+        apt_update_and_upgrade()
+
         # Call user callback, if requested
         f(rootfs, chroot_ENV)
 
-        # Remove special `dev` files, take ownership, force symlinks to be relative, etc...
+        # Construct the `rootfs_info` string
+        if isempty(apt_packages)
+            info_pkgs_str = "(no packages)"
+        else
+            info_pkgs_str = join(strip.(apt_packages), ",")
+        end
         rootfs_info="""
                     rootfs_type=debootstrap
                     release=$(release)
                     variant=$(variant)
-                    packages=$(packages_string)
+                    packages=$(info_pkgs_str)
                     build_date=$(Dates.now())
                     """
+
+        # Remove special `dev` files, take ownership, force symlinks to be relative, etc...
         cleanup_rootfs(rootfs; rootfs_info)
 
         # Remove `_apt` user so that `apt` doesn't try to `setgroups()`

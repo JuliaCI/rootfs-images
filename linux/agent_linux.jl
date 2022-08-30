@@ -26,17 +26,20 @@ packages = [
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
     my_chroot(args...) = root_chroot(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
 
+    apt_update_and_upgrade = () -> begin
+        my_chroot("DEBIAN_FRONTEND=noninteractive apt update")
+        my_chroot("DEBIAN_FRONTEND=noninteractive apt upgrade -y")
+    end
+    apt_update_and_upgrade()
+
     @info("Installing buildkite-agent...")
     buildkite_install_cmd = """
     echo 'deb https://apt.buildkite.com/buildkite-agent stable main' >> /etc/apt/sources.list && \\
     curl -sfL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x32A37959C2FA5C3C99EFBC32A79206696452D198" | apt-key add - && \\
-    apt-get update && \\
-    DEBIAN_FRONTEND=noninteractive apt-get install -y buildkite-agent
+    apt update && \\
+    DEBIAN_FRONTEND=noninteractive apt install -y buildkite-agent
     """
     my_chroot(buildkite_install_cmd)
-    my_chroot("which buildkite-agent")
-    my_chroot("which -a buildkite-agent")
-    my_chroot("buildkite-agent --help")
 
     @info("Installing yq...")
     yq_install_cmd = """
@@ -47,6 +50,13 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     rm -rfv /tmp-install-yq
     """
     my_chroot(yq_install_cmd)
+
+    apt_update_and_upgrade()
+
+    my_chroot("which buildkite-agent")
+    my_chroot("which -a buildkite-agent")
+    my_chroot("buildkite-agent --help")
+
     my_chroot("which yq")
     my_chroot("which -a yq")
     my_chroot("yq --version")
