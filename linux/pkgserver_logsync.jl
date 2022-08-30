@@ -18,6 +18,9 @@ packages = String[
     "zstd",
 ]
 
-artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages)
+release = "bullseye"
+
+artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, release)
+
 upload_gha(tarball_path)
 test_sandbox(artifact_hash)
