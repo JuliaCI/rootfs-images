@@ -24,7 +24,6 @@ packages = [
     "dbus-user-session",
     "python3-sip",
 
-
     # Get a C compiler, for compiling python extensions
     "build-essential",
     # Get latex, so that we can invoke `pdflatex` and friends
