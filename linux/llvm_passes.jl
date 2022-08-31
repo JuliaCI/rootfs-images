@@ -23,7 +23,6 @@ packages = [
     "m4",
     "perl",
     "pkg-config",
-    "python",
     "python3",
     "wget",
     "zlib1g",

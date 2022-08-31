@@ -30,7 +30,6 @@ packages = [
     "patchelf",
     "perl",
     "pkg-config",
-    "python",
     "python3",
     "vim",
     "wget",
