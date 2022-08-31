@@ -12,6 +12,7 @@ packages = [
     "git",
     "locales",
     "localepurge",
+    "nodejs",
     "npm",
     "vim",
     "wget",
