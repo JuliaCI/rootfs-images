@@ -9,15 +9,17 @@ image        = args.image
 
 packages = [
     "bash",
+    "curl",
+    "git"
     "locales",
     "localepurge",
+    "make",
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
     my_chroot(args...) = root_chroot(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
 
     additional_packages = String[
-        "curl",
         "latexmk",
         "python3-pygments",
         "texlive-latex-base",
