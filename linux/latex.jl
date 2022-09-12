@@ -9,6 +9,7 @@ image        = args.image
 
 packages = [
     "bash",
+    "build-essential",
     "coreutils",
     "curl",
     "git",
