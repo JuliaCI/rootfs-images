@@ -83,6 +83,9 @@ jobs:
 
           # The `npm_linux` image is a helper for ecosystem jobs that need to build NPM packages
           - 'npm_linux.x86_64'
+
+          # The `latex` image is used to build the PDF docs
+          - 'latex.x86_64'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
