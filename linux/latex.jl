@@ -10,7 +10,7 @@ image        = args.image
 packages = [
     "bash",
     "curl",
-    "git"
+    "git",
     "locales",
     "localepurge",
     "make",
