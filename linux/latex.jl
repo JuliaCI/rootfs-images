@@ -9,6 +9,7 @@ image        = args.image
 
 packages = [
     "bash",
+    "coreutils",
     "curl",
     "git",
     "locales",
