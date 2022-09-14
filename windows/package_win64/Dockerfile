@@ -17,7 +17,7 @@ RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"  && \
     bash -l -c " \
         pacman -S --needed --noconfirm --noprogressbar \
             cmake diffutils git m4 make patch tar p7zip curl python3 \
-            mingw-w64-x86_64-gcc mingw-w64-x86_64-gcc-fortran \
+            mingw-w64-x86_64-gcc \
         "  && \
     bash -l -c "pacman -Scc --noconfirm"  && \
     echo ---- [%date% %time%] Pkg install done!
@@ -25,15 +25,20 @@ RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"  && \
 #   ref: https://github.com/msys2/MSYS2-packages/issues/2305#issuecomment-758162640
 
 
-# ---- Move to new container
+# ---- Move to new container, to drop messy build history
 ARG WIN_VERSION=ltsc2022
 FROM mcr.microsoft.com/windows/servercore:$WIN_VERSION
 
 COPY --from=MSYS2_download C:/msys64 C:/msys64
+
+# Set default environment variables and setup useful symlinks
 RUN setx /M  PATH C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%  && \
     mklink /J  C:\msys64\home\ContainerUser C:\Users\ContainerUser  && \
     setx /M  HOME C:\msys64\home\ContainerUser
-
 WORKDIR C:/msys64/home/ContainerUser
+
+# Select the mingw64 environment: https://www.msys2.org/docs/environments/
 ENV MSYSTEM=MINGW64
-CMD ["bash", "-l"]
+
+# Default to `bash` for interactive builds
+CMD ["bash"]
