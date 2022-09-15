@@ -36,11 +36,35 @@ jobs:
           - 'package_win64'
     steps:
       - uses: actions/checkout@v2
-      - run: docker --version
-      - run: docker build -t ${{ matrix.image }} .
+
+      # Set up `IMAGE_NAME`, which is something like `juliapackaging/package_win64`
+      # and also `TAG_NAME`, which is usually something like `v5.23`, but if we're
+      # not on a tag, it defaults to the gitsha of the current build.  That build
+      # won't be pushed, because we only push on tags, but we need to define this
+      # for our actual `docker build` step below.
+      - run: |
+          if ( "${{ github.ref_name }}" -Like "v*" ) {
+            Write-Output "TAG_NAME=${{ github.ref_name }}" >> $env:GITHUB_ENV
+          } else {
+            Write-Output "TAG_NAME=${{ github.sha }}" >> $env:GITHUB_ENV
+          }
+          Write-Output "IMAGE_NAME=juliapackaging/${{ matrix.image }}" >> $env:GITHUB_ENV
+      - run: docker build -t ${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} .
         working-directory: windows/${{ matrix.image }}
-      - run: docker images ${{ matrix.image }} --no-trunc
-      - run: docker images ${{ matrix.image }} --digests
-      - run: docker inspect ${{ matrix.image }}
-      - run: docker run -d ${{ matrix.image }}
-      - run: docker ps
+      - run: docker tag ${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} ${{ env.IMAGE_NAME }}:latest
+
+      # Dump some debugging output to ensure everything works properly
+      - run: docker images ${{ env.IMAGE_NAME }} --digests
+      - run: docker run ${{ env.IMAGE_NAME }} bash -c "gcc -dumpmachine; gcc --version"
+
+      # Login to docker hub so we can push it up, but only do so on a tag
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        if: ${{ github.event_name == 'release' }}
+      - run: |
+          docker push ${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}
+          docker push ${{ env.IMAGE_NAME }}:latest
+        if: ${{ github.event_name == 'release' }}
