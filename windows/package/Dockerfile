@@ -3,10 +3,13 @@
 # See "Full Tag Listing" in https://hub.docker.com/_/microsoft-windows-servercore
 ARG WIN_VERSION=ltsc2022
 FROM mcr.microsoft.com/windows/servercore:$WIN_VERSION AS MSYS2_download
+ARG ARCH=x86_64
+ARG BITS=64
 
+# We always download x86_64 MSYS2 installer, since our system itself is x86_64.
 ARG MSYS2_VERSION=20220904
 ARG MSYS2_DOWNLOAD_URL=https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-${MSYS2_VERSION}.sfx.exe
-RUN setx /M  PATH C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%  && \
+RUN setx /M PATH "C:\msys64\mingw%BITS%\bin;C:\msys64\usr\bin;%PATH%" && \
     powershell -Command "Invoke-WebRequest -Uri %MSYS2_DOWNLOAD_URL% -OutFile C:/windows/temp/msys2-base.sfx.exe"  && \
     C:\windows\temp\msys2-base.sfx.exe x -o"C:"
 # NOTE: workaround for "gpg: error reading key: Connection timed out"
@@ -17,7 +20,7 @@ RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"  && \
     bash -l -c " \
         pacman -S --needed --noconfirm --noprogressbar \
             cmake diffutils git m4 make patch tar p7zip curl python3 \
-            mingw-w64-i686-gcc \
+            mingw-w64-${ARCH}-gcc \
         "  && \
     bash -l -c "pacman -Scc --noconfirm"  && \
     echo ---- [%date% %time%] Pkg install done!
@@ -28,11 +31,14 @@ RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"  && \
 # ---- Move to new container, to drop messy build history
 ARG WIN_VERSION=ltsc2022
 FROM mcr.microsoft.com/windows/servercore:$WIN_VERSION
+ARG BITS=64
 
 COPY --from=MSYS2_download C:/msys64 C:/msys64
 
 # Set default environment variables and setup useful symlinks
-RUN setx /M  PATH C:\msys64\mingw32\bin;C:\msys64\usr\bin;%PATH%  && \
+# Note that we add an entry for `buildkite-agent` here despite it not being within
+# the image, because we expect it to be mounted within us in the future.
+RUN setx /M PATH "C:\buildkite-agent\bin;C:\msys64\mingw%BITS%\bin;C:\msys64\usr\bin;%PATH%" && \
     mklink /J  C:\msys64\home\ContainerUser C:\Users\ContainerUser  && \
     setx /M  HOME C:\msys64\home\ContainerUser
 WORKDIR C:/msys64/home/ContainerUser
