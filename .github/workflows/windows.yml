@@ -26,7 +26,7 @@ jobs:
       - run: true
   build_windows:
     timeout-minutes: 60
-    name: build_windows / ${{ matrix.image }}_win${{ matrix.bits }}
+    name: build_windows / ${{ matrix.image }}-windows-${{ matrix.arch }}
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -34,10 +34,8 @@ jobs:
         include:
           - image: 'package'
             arch: 'x86_64'
-            bits: '64'
           - image: 'package'
             arch: 'i686'
-            bits: '32'
     steps:
       - uses: actions/checkout@v2
 
@@ -53,8 +51,8 @@ jobs:
             Write-Output "TAG_NAME=${{ github.sha }}" >> $env:GITHUB_ENV
           }
           Write-Output "IMAGE_NAME=juliapackaging/${{ matrix.image }}-windows-${{ matrix.arch }}" >> $env:GITHUB_ENV
-      - run: docker build -t ${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} --build-arg BITS=${{ matrix.bits }} --build-arg ARCH=${{ matrix.arch }} .
-        working-directory: windows/${{ matrix.image }}
+      - run: docker build -t ${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} .
+        working-directory: windows/${{ matrix.image }}-${{ matrix.arch }}
       - run: docker tag ${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} ${{ env.IMAGE_NAME }}:latest
 
       # Dump some debugging output to ensure everything works properly
