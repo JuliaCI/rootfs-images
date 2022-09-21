@@ -17,7 +17,7 @@ RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"  && \
     bash -l -c "pacman -Syu --needed --noconfirm --noprogressbar"  && \
     bash -l -c " \
         pacman -S --needed --noconfirm --noprogressbar \
-            cmake diffutils git m4 make patch tar p7zip curl python3 \
+            cmake diffutils git m4 make patch tar p7zip curl python3 openssl gnupg2 \
             mingw-w64-x86_64-gcc \
         "  && \
     bash -l -c "pacman -Scc --noconfirm"  && \
@@ -31,6 +31,22 @@ ARG WIN_VERSION=ltsc2022
 FROM mcr.microsoft.com/windows/servercore:$WIN_VERSION
 
 COPY --from=MSYS2_download C:/msys64 C:/msys64
+
+# Download Windows 10 SDK and install only `signtool.exe`
+ARG SDK_URL="https://go.microsoft.com/fwlink/p/?linkid=2196241"
+ARG SDK_EXE="C:/windows/temp/winsdksetup.exe"
+RUN powershell -Command "\
+        Invoke-WebRequest -Uri '%SDK_URL%' -OutFile '%SDK_EXE%' -ErrorAction Stop ; \
+        Start-Process '%SDK_EXE%' -Wait -ArgumentList '/features OptionId.SigningTools', '/q', '/ceip off', '/norestart' ; \
+        setx /M PATH '%PATH%;' + (Resolve-Path 'C:/Program Files (x86)/Windows Kits/10/bin/*/x64/') ; \
+        Remove-Item '%SDK_EXE%'"
+
+#Install AWS CLI
+ARG AWS_MSI="C:/windows/temp/AWSCLI64PY3.msi"
+RUN powershell -Command "\
+    Invoke-WebRequest -UseBasicParsing https://s3.amazonaws.com/aws-cli/AWSCLI64PY3.msi -OutFile '%AWS_MSI%' ; \
+    Start-Process 'msiexec.exe' -Wait -ArgumentList '/i', '%AWS_MSI%', '/qn', '/norestart' ; \
+    Remove-Item -Force '%AWS_MSI%'"
 
 # Set default environment variables and setup useful symlinks
 # Note that we add an entry for `buildkite-agent` here despite it not being within
