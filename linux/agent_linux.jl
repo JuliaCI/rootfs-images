@@ -2,6 +2,8 @@ using RootfsUtils: parse_build_args, upload_gha, test_sandbox
 using RootfsUtils: debootstrap
 using RootfsUtils: root_chroot
 
+error("TODO: delete this line")
+
 args         = parse_build_args(ARGS, @__FILE__)
 arch         = args.arch
 archive      = args.archive
