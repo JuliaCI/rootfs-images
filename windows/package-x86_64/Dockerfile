@@ -38,22 +38,19 @@ ARG SDK_EXE="C:/windows/temp/winsdksetup.exe"
 RUN powershell -Command "\
         Invoke-WebRequest -Uri '%SDK_URL%' -OutFile '%SDK_EXE%' -ErrorAction Stop ; \
         Start-Process '%SDK_EXE%' -Wait -ArgumentList '/features OptionId.SigningTools', '/q', '/ceip off', '/norestart' ; \
-        setx /M PATH '%PATH%;' + (Resolve-Path 'C:/Program Files (x86)/Windows Kits/10/bin/*/x64/') ; \
+        setx /M PATH ('%PATH%;' + (Resolve-Path 'C:/Program Files (x86)/Windows Kits/10/bin/*/x64/')) ; \
         Remove-Item '%SDK_EXE%'"
 
-#Install AWS CLI
-ARG AWS_MSI="C:/windows/temp/AWSCLI64PY3.msi"
-RUN powershell -Command "\
-    Invoke-WebRequest -UseBasicParsing https://s3.amazonaws.com/aws-cli/AWSCLI64PY3.msi -OutFile '%AWS_MSI%' ; \
-    Start-Process 'msiexec.exe' -Wait -ArgumentList '/i', '%AWS_MSI%', '/qn', '/norestart' ; \
-    Remove-Item -Force '%AWS_MSI%'"
+# Install AWS CLI
+RUN msiexec.exe /i "https://awscli.amazonaws.com/AWSCLIV2.msi" /quiet /qn && \
+    setx /M PATH "%PATH%;C:\Program Files\Amazon\AWSCLIV2"
 
 # Set default environment variables and setup useful symlinks
 # Note that we add an entry for `buildkite-agent` here despite it not being within
 # the image, because we expect it to be mounted within us in the future.
 RUN setx /M PATH "C:\buildkite-agent\bin;C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%" && \
-    mklink /J  C:\msys64\home\ContainerUser C:\Users\ContainerUser  && \
-    setx /M  HOME C:\msys64\home\ContainerUser
+    mklink /J C:\msys64\home\ContainerUser C:\Users\ContainerUser && \
+    setx /M HOME C:\msys64\home\ContainerUser
 WORKDIR C:/msys64/home/ContainerUser
 
 # Select the mingw64 environment: https://www.msys2.org/docs/environments/

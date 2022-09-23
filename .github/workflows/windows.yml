@@ -58,6 +58,8 @@ jobs:
       # Dump some debugging output to ensure everything works properly
       - run: docker images ${{ env.IMAGE_NAME }} --digests
       - run: docker run ${{ env.IMAGE_NAME }} bash -c "cc -dumpmachine; cc --version"
+      - run: docker run ${{ env.IMAGE_NAME }} bash -c "MSYS2_ARG_CONV_EXCL='*' signtool /?"
+      - run: docker run ${{ env.IMAGE_NAME }} bash -c "aws --version"
 
       # Login to docker hub so we can push it up, but only do so on a tag
       - name: Login to Docker Hub

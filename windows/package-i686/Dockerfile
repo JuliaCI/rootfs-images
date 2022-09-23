@@ -37,6 +37,20 @@ FROM mcr.microsoft.com/windows/servercore:$WIN_VERSION
 
 COPY --from=MSYS2_download C:/msys64 C:/msys64
 
+# Download Windows 10 SDK and install only `signtool.exe`
+ARG SDK_URL="https://go.microsoft.com/fwlink/p/?linkid=2196241"
+ARG SDK_EXE="C:/windows/temp/winsdksetup.exe"
+RUN powershell -Command "\
+        Invoke-WebRequest -Uri '%SDK_URL%' -OutFile '%SDK_EXE%' -ErrorAction Stop ; \
+        Start-Process '%SDK_EXE%' -Wait -ArgumentList '/features OptionId.SigningTools', '/q', '/ceip off', '/norestart' ; \
+        setx /M PATH ('%PATH%;' + (Resolve-Path 'C:/Program Files (x86)/Windows Kits/10/bin/*/x64/')) ; \
+        Remove-Item '%SDK_EXE%'"
+
+# Install AWS CLI
+RUN msiexec.exe /i "https://awscli.amazonaws.com/AWSCLIV2.msi" /quiet /qn && \
+    setx /M PATH "%PATH%;C:\Program Files\Amazon\AWSCLIV2"
+
+
 # Set default environment variables and setup useful symlinks
 # Note that we add an entry for `buildkite-agent` here despite it not being within
 # the image, because we expect it to be mounted within us in the future.
