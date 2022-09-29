@@ -44,7 +44,11 @@ jobs:
 
           # The `debian_minimal` image is a `debian`-based image that
           # contains no packages.
+          - 'debian_minimal.aarch64'
+          - 'debian_minimal.armv7l'
+          - 'debian_minimal.ppc64le'
           - 'debian_minimal.x86_64'
+          - 'debian_minimal.i686'
 
           # The `aws_uploader` image is a `debian`-based image that
           # contains just `awscli`, for usage in secured pipelines
