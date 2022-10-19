@@ -93,6 +93,10 @@ jobs:
 
           # The `latex` image is used to build the PDF docs
           - 'latex.x86_64'
+
+          # The `xvfb` image is used in the CI for the PkgEval.jl repo
+          - 'xvfb.aarch64'
+          - 'xvfb.x86_64'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
