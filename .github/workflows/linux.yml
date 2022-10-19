@@ -42,6 +42,11 @@ jobs:
           - 'agent_linux.x86_64'
           - 'agent_linux.i686'
 
+          # The `aws_uploader` image is a `debian`-based image that
+          # contains just `awscli`, for usage in secured pipelines
+          # that need to upload to AWS.
+          - 'aws_uploader.x86_64'
+
           # The `debian_minimal` image is a `debian`-based image that
           # contains no packages.
           - 'debian_minimal.aarch64'
@@ -50,10 +55,14 @@ jobs:
           - 'debian_minimal.x86_64'
           - 'debian_minimal.i686'
 
-          # The `aws_uploader` image is a `debian`-based image that
-          # contains just `awscli`, for usage in secured pipelines
-          # that need to upload to AWS.
-          - 'aws_uploader.x86_64'
+          # The `latex` image is used to build the PDF docs
+          - 'latex.x86_64'
+
+          # The `llvm_passes` image is a short-term solution for the `analyzegc` builder.
+          - 'llvm_passes.x86_64'
+
+          # The `npm_linux` image is a helper for ecosystem jobs that need to build NPM packages
+          - 'npm_linux.x86_64'
 
           # The `package_linux` images are all `debian`-based.
           - 'package_linux.aarch64'
@@ -64,6 +73,9 @@ jobs:
 
           # The `package_musl` image is `alpine`-based.
           - 'package_musl.x86_64'
+
+          # The `pkgserver_logsync` image is a helper for https://github.com/JuliaPackaging/PkgServerLogAnalysis.jl
+          - 'pkgserver_logsync.x86_64'
 
           # The `rr` image is `debian`-based.
           # It is used for building rr from source and running the rr test suite.
@@ -81,18 +93,6 @@ jobs:
           # The `tester_musl` image is `alpine`-based.
           # It does not include the compiler toolchain.
           - 'tester_musl.x86_64'
-
-          # The `llvm_passes` image is a short-term solution for the `analyzegc` builder.
-          - 'llvm_passes.x86_64'
-
-          # The `pkgserver_logsync` image is a helper for https://github.com/JuliaPackaging/PkgServerLogAnalysis.jl
-          - 'pkgserver_logsync.x86_64'
-
-          # The `npm_linux` image is a helper for ecosystem jobs that need to build NPM packages
-          - 'npm_linux.x86_64'
-
-          # The `latex` image is used to build the PDF docs
-          - 'latex.x86_64'
 
           # The `xvfb` image is used in the CI for the PkgEval.jl repo
           - 'xvfb.aarch64'
