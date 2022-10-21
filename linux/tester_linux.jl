@@ -16,6 +16,7 @@ packages = [
     "locales",
     "localepurge",
     "make",
+    "net-tools",
     "openssl",
     "procps",
     "vim",
