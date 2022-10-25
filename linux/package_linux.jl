@@ -90,9 +90,12 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     my_chroot("which -a gcc")
     my_chroot("which g++")
     my_chroot("which -a g++")
+    my_chroot("which ld")
+    my_chroot("which -a ld")
 
     my_chroot("gcc --version")
     my_chroot("g++ --version")
+    my_chroot("ld --version")
 end
 
 upload_gha(tarball_path)
