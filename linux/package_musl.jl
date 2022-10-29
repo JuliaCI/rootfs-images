@@ -19,6 +19,7 @@ packages = [
     AlpinePackage("perl"),
     AlpinePackage("python3"),
     AlpinePackage("tar"),
+    AlpinePackage("time"),
     AlpinePackage("wget"),
 
     # Install GCC 9, specifically
