@@ -7,6 +7,7 @@ image        = args.image
 
 packages = [
     AlpinePackage("bash"),
+    AlpinePackage("busybox"), # Provides `time`; TODO: delete this line once we upgrade to Alpine 3.17
     AlpinePackage("bzip2"),
     AlpinePackage("cmake"),
     AlpinePackage("curl"),
@@ -19,6 +20,7 @@ packages = [
     AlpinePackage("perl"),
     AlpinePackage("python3"),
     AlpinePackage("tar"),
+    # AlpinePackage("time"), # TODO: uncomment this line once we upgrade to Alpine 3.17
     AlpinePackage("wget"),
 
     # Install GCC 9, specifically

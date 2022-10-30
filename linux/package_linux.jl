@@ -31,6 +31,7 @@ packages = [
     "perl",
     "pkg-config",
     "python3",
+    "time",
     "vim",
     "wget",
 ]
