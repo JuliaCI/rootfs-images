@@ -58,7 +58,12 @@ jobs:
           # The `latex` image is used to build the PDF docs
           - 'latex.x86_64'
 
-          # The `llvm_passes` image is a short-term solution for the `analyzegc` builder.
+          # The `llvm_passes` image contains `gfortran`, so we use it for our
+          # "from source" (`USE_BINARYBUILDER=0`) jobs.
+          - 'llvm_passes.aarch64'
+          - 'llvm_passes.armv7l'
+          - 'llvm_passes.i686'
+          - 'llvm_passes.powerpc64le'
           - 'llvm_passes.x86_64'
 
           # The `npm_linux` image is a helper for ecosystem jobs that need to build NPM packages
