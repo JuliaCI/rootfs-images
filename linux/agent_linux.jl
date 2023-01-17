@@ -22,6 +22,7 @@ packages = [
     "vim",
     "wget",
     "zstd",
+    "xz-utils",
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
