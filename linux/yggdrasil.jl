@@ -32,6 +32,6 @@ packages = [
     "zstd",
 ]
 
-artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages, locales)
+artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages)
 upload_gha(tarball_path)
 test_sandbox(artifact_hash)
