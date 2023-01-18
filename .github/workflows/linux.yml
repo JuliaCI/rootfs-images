@@ -102,6 +102,9 @@ jobs:
           # The `xvfb` image is used in the CI for the PkgEval.jl repo
           - 'xvfb.aarch64'
           - 'xvfb.x86_64'
+
+          # The `yggdrasil` image is used in the CI for the Yggdrasil repo
+          - 'yggdrasil.x86_64'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
