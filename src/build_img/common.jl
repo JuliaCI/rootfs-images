@@ -63,10 +63,14 @@ function cleanup_rootfs(rootfs; rootfs_info=nothing)
         mkdir(apt_lists_dir)
     end
 
-    # Remove `/usr/share/doc`, as that's not particularly useful
+    # Remove `/usr/share/{doc,man}`, as that's not particularly useful
     if isdir(joinpath(rootfs, "usr", "share", "doc"))
         @info("Removing `/usr/share/doc`...")
         rm(joinpath(rootfs, "usr", "share", "doc"); recursive=true, force=true)
+    end
+    if isdir(joinpath(rootfs, "usr", "share", "man"))
+        @info("Removing `/usr/share/man`...")
+        rm(joinpath(rootfs, "usr", "share", "man"); recursive=true, force=true)
     end
 
     # Add `juliaci` user and group
