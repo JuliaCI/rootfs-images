@@ -48,8 +48,8 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
         cross_tags = "target_libc+glibc-target_os+linux-target_call_abi+eabihf-target_arch+$(arch)"
     end
     glibc_version_dict = Dict(
-        "x86_64" => v"2.12.2",
-        "i686" => v"2.12.2",
+        "x86_64" => v"2.17",
+        "i686" => v"2.17",
         "aarch64" => v"2.19",
         "armv7l" => v"2.19",
         "powerpc64le" => v"2.19",
