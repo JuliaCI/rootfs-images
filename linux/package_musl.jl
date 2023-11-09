@@ -17,6 +17,7 @@ packages = [
     AlpinePackage("lldb"),
     AlpinePackage("m4"),
     AlpinePackage("make"),
+    AlpinePackage("patch"),
     AlpinePackage("perl"),
     AlpinePackage("python3"),
     AlpinePackage("tar"),
