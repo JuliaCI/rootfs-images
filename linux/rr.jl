@@ -18,6 +18,7 @@ packages = [
     "curl",
     "git",
     "libcapnp-dev",
+    "lldb",
     "locales",
     "localepurge",
     "make",
