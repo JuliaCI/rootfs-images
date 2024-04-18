@@ -49,7 +49,7 @@ julia --project test_rootfs.jl --url https://github.com/JuliaCI/rootfs-images/re
 This will print out a message with the tree hash of the rootfs. Now, run the following command:
 
 ```
-julia --project test_rootfs.jl --treehash 1234567890000000000000000000000000000000
+julia --project test_rootfs.jl --url https://github.com/JuliaCI/rootfs-images/releases/download/v3.18/package_linux.x86_64.tar.gz --treehash 1234567890000000000000000000000000000000
 ```
 
 (Replace `1234567890000000000000000000000000000000` with the tree hash that was printed in the previous step.)
