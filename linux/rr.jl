@@ -18,6 +18,8 @@ packages = [
     "curl",
     "git",
     "libcapnp-dev",
+    "libzstd1",
+    "libzstd-dev",
     "lldb",
     "locales",
     "localepurge",
