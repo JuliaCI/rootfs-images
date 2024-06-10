@@ -5,7 +5,7 @@ ARG WIN_VERSION=ltsc2022
 FROM mcr.microsoft.com/windows/servercore:$WIN_VERSION AS MSYS2_download
 
 # We always download x86_64 MSYS2 installer, since our system itself is x86_64.
-ARG MSYS2_VERSION=20220904
+ARG MSYS2_VERSION=20240507
 ARG MSYS2_DOWNLOAD_URL=https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-${MSYS2_VERSION}.sfx.exe
 RUN setx /M PATH "C:\msys64\mingw32\bin;C:\msys64\usr\bin;%PATH%" && \
     powershell -Command "Invoke-WebRequest -Uri %MSYS2_DOWNLOAD_URL% -OutFile C:\windows\temp\msys2-base.sfx.exe"  && \
