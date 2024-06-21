@@ -23,6 +23,7 @@ packages = [
     AlpinePackage("tar"),
     # AlpinePackage("time"), # TODO: uncomment this line once we upgrade to Alpine 3.17
     AlpinePackage("wget"),
+    AlpinePackage("zstd"),
 
     # Install GCC 9, specifically
     AlpinePackage("gcc~9", "v3.11"),
