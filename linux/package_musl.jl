@@ -11,6 +11,7 @@ packages = [
     AlpinePackage("bzip2"),
     AlpinePackage("cmake"),
     AlpinePackage("curl"),
+    AlpinePackage("file"),
     AlpinePackage("gdb"),
     AlpinePackage("git"),
     AlpinePackage("less"),
