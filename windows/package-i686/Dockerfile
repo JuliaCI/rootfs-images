@@ -46,6 +46,9 @@ RUN powershell -Command "\
         setx /M PATH ('%PATH%;' + (Resolve-Path 'C:/Program Files (x86)/Windows Kits/10/bin/*/x64/')) ; \
         Remove-Item '%SDK_EXE%'"
 
+# Install Visual C++ redistributables
+RUN powershell -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://vcredist.com/install.ps1'))"
+
 # Install AWS CLI
 RUN msiexec.exe /i "https://awscli.amazonaws.com/AWSCLIV2.msi" /quiet /qn && \
     setx /M PATH "%PATH%;C:\Program Files\Amazon\AWSCLIV2"
