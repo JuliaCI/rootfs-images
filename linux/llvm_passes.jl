@@ -24,6 +24,7 @@ packages = [
     "perl",
     "pkg-config",
     "python3",
+    "time",
     "wget",
     "zlib1g",
     "zlib1g-dev",
