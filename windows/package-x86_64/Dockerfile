@@ -40,6 +40,15 @@ RUN powershell -Command "\
     Start-Process '%DOTNET_EXE%' -Wait -ArgumentList '/install', '/quiet', '/norestart' ; \
     Remove-Item '%DOTNET_EXE%'"
 
+# Install trusted signing dlib
+ARG TS_URL="https://www.nuget.org/api/v2/package/Microsoft.Trusted.Signing.Client/1.0.60"
+ARG TS_ZIP="C:/windows/temp/ts_client.zip"
+ARG TS_DIR="C:/Program Files/TrustedSigning"
+RUN powershell -Command "\
+    Invoke-WebRequest -Uri '%TS_URL%' -OutFile '%TS_ZIP%' -ErrorAction Stop ; \
+    Expand-Archive -Path '%TS_ZIP%' -DestinationPath '%TS_DIR%' -Force ; \
+    Remove-Item '%TS_ZIP%'"
+
 # Download Windows 11 SDK (10.0.22621.2428) and install only `signtool.exe`
 ARG SDK_URL="https://go.microsoft.com/fwlink/?linkid=2250105"
 ARG SDK_EXE="C:/windows/temp/winsdksetup.exe"
