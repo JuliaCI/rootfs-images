@@ -47,6 +47,9 @@ RUN powershell -Command "iex ((New-Object System.Net.WebClient).DownloadString('
 RUN msiexec.exe /i "https://awscli.amazonaws.com/AWSCLIV2.msi" /quiet /qn && \
     setx /M PATH "%PATH%;C:\Program Files\Amazon\AWSCLIV2"
 
+# Install `TrustedSigning` powershell module
+RUN powershell -Command "Install-Module -Name TrustedSigning" 
+
 # Set default environment variables and setup useful symlinks
 # Note that we add an entry for `buildkite-agent` here despite it not being within
 # the image, because we expect it to be mounted within us in the future.
