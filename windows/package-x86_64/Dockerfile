@@ -32,6 +32,14 @@ FROM mcr.microsoft.com/windows/servercore:$WIN_VERSION
 
 COPY --from=MSYS2_download C:/msys64 C:/msys64
 
+# Install .NET runtime for x86_64
+ARG DOTNET_URL="https://download.visualstudio.microsoft.com/download/pr/cc913baa-9bce-482e-bdfc-56c4b6fafd10/e3f24f2ab2fc02b395c1b67f5193b8d1/dotnet-runtime-8.0.8-win-x64.exe"
+ARG DOTNET_EXE="C:/windows/temp/dotnet-runtime.exe"
+RUN powershell -Command "\
+    Invoke-WebRequest -Uri '%DOTNET_URL%' -OutFile '%DOTNET_EXE%' -ErrorAction Stop ; \
+    Start-Process '%DOTNET_EXE%' -Wait -ArgumentList '/install', '/quiet', '/norestart' ; \
+    Remove-Item '%DOTNET_EXE%'"
+
 # Download Windows 11 SDK (10.0.22621.2428) and install only `signtool.exe`
 ARG SDK_URL="https://go.microsoft.com/fwlink/?linkid=2250105"
 ARG SDK_EXE="C:/windows/temp/winsdksetup.exe"
