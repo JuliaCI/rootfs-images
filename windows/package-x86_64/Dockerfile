@@ -32,8 +32,8 @@ FROM mcr.microsoft.com/windows/servercore:$WIN_VERSION
 
 COPY --from=MSYS2_download C:/msys64 C:/msys64
 
-# Download Windows 10 SDK and install only `signtool.exe`
-ARG SDK_URL="https://go.microsoft.com/fwlink/p/?linkid=2196241"
+# Download Windows 11 SDK (10.0.22621.2428) and install only `signtool.exe`
+ARG SDK_URL="https://go.microsoft.com/fwlink/?linkid=2250105"
 ARG SDK_EXE="C:/windows/temp/winsdksetup.exe"
 RUN powershell -Command "\
         Invoke-WebRequest -Uri '%SDK_URL%' -OutFile '%SDK_EXE%' -ErrorAction Stop ; \
