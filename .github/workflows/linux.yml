@@ -133,7 +133,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: echo "The tarball name is ${{ steps.build.outputs.tarball_name }}"
       - run: echo "The tarball path is ${{ steps.build.outputs.tarball_path }}"
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: steps.build.outputs.tarball_name != '' && steps.build.outputs.tarball_path != ''
         with:
           name: ${{ steps.build.outputs.tarball_name }}
