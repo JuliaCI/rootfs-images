@@ -89,7 +89,7 @@ jobs:
 
           # The `tester_linux` images are all `debian`-based.
           # They do not include the compiler toolchain.
-          - {slug: 'tester_linux.aarch64', build_on: ''}
+          - {slug: 'tester_linux.aarch64', build_on: '-arm'}
           - {slug: 'tester_linux.armv7l', build_on: ''}
           - {slug: 'tester_linux.i686', build_on: ''}
           - {slug: 'tester_linux.powerpc64le', build_on: ''}
@@ -100,7 +100,7 @@ jobs:
           - {slug: 'tester_musl.x86_64', build_on: ''}
 
           # The `xvfb` image is used in the CI for the PkgEval.jl repo
-          - {slug: 'xvfb.aarch64', build_on: ''}
+          - {slug: 'xvfb.aarch64', build_on: '-arm'}
           - {slug: 'xvfb.x86_64', build_on: ''}
 
           # The `yggdrasil` image is used in the CI for the Yggdrasil repo
