@@ -106,9 +106,9 @@ jobs:
           # The `yggdrasil` image is used in the CI for the Yggdrasil repo
           - {slug: 'yggdrasil.x86_64', build_on: ''}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: uname -a
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@v2
         with:
           version: '1.6'
       - run: |
