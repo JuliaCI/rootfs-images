@@ -30,7 +30,7 @@ jobs:
   build_linux:
     timeout-minutes: 120
     name: build_linux / ${{ matrix.image.slug }}
-    runs-on: "ubuntu-latest${{ matrix.image.build_on }}"
+    runs-on: "ubuntu-24.04${{ matrix.image.build_on }}"
     strategy:
       fail-fast: false
       matrix:
