@@ -29,82 +29,82 @@ jobs:
         if: needs.build_linux.result != 'success'
   build_linux:
     timeout-minutes: 120
-    name: build_linux / ${{ matrix.image }}
-    runs-on: ubuntu-latest
+    name: build_linux / ${{ matrix.image.slug }}
+    runs-on: "ubuntu-latest${{ matrix.image.build_on }}"
     strategy:
       fail-fast: false
       matrix:
         image:
           # Build a bunch of different "agent" rootfs images.
-          - 'agent_linux.aarch64'
-          - 'agent_linux.armv7l'
-          - 'agent_linux.ppc64le'
-          - 'agent_linux.x86_64'
-          - 'agent_linux.i686'
+          - {slug: 'agent_linux.aarch64', build_on: '-arm'}
+          - {slug: 'agent_linux.armv7l', build_on: ''}
+          - {slug: 'agent_linux.ppc64le', build_on: ''}
+          - {slug: 'agent_linux.x86_64', build_on: ''}
+          - {slug: 'agent_linux.i686', build_on: ''}
 
           # The `aws_uploader` image is a `debian`-based image that
           # contains just `awscli`, for usage in secured pipelines
           # that need to upload to AWS.
-          - 'aws_uploader.x86_64'
+          - {slug: 'aws_uploader.x86_64', build_on: ''}
 
           # The `debian_minimal` image is a `debian`-based image that
           # contains no packages.
-          - 'debian_minimal.aarch64'
-          - 'debian_minimal.armv7l'
-          - 'debian_minimal.ppc64le'
-          - 'debian_minimal.x86_64'
-          - 'debian_minimal.i686'
+          - {slug: 'debian_minimal.aarch64', build_on: '-arm'}
+          - {slug: 'debian_minimal.armv7l', build_on: ''}
+          - {slug: 'debian_minimal.ppc64le', build_on: ''}
+          - {slug: 'debian_minimal.x86_64', build_on: ''}
+          - {slug: 'debian_minimal.i686', build_on: ''}
 
           # The `latex` image is used to build the PDF docs
-          - 'latex.x86_64'
+          - {slug: 'latex.x86_64', build_on: ''}
 
           # The `llvm_passes` image contains `gfortran`, so we use it for our
           # "from source" (`USE_BINARYBUILDER=0`) jobs.
-          - 'llvm_passes.aarch64'
-          - 'llvm_passes.armv7l'
-          - 'llvm_passes.i686'
-          - 'llvm_passes.powerpc64le'
-          - 'llvm_passes.x86_64'
+          - {slug: 'llvm_passes.aarch64', build_on: '-arm'}
+          - {slug: 'llvm_passes.armv7l', build_on: ''}
+          - {slug: 'llvm_passes.i686', build_on: ''}
+          - {slug: 'llvm_passes.powerpc64le', build_on: ''}
+          - {slug: 'llvm_passes.x86_64', build_on: ''}
 
           # The `npm_linux` image is a helper for ecosystem jobs that need to build NPM packages
-          - 'npm_linux.x86_64'
+          - {slug: 'npm_linux.x86_64', build_on: ''}
 
           # The `package_linux` images are all `debian`-based.
-          - 'package_linux.aarch64'
-          - 'package_linux.armv7l'
-          - 'package_linux.i686'
-          - 'package_linux.powerpc64le'
-          - 'package_linux.x86_64'
+          - {slug: 'package_linux.aarch64', build_on: '-arm'}
+          - {slug: 'package_linux.armv7l', build_on: ''}
+          - {slug: 'package_linux.i686', build_on: ''}
+          - {slug: 'package_linux.powerpc64le', build_on: ''}
+          - {slug: 'package_linux.x86_64', build_on: ''}
 
           # The `package_musl` image is `alpine`-based.
-          - 'package_musl.x86_64'
+          - {slug: 'package_musl.x86_64', build_on: ''}
 
           # The `pkgserver_logsync` image is a helper for https://github.com/JuliaPackaging/PkgServerLogAnalysis.jl
-          - 'pkgserver_logsync.x86_64'
+          - {slug: 'pkgserver_logsync.x86_64', build_on: ''}
 
           # The `rr` image is `debian`-based.
           # It is used for building rr from source and running the rr test suite.
-          - 'rr.aarch64'
-          - 'rr.x86_64'
+          - {slug: 'rr.aarch64', build_on: '-arm'}
+          - {slug: 'rr.x86_64', build_on: ''}
 
           # The `tester_linux` images are all `debian`-based.
           # They do not include the compiler toolchain.
-          - 'tester_linux.aarch64'
-          - 'tester_linux.armv7l'
-          - 'tester_linux.i686'
-          - 'tester_linux.powerpc64le'
-          - 'tester_linux.x86_64'
+          - {slug: 'tester_linux.aarch64', build_on: ''}
+          - {slug: 'tester_linux.armv7l', build_on: ''}
+          - {slug: 'tester_linux.i686', build_on: ''}
+          - {slug: 'tester_linux.powerpc64le', build_on: ''}
+          - {slug: 'tester_linux.x86_64', build_on: ''}
 
           # The `tester_musl` image is `alpine`-based.
           # It does not include the compiler toolchain.
-          - 'tester_musl.x86_64'
+          - {slug: 'tester_musl.x86_64', build_on: ''}
 
           # The `xvfb` image is used in the CI for the PkgEval.jl repo
-          - 'xvfb.aarch64'
-          - 'xvfb.x86_64'
+          - {slug: 'xvfb.aarch64', build_on: ''}
+          - {slug: 'xvfb.x86_64', build_on: ''}
 
           # The `yggdrasil` image is used in the CI for the Yggdrasil repo
-          - 'yggdrasil.x86_64'
+          - {slug: 'yggdrasil.x86_64', build_on: ''}
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
@@ -123,8 +123,8 @@ jobs:
       - run: julia --color=yes --project=. -e 'import Pkg; @time Pkg.precompile()'
       - run: julia --color=yes --project=. -e '@time import RootfsUtils'
       - run: |
-          IMAGE_NAME=$(echo ${{ matrix.image }} | cut -d. -f1)
-          IMAGE_ARCH=$(echo ${{ matrix.image }} | cut -d. -f2)
+          IMAGE_NAME=$(echo ${{ matrix.image.slug }} | cut -d. -f1)
+          IMAGE_ARCH=$(echo ${{ matrix.image.slug }} | cut -d. -f2)
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "IMAGE_ARCH=$IMAGE_ARCH" >> $GITHUB_ENV
       - run: julia --color=yes --project=. linux/${{ env.IMAGE_NAME }}.jl --arch=${{ env.IMAGE_ARCH }}
