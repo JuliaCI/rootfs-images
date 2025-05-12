@@ -40,7 +40,7 @@ jobs:
           - image: 'package'
             arch: 'i686'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       # Set up `IMAGE_NAME`, which is something like `juliapackaging/package_win64`
       # and also `TAG_NAME`, which is usually something like `v5.23`, but if we're
@@ -66,7 +66,7 @@ jobs:
 
       # Login to docker hub so we can push it up, but only do so on a tag
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
