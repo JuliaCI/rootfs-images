@@ -20,6 +20,7 @@ RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"  && \
             cmake diffutils git m4 make patch tar p7zip curl python3 openssl gnupg2 \
             mingw-w64-x86_64-gcc \
         "  && \
+    bash -l -c "git config --system core.longpaths true" && \
     bash -l -c "pacman -Scc --noconfirm"  && \
     echo ---- [%date% %time%] Pkg install done!
 # NOTE: If you hang here >10 min. You may want to `zap` temp files.
