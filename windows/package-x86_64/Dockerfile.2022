@@ -17,7 +17,7 @@ RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"  && \
     bash -l -c "pacman -Syu --needed --noconfirm --noprogressbar"  && \
     bash -l -c " \
         pacman -S --needed --noconfirm --noprogressbar \
-            cmake diffutils git m4 make patch tar p7zip curl python3 openssl gnupg2 \
+            mingw-w64-x86_64-cmake diffutils git m4 make patch tar p7zip curl python3 openssl gnupg2 \
             mingw-w64-x86_64-gcc \
         "  && \
     bash -l -c "git config --system core.longpaths true" && \
