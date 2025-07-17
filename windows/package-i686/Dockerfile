@@ -56,7 +56,7 @@ RUN powershell -Command "\
         Remove-Item '%SDK_EXE%'"
 
 # Install Visual C++ redistributables
-RUN powershell -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://vcredist.com/install.ps1'))"
+RUN powershell -Command "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force; Set-PSRepository -Name PSGallery -InstallationPolicy Trusted; Install-Module -Name VcRedist -SkipPublisherCheck -Force -ErrorAction Stop"
 
 # Install AWS CLI
 RUN msiexec.exe /i "https://awscli.amazonaws.com/AWSCLIV2.msi" /quiet /qn && \
