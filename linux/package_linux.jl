@@ -80,12 +80,6 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     """
     my_chroot(gcc_install_cmd)
     my_chroot(gcc_symlink_cmd)
-    libstdcxx_replace_cmd = """
-    # Copy g++'s libstdc++.so over the system-wide one,
-    # so that we can run things built by our g++
-    cp -fv /usr/local/$(gcc_triplet)/lib*/libstdc++*.so* /lib/*-linux-*/
-    """
-    my_chroot(libstdcxx_replace_cmd)
 
     # Show what is installed
     my_chroot("which gcc")
