@@ -17,7 +17,7 @@ packages = [
     "iproute2",
     "jq",
     "libgomp1",
-    "libicu67",
+    "libicu72",
     "localepurge",
     "locales",
     "openssh-client",
