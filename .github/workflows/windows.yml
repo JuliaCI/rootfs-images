@@ -1,8 +1,6 @@
 name: Windows
 on:
   pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
@@ -10,7 +8,7 @@ on:
     types: [published]
   workflow_dispatch:
 permissions:
-  contents: none
+  contents: read
 concurrency:
   # Skip intermediate builds: always.
   # Cancel intermediate builds: only if it is a pull request build.
@@ -41,6 +39,8 @@ jobs:
             arch: 'i686'
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       # Set up `IMAGE_NAME`, which is something like `juliapackaging/package_win64`
       # and also `TAG_NAME`, which is usually something like `v5.23`, but if we're
