@@ -30,7 +30,7 @@ jobs:
   build_windows:
     timeout-minutes: 60
     name: build_windows / ${{ matrix.image }}-windows-${{ matrix.arch }}
-    runs-on: windows-latest
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
