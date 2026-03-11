@@ -67,7 +67,7 @@ RUN msiexec.exe /i "https://awscli.amazonaws.com/AWSCLIV2.msi" /quiet /qn && \
     setx /M PATH "%PATH%;C:\Program Files\Amazon\AWSCLIV2"
 
 # Install `TrustedSigning` powershell module
-RUN powershell -Command "Install-Module -Name TrustedSigning" 
+RUN powershell -Command "Install-Module -Name TrustedSigning"
 
 # Set default environment variables and setup useful symlinks
 # Note that we add an entry for `buildkite-agent` here despite it not being within
@@ -75,7 +75,7 @@ RUN powershell -Command "Install-Module -Name TrustedSigning"
 RUN setx /M PATH "C:\buildkite-agent\bin;C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%" && \
     mklink /J C:\msys64\home\ContainerUser C:\Users\ContainerUser && \
     setx /M HOME C:\msys64\home\ContainerUser
-WORKDIR C:/msys64/home/ContainerUser
+WORKDIR C:/home/ContainerUser
 
 # Select the mingw64 environment: https://www.msys2.org/docs/environments/
 ENV MSYSTEM=MINGW64
