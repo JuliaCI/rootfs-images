@@ -17,7 +17,7 @@ RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"  && \
     bash -l -c "pacman -Syu --needed --noconfirm --noprogressbar"  && \
     bash -l -c " \
         pacman -S --needed --noconfirm --noprogressbar \
-            cmake diffutils git m4 make patch tar p7zip curl python3 \
+            cmake diffutils git m4 make patch tar p7zip mingw-w64-i686-7zip curl python3 \
         "  && \
     bash -l -c "git config --system core.longpaths true" && \
     bash -l -c "pacman -Scc --noconfirm"  && \
@@ -29,7 +29,7 @@ RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"  && \
 ARG GCC_DOWNLOAD_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/12.2.0-rt_v10-rev0/i686-12.2.0-release-posix-sjlj-rt_v10-rev0.7z
 RUN powershell -Command "Invoke-WebRequest -Uri %GCC_DOWNLOAD_URL% -OutFile C:\windows\temp\gcc.7z" && \
     cd "C:\msys64" && \
-    bash -l -c "p7zip -d /c/windows/temp/gcc.7z" && \
+    bash -l -c "/c/msys64/mingw32/bin/7z -y x -- /c/windows/temp/gcc.7z" && \
     bash -l -c "cp /mingw32/bin/gcc.exe /mingw32/bin/cc.exe"
 
 # ---- Move to new container, to drop messy build history
