@@ -54,6 +54,11 @@ jobs:
             Write-Output "TAG_NAME=${{ github.sha }}" >> $env:GITHUB_ENV
           }
           Write-Output "IMAGE_NAME=juliapackaging/${{ matrix.image }}-windows-${{ matrix.arch }}" >> $env:GITHUB_ENV
+
+      - name: Make sure that the Docker daemon is running
+        run: Start-Service Docker
+        shell: powershell
+
       - run: docker build -t ${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} .
         working-directory: windows/${{ matrix.image }}-${{ matrix.arch }}
       - run: docker tag ${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} ${{ env.IMAGE_NAME }}:latest
