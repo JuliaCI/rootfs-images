@@ -27,16 +27,18 @@ jobs:
         if: needs.build_windows.result != 'success'
   build_windows:
     timeout-minutes: 60
-    name: build_windows / ${{ matrix.image }}-windows-${{ matrix.arch }}
-    runs-on: windows-2022
+    name: build_windows / ${{ matrix.image }}-windows${{ matrix.windows-version }}-${{ matrix.arch }}
+    runs-on: windows-${{ matrix.windows-version }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - image: 'package'
-            arch: 'x86_64'
-          - image: 'package'
-            arch: 'i686'
+        image:
+          - package
+        arch:
+          - x86_64
+          - i686
+        windows-version:
+          - '2022'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -59,7 +61,7 @@ jobs:
         run: Start-Service Docker
         shell: powershell
 
-      - run: docker build -t ${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} .
+      - run: docker build -f Dockerfile.${{ matrix.windows-version }} -t ${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} .
         working-directory: windows/${{ matrix.image }}-${{ matrix.arch }}
       - run: docker tag ${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} ${{ env.IMAGE_NAME }}:latest
 
