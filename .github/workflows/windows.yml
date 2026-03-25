@@ -19,7 +19,8 @@ jobs:
     timeout-minutes: 10
     needs: build_windows
     if: always()
-    runs-on: windows-latest
+    # This job is just a helper job, so there's no need for it to run on Windows specifically.
+    runs-on: ubuntu-latest
     steps:
       - run: |
           echo build_windows: ${{ needs.build_windows.result }}
@@ -28,6 +29,7 @@ jobs:
   build_windows:
     timeout-minutes: 60
     name: build_windows / ${{ matrix.image }}-windows${{ matrix.windows-version }}-${{ matrix.arch }}
+    # This job is the actual Windows build job.
     runs-on: windows-${{ matrix.windows-version }}
     strategy:
       fail-fast: false
