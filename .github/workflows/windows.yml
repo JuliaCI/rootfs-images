@@ -41,6 +41,7 @@ jobs:
           - i686
         windows-version:
           - '2022'
+          - '2025'
     steps:
       - uses: actions/checkout@v6
         with:
