@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 
 # See "Full Tag Listing" in https://hub.docker.com/_/microsoft-windows-servercore
-ARG WIN_VERSION=ltsc2022
+ARG WIN_VERSION=ltsc2025
 FROM mcr.microsoft.com/windows/servercore:$WIN_VERSION AS MSYS2_download
 
 # We always download x86_64 MSYS2 installer, since our system itself is x86_64.
@@ -28,7 +28,7 @@ RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"  && \
 
 
 # ---- Move to new container, to drop messy build history
-ARG WIN_VERSION=ltsc2022
+ARG WIN_VERSION=ltsc2025
 FROM mcr.microsoft.com/windows/servercore:$WIN_VERSION
 
 COPY --from=MSYS2_download C:/msys64 C:/msys64
