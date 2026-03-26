@@ -47,6 +47,48 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Show available disk space (Bash)
+        run: df -h
+      - name: Show available disk space (PowerShell)
+        run: Get-PSDrive
+        shell: powershell
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: 'lts'
+      - name: cat daemon.json, before modifications
+        run: cat /c/ProgramData/Docker/config/daemon.json
+      - name: Make sure that the Docker daemon is running
+        run: Start-Service Docker
+        shell: powershell
+      - name: Check Docker root dir, before modifications
+        run: |
+          docker info | Select-String "Docker Root Dir"
+        shell: powershell
+      - run: Stop-Service Docker
+        shell: powershell
+      - name: Change Docker data root (by modifying daemon.json) (only Windows 2025)
+        if: matrix.windows-version == '2025'
+        shell: julia --color=yes {0}
+        env:
+          JULIA_PROJECT: "${{ github.workspace }}/.ci/json_proj"
+        run: |
+          import Pkg
+          Pkg.instantiate()
+          Pkg.precompile()
+          import JSON
+          filename = "C:\\ProgramData\\Docker\\config\\daemon.json"
+          data = JSON.parsefile(filename)
+          data["data-root"] = "D:\\MyDockerData"
+          JSON.json(filename, data)
+      - name: cat daemon.json, after modifications
+        run: cat /c/ProgramData/Docker/config/daemon.json
+      - run: Start-Service Docker
+        shell: powershell
+      - name: Check Docker root dir, after modifications
+        run: |
+          docker info | Select-String "Docker Root Dir"
+        shell: powershell
+
       # Set up `IMAGE_NAME`, which is something like `juliapackaging/package_win64`
       # and also `TAG_NAME`, which is usually something like `v5.23`, but if we're
       # not on a tag, it defaults to the gitsha of the current build.  That build
