@@ -38,9 +38,9 @@ jobs:
           - package
         arch:
           - x86_64
-          - i686
+          # - i686 # DROPME. TODO: Uncomment this line.
         windows-version:
-          - '2022'
+          # - '2022' # DROPME. TODO: Uncomment this line.
           - '2025'
     steps:
       - uses: actions/checkout@v6
