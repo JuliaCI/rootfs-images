@@ -108,7 +108,7 @@ jobs:
         with:
           persist-credentials: false
       - run: uname -a
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/setup-julia@v3
         with:
           version: '1.6'
       - run: |
