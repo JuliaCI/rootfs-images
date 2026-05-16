@@ -16,7 +16,7 @@ RUN bash -l -c "exit 0"
 ### BEGIN: Splitting a big RUN into multiple smaller RUNs
 RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"
 
-RUN bash -l -c "pacman -Syu --needed --noconfirm --noprogressbar"  && \
+RUN bash -l -c "pacman -Syu --needed --noconfirm --noprogressbar"
 
 RUN bash -l -c "pacman -Syu --needed --noconfirm --noprogressbar"
 
