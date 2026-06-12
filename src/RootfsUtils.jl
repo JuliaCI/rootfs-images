@@ -15,6 +15,7 @@ include("types.jl")
 
 include("build_img/alpine.jl")
 include("build_img/args.jl")
+include("build_img/awscli.jl")
 include("build_img/common.jl")
 include("build_img/debian.jl")
 
