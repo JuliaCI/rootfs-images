@@ -93,12 +93,20 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     tmpdir="\$(mktemp -d)"
     git clone --depth 1 https://github.com/mozilla/libdmg-hfsplus "\$tmpdir/libdmg-hfsplus"
     cd "\$tmpdir/libdmg-hfsplus"
-    cmake .
+    mkdir -p build && cd build
+    cmake ..
     make -j"\$(nproc)"
-    # The build produces `dmg/dmg`, `hfs/hfsplus` and `hfs/mkfshfs`.
-    install -m755 dmg/dmg /usr/local/bin/dmg
-    install -m755 hfs/hfsplus /usr/local/bin/hfsplus
-    install -m755 hfs/mkfshfs /usr/local/bin/mkfshfs
+    # The build produces `dmg/dmg`, `hfs/hfsplus` and `hfs/mkfshfs`. Locate
+    # them by name rather than hardcoding paths, so the install is robust to
+    # small layout changes in the project.
+    for tool in dmg hfsplus mkfshfs; do
+        found="\$(find . -type f -name "\$tool" -perm -u+x | head -n1)"
+        if [ -z "\$found" ]; then
+            echo "ERROR: libdmg-hfsplus build did not produce '\$tool'" >&2
+            exit 1
+        fi
+        install -m755 "\$found" "/usr/local/bin/\$tool"
+    done
     cd /
     rm -rf "\$tmpdir"
     # Sanity check that the binaries at least run.
