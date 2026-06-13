@@ -53,6 +53,12 @@ jobs:
           - {slug: 'debian_minimal.x86_64', build_on: ''}
           - {slug: 'debian_minimal.i686', build_on: ''}
 
+          # The `julia_publish` image carries the full signing/packaging
+          # toolchain (AWS CLI, p7zip, libdmg-hfsplus, wine, jsign, ...) used
+          # by the `julia-publish` pipeline's `publish_all` step. x86_64 only,
+          # since that step only runs on linux/x86_64.
+          - {slug: 'julia_publish.x86_64', build_on: ''}
+
           # The `latex` image is used to build the PDF docs
           - {slug: 'latex.x86_64', build_on: ''}
 
