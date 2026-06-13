@@ -13,9 +13,10 @@
 #     `hfsplus`/`dmg`/     to build Firefox DMGs on Linux).
 #     `mkfshfs`
 #   * wine64 + JRE      -- run the Windows Inno Setup compiler (`ISCC.exe`) to
-#                          build the `.exe` installer.  NOTE: the Inno Setup 6
-#                          Wine prefix is *not* provisioned here; see the long
-#                          comment near the Wine install below.
+#                          build the `.exe` installer.  The Inno Setup 6 Wine
+#                          prefix IS provisioned here and the build hard-fails
+#                          if it doesn't take; see the comment at the Wine
+#                          install below.
 #   * jsign + JRE       -- Authenticode-sign the Windows binaries via Azure
 #                          Trusted Signing.
 #   * git / openssh /   -- general plumbing; `curl` + glibc also let the
@@ -133,34 +134,37 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     # Wine + Inno Setup 6.
     #
     # We install Wine and a JRE so the pipeline can run the Inno Setup compiler
-    # (`ISCC.exe`).  We ALSO attempt to initialize a Wine prefix and install
-    # Inno Setup 6 silently under xvfb during the image build.  This is the
-    # fragile part: headless Wine prefix initialization inside a debootstrap
-    # chroot (no real X server, no D-Bus, qemu-less but still a minimal
-    # environment) is known to be flaky.
-    #
-    # If that step fails we do NOT want to fail the whole image build (Wine
-    # itself is still useful and the prefix can be provisioned later), so the
-    # Inno Setup install is wrapped in `|| true` and clearly logged.  The PR
-    # description documents that consumers must verify / provision the Inno
-    # Setup prefix at
+    # (`ISCC.exe`), and we initialize a Wine prefix + install Inno Setup 6
+    # silently under xvfb during the image build, into
     #   "C:\\Program Files (x86)\\Inno Setup 6"
-    # before relying on the `.exe` build.
+    #
+    # Headless Wine prefix init inside a debootstrap chroot is historically
+    # flaky, so this is hardened: WINEDLLOVERRIDES disables the Mono/Gecko
+    # first-run downloads, and `wineserver -w` blocks on the async
+    # `wineboot --init` before the installer runs. We then HARD-FAIL the image
+    # build if `ISCC.exe` is missing or does not run under Wine -- better a
+    # red image build than silently shipping an image that can't build the
+    # Windows `.exe` installer at publish time.
     #
     # The Wine prefix is created for the `juliaci` (uid 1000) user, since that
     # is the user the sandbox runs as.
     # ------------------------------------------------------------------
     my_chroot("""
-    set +e
+    set -euo pipefail
     export WINEPREFIX=/home/juliaci/.wine
     export WINEARCH=win64
     export WINEDEBUG=-all
     export HOME=/home/juliaci
+    # Disable Wine's Mono/Gecko first-run downloads. Inno Setup needs neither,
+    # and the prompt otherwise hangs headlessly or flakily fetches them over
+    # the network during prefix init.
+    export WINEDLLOVERRIDES="mscoree,mshtml="
     mkdir -p "\$WINEPREFIX"
 
-    # Initialize the Wine prefix headlessly.
+    # Initialize the Wine prefix headlessly, then BLOCK until the wineserver
+    # has fully exited -- `wineboot --init` is asynchronous, so without this
+    # the Inno Setup install below can run against a half-built prefix.
     xvfb-run -a wineboot --init
-    # Give Wine a moment to settle, then make sure the wineserver is gone.
     wineserver -w || true
 
     # Download and silently install Inno Setup 6.
@@ -169,17 +173,24 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     wineserver -w || true
     rm -f /tmp/innosetup.exe
 
-    # Report whether the install succeeded so it is visible in the build log.
-    if [ -e "\$WINEPREFIX/drive_c/Program Files (x86)/Inno Setup 6/ISCC.exe" ]; then
-        echo "INNO SETUP: ISCC.exe installed successfully into the Wine prefix."
-    else
-        echo "INNO SETUP WARNING: ISCC.exe was NOT found after install; the Wine"
-        echo "prefix must be provisioned manually before the .exe build will work."
+    # HARD requirement: ISCC.exe must be present AND actually run under Wine,
+    # or the image is useless for Windows installer builds. Fail the image
+    # build loudly rather than silently shipping a broken prefix.
+    ISCC="\$WINEPREFIX/drive_c/Program Files (x86)/Inno Setup 6/ISCC.exe"
+    if [ ! -e "\$ISCC" ]; then
+        echo "ERROR: Inno Setup install failed -- ISCC.exe not found at \$ISCC" >&2
+        exit 1
     fi
+    iscc_out="\$(xvfb-run -a wine "\$ISCC" /? 2>&1 || true)"
+    if ! echo "\$iscc_out" | grep -qi "inno"; then
+        echo "ERROR: ISCC.exe is present but did not run correctly under Wine:" >&2
+        echo "\$iscc_out" >&2
+        exit 1
+    fi
+    echo "INNO SETUP: ISCC.exe installed and runs under Wine."
 
     # Take ownership so the prefix survives the chown in cleanup_rootfs.
-    chown -R 1000:1000 /home/juliaci/.wine || true
-    true
+    chown -R 1000:1000 /home/juliaci/.wine
     """)
 
     # ------------------------------------------------------------------
