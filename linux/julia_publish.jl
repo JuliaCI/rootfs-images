@@ -8,13 +8,14 @@
 #   * python3           -- kms_gpg_sign.py, plist editing, the PE-signature
 #                          checker (stdlib only).
 #   * p7zip-full (`7z`) -- repack the Windows `.zip`.
-#   * libdmg-hfsplus    -- build the macOS `.dmg` on Linux: the `mkfshfs`
-#     (`mkfshfs`/        (create the HFS+ filesystem), `hfsplus` (populate it)
-#     `hfsplus`/`dmg`)    and `dmg` (convert to a compressed UDIF) tools, the
-#                          same ones Mozilla uses for Firefox DMGs. (Debian's
-#                          `hfsprogs`/`mkfs.hfsplus` was dropped after bullseye
-#                          and is not in trixie, so we use libdmg-hfsplus's own
-#                          `mkfshfs` instead.)
+#   * HFS+/DMG tooling  -- build the macOS `.dmg` on Linux. `hfsplus` (populate
+#     (`newfs_hfs`/       an HFS+ image) and `dmg` (HFS+ -> compressed UDIF)
+#     `hfsplus`/`dmg`)    come from mozilla/libdmg-hfsplus. The HFS+ *creation*
+#                          tool `newfs_hfs` is NOT part of libdmg-hfsplus; it is
+#                          the `mkfs.hfsplus` from Debian's `hfsprogs` (dropped
+#                          after bullseye, gone from trixie), built here from the
+#                          diskdev_cmds source -- the same toolchain Mozilla uses
+#                          for Firefox DMGs.
 #   * wine64            -- run the Windows Inno Setup compiler (`ISCC.exe`,
 #                          a Windows binary) to build the `.exe` installer.
 #                          The Inno Setup 6 Wine prefix IS provisioned here and
@@ -69,6 +70,7 @@ packages = [
     "python3",
     "tar",
     "unzip",
+    "uuid-dev",              # newfs_hfs needs <uuid/uuid.h> (uuid_t) at compile time
     "wine",                  # Windows emulation for the Inno Setup compiler
     "wine64",
     "xauth",                 # for headless Wine prefix init via xvfb
@@ -89,9 +91,11 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     install_awscli(rootfs, chroot_ENV, arch)
 
     # ------------------------------------------------------------------
-    # libdmg-hfsplus: Mozilla's `hfsplus` / `dmg` / `mkfshfs` CLI tools for
-    # assembling a macOS `.dmg` on Linux.  Small CMake project, built from
-    # source in the chroot and installed into /usr/local/bin.
+    # libdmg-hfsplus: Mozilla's `hfsplus` (populate an HFS+ image) and `dmg`
+    # (HFS+ -> compressed UDIF) CLI tools for assembling a macOS `.dmg` on
+    # Linux.  Small CMake project, built from source in the chroot and
+    # installed into /usr/local/bin.  (libdmg-hfsplus has NO mkfs tool -- the
+    # HFS+ *creation* tool `newfs_hfs` is built in the next step.)
     # ------------------------------------------------------------------
     my_chroot("""
     tmpdir="\$(mktemp -d)"
@@ -100,10 +104,10 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     mkdir -p build && cd build
     cmake ..
     make -j"\$(nproc)"
-    # The build produces `dmg/dmg`, `hfs/hfsplus` and `hfs/mkfshfs`. Locate
-    # them by name rather than hardcoding paths, so the install is robust to
-    # small layout changes in the project.
-    for tool in dmg hfsplus mkfshfs; do
+    # The build produces `dmg/dmg` and `hfs/hfsplus`. Locate them by name
+    # rather than hardcoding paths, so the install is robust to small layout
+    # changes in the project.
+    for tool in dmg hfsplus; do
         found="\$(find . -type f -name "\$tool" -perm -u+x | head -n1)"
         if [ -z "\$found" ]; then
             echo "ERROR: libdmg-hfsplus build did not produce '\$tool'" >&2
@@ -116,6 +120,47 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     # Sanity check that the binaries at least run.
     /usr/local/bin/dmg || true
     /usr/local/bin/hfsplus || true
+    """)
+
+    # ------------------------------------------------------------------
+    # newfs_hfs: the HFS+ filesystem creation tool (`mkfs.hfsplus`).  This is
+    # NOT part of libdmg-hfsplus.  It comes from Apple's `diskdev_cmds` (the
+    # source Debian packaged as `hfsprogs`, dropped after bullseye), built from
+    # the same pinned Fedora-hosted tarball Mozilla uses for Firefox DMGs.
+    #
+    # The top-level Makefile hardcodes clang + `-fblocks` (only needed for
+    # `fsck_hfs`, which we don't build), so we build the `newfs_hfs` target
+    # directly with gcc and permissive flags for the ~2009-era C.  Drop the
+    # `<sys/sysctl.h>` includes (gone from modern glibc) first.  Links only
+    # `-lcrypto` (libssl3 is present via ca-certificates); <uuid/uuid.h> is a
+    # compile-time-only dependency (uuid-dev), satisfied via the type, not libuuid.
+    # ------------------------------------------------------------------
+    my_chroot("""
+    set -euo pipefail
+    url="https://src.fedoraproject.org/repo/pkgs/hfsplus-tools/diskdev_cmds-540.1.linux3.tar.gz/0435afc389b919027b69616ad1b05709/diskdev_cmds-540.1.linux3.tar.gz"
+    sha="b01b203a97f9a3bf36a027c13ddfc59292730552e62722d690d33bd5c24f5497"
+    tmpdir="\$(mktemp -d)"
+    curl -fsSL "\$url" -o "\$tmpdir/diskdev_cmds.tar.gz"
+    echo "\$sha  \$tmpdir/diskdev_cmds.tar.gz" | sha256sum -c -
+    tar -xzf "\$tmpdir/diskdev_cmds.tar.gz" -C "\$tmpdir"
+    cd "\$tmpdir/diskdev_cmds-540.1.linux3"
+    { grep -rl 'sysctl.h' . || true; } | xargs --no-run-if-empty sed -i '/sysctl.h/d'
+    cd newfs_hfs.tproj
+    make -f Makefile.lnx CC=gcc \\
+        CFLAGS="-O2 -I../include -D_FILE_OFFSET_BITS=64 -DLINUX=1 -DBSD=1 -Wno-implicit-function-declaration -Wno-implicit-int -fcommon" \\
+        LDFLAGS="" \\
+        newfs_hfs
+    install -m755 newfs_hfs /usr/local/bin/newfs_hfs
+    cd /
+    rm -rf "\$tmpdir"
+    # Sanity check: format a scratch image and confirm the HFS+ signature ('H+').
+    scratch="\$(mktemp)"
+    truncate -s 16M "\$scratch"
+    newfs_hfs -v SmokeTest "\$scratch"
+    if [ "\$(dd if="\$scratch" bs=1 skip=1024 count=2 2>/dev/null)" != "H+" ]; then
+        echo "ERROR: newfs_hfs did not produce an HFS+ volume" >&2; exit 1
+    fi
+    rm -f "\$scratch"
     """)
 
     # ------------------------------------------------------------------
@@ -223,7 +268,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     my_chroot("""
     aws --version
     7z --help >/dev/null
-    command -v mkfshfs >/dev/null
+    command -v newfs_hfs >/dev/null
     command -v hfsplus >/dev/null
     command -v dmg >/dev/null
     python3 --version
