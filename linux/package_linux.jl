@@ -1,5 +1,6 @@
 using RootfsUtils: parse_build_args, upload_gha, test_sandbox
 using RootfsUtils: debootstrap
+using RootfsUtils: install_awscli
 using RootfsUtils: root_chroot
 
 args         = parse_build_args(ARGS, @__FILE__)
@@ -92,6 +93,10 @@ artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do ro
     my_chroot("gcc --version")
     my_chroot("g++ --version")
     my_chroot("ld --version")
+
+    # The build jobs upload their products to S3 from within the sandbox,
+    # using OIDC-issued credentials; they need a recent AWS CLI to do so.
+    install_awscli(rootfs, chroot_ENV, arch)
 end
 
 upload_gha(tarball_path)
