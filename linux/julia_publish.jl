@@ -8,10 +8,13 @@
 #   * python3           -- kms_gpg_sign.py, plist editing, the PE-signature
 #                          checker (stdlib only).
 #   * p7zip-full (`7z`) -- repack the Windows `.zip`.
-#   * hfsprogs + the    -- build the macOS `.dmg` on Linux (Mozilla's
-#     libdmg-hfsplus      `hfsplus`/`dmg`/`mkfshfs` tools, the same ones used
-#     `hfsplus`/`dmg`/     to build Firefox DMGs on Linux).
-#     `mkfshfs`
+#   * libdmg-hfsplus    -- build the macOS `.dmg` on Linux: the `mkfshfs`
+#     (`mkfshfs`/        (create the HFS+ filesystem), `hfsplus` (populate it)
+#     `hfsplus`/`dmg`)    and `dmg` (convert to a compressed UDIF) tools, the
+#                          same ones Mozilla uses for Firefox DMGs. (Debian's
+#                          `hfsprogs`/`mkfs.hfsplus` was dropped after bullseye
+#                          and is not in trixie, so we use libdmg-hfsplus's own
+#                          `mkfshfs` instead.)
 #   * wine64 + JRE      -- run the Windows Inno Setup compiler (`ISCC.exe`) to
 #                          build the `.exe` installer.  The Inno Setup 6 Wine
 #                          prefix IS provisioned here and the build hard-fails
@@ -55,7 +58,6 @@ packages = [
     "gcc",
     "git",
     "gzip",
-    "hfsprogs",              # provides `mkfs.hfsplus`
     "libbz2-dev",            # libdmg-hfsplus optional bzip2 support
     "libssl-dev",            # libdmg-hfsplus crypto
     "locales",
@@ -199,7 +201,9 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     my_chroot("""
     aws --version
     7z --help >/dev/null
-    mkfs.hfsplus -V || true
+    command -v mkfshfs >/dev/null
+    command -v hfsplus >/dev/null
+    command -v dmg >/dev/null
     python3 --version
     git --version
     java -version
