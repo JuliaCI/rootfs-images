@@ -15,12 +15,14 @@
 #                          `hfsprogs`/`mkfs.hfsplus` was dropped after bullseye
 #                          and is not in trixie, so we use libdmg-hfsplus's own
 #                          `mkfshfs` instead.)
-#   * wine64 + JRE      -- run the Windows Inno Setup compiler (`ISCC.exe`) to
-#                          build the `.exe` installer.  The Inno Setup 6 Wine
-#                          prefix IS provisioned here and the build hard-fails
-#                          if it doesn't take; see the comment at the Wine
-#                          install below.
-#   * jsign + JRE       -- Authenticode-sign the Windows binaries via Azure
+#   * wine64            -- run the Windows Inno Setup compiler (`ISCC.exe`,
+#                          a Windows binary) to build the `.exe` installer.
+#                          The Inno Setup 6 Wine prefix IS provisioned here and
+#                          the build hard-fails if it doesn't take; see the
+#                          comment at the Wine install below.
+#   * Temurin JRE       -- runs jsign (below). Installed as a tarball, not the
+#                          openjdk .deb (whose post-install fails in a chroot).
+#   * jsign             -- Authenticode-sign the Windows binaries via Azure
 #                          Trusted Signing.
 #   * git / openssh /   -- general plumbing; `curl` + glibc also let the
 #     curl / tar / ...     pipeline fetch the Linux `rcodesign` binary at
@@ -53,7 +55,6 @@ packages = [
     "ca-certificates",
     "cmake",
     "curl",
-    "default-jre-headless",  # JRE for jsign and the Inno Setup compiler
     "g++",                   # build libdmg-hfsplus from source
     "gcc",
     "git",
@@ -118,11 +119,32 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     """)
 
     # ------------------------------------------------------------------
+    # JRE for jsign.  We install a self-contained Temurin (Adoptium) JRE
+    # tarball rather than the openjdk .deb: the openjdk JRE's post-install
+    # (via ca-certificates-java) needs a working JVM at configure time, which
+    # fails in a minimal debootstrap chroot.  A tarball has no dpkg hooks.
+    # (ISCC.exe runs under Wine, not the JVM -- Java is only for jsign.)
+    # ------------------------------------------------------------------
+    my_chroot("""
+    set -euo pipefail
+    mkdir -p /opt
+    curl -fsSL "https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jre/hotspot/normal/eclipse" -o /tmp/jre.tar.gz
+    tar -xzf /tmp/jre.tar.gz -C /opt
+    rm -f /tmp/jre.tar.gz
+    jredir="\$(find /opt -maxdepth 1 -type d -name 'jdk-21*' | head -n1)"
+    if [ -z "\$jredir" ] || [ ! -x "\$jredir/bin/java" ]; then
+        echo "ERROR: Temurin JRE not found after extract" >&2; ls -la /opt >&2; exit 1
+    fi
+    ln -sf "\$jredir/bin/java" /usr/local/bin/java
+    java -version
+    """)
+
+    # ------------------------------------------------------------------
     # jsign (Authenticode signing via Azure Trusted Signing).  We install the
     # standalone JAR and a tiny `/usr/local/bin/jsign` wrapper so that `jsign`
-    # is on PATH and uses the image's JRE.  (We deliberately avoid the upstream
-    # `.deb`, whose JRE dependency name is less predictable across Debian
-    # releases.)
+    # is on PATH and uses the Temurin JRE installed above.  (We deliberately
+    # avoid the upstream `.deb`, whose JRE dependency is the problematic
+    # openjdk package we just side-stepped.)
     # ------------------------------------------------------------------
     my_chroot("""
     mkdir -p /usr/local/lib /usr/local/bin
