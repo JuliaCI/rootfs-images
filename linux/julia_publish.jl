@@ -180,7 +180,14 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     if [ -z "\$jredir" ] || [ ! -x "\$jredir/bin/java" ]; then
         echo "ERROR: Temurin JRE not found after extract" >&2; ls -la /opt >&2; exit 1
     fi
-    ln -sf "\$jredir/bin/java" /usr/local/bin/java
+    # Expose java via a stable path + wrapper. A bare symlink of the `java`
+    # binary breaks: the launcher resolves libjli.so relative to argv[0]'s
+    # directory (here /usr/local/lib), not its real install dir, and dies with
+    # "libjli.so: cannot open shared object file". A wrapper that execs java by
+    # its real path resolves libjli.so correctly.
+    ln -sfn "\$jredir" /opt/temurin
+    printf '%s\\n' '#!/bin/sh' 'exec /opt/temurin/bin/java "\$@"' > /usr/local/bin/java
+    chmod +x /usr/local/bin/java
     java -version
     """)
 
