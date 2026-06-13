@@ -217,8 +217,12 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     #   "C:\\Program Files (x86)\\Inno Setup 6"
     #
     # Headless Wine prefix init inside a debootstrap chroot is historically
-    # flaky, so this is hardened: WINEDLLOVERRIDES disables the Mono/Gecko
-    # first-run downloads, and `wineserver -w` blocks on the async
+    # flaky, so this is hardened: we first mount /proc, /dev/pts and /dev/shm
+    # (the bare `sudo chroot` build env mounts none of these, and Wine's
+    # preloader reads /proc/self/maps -- without it Wine fails immediately with
+    # "could not load ntdll.so"), unmounting them again via a trap so they never
+    # leak into the image tarball; WINEDLLOVERRIDES disables the Mono/Gecko
+    # first-run downloads; and `wineserver -w` blocks on the async
     # `wineboot --init` before the installer runs. We then HARD-FAIL the image
     # build if `ISCC.exe` is missing or does not run under Wine -- better a
     # red image build than silently shipping an image that can't build the
@@ -229,6 +233,21 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     # ------------------------------------------------------------------
     my_chroot("""
     set -euo pipefail
+    # Mount the virtual filesystems Wine needs (see comment above); a trap
+    # tears them down on exit (success or failure) so they never end up in the
+    # image tarball. Kill wineserver first so nothing holds /proc open.
+    cleanup_wine_mounts() {
+        wineserver -k 2>/dev/null || true
+        umount /dev/shm 2>/dev/null || umount -l /dev/shm 2>/dev/null || true
+        umount /dev/pts 2>/dev/null || umount -l /dev/pts 2>/dev/null || true
+        umount /proc    2>/dev/null || umount -l /proc    2>/dev/null || true
+    }
+    trap cleanup_wine_mounts EXIT
+    mount -t proc proc /proc
+    mkdir -p /dev/pts /dev/shm
+    mount -t devpts devpts /dev/pts || true
+    mount -t tmpfs  tmpfs  /dev/shm || true
+
     export WINEPREFIX=/home/juliaci/.wine
     export WINEARCH=win64
     export WINEDEBUG=-all
