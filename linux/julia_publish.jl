@@ -209,6 +209,23 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     """)
 
     # ------------------------------------------------------------------
+    # 32-bit Wine support (WoW64).  Inno Setup -- both its installer and the
+    # `ISCC.exe` compiler -- is a 32-bit Windows application, so a win64 Wine
+    # prefix must be able to run 32-bit PE binaries via C:\\windows\\syswow64.
+    # Debian's `wine64` alone does NOT populate syswow64: without the i386 Wine
+    # libraries the installer fails with
+    #   wine: failed to load L"...syswow64\\ntdll.dll" error c0000135 (DLL_NOT_FOUND)
+    # so we enable the i386 architecture and install the 32-bit Wine package.
+    # ------------------------------------------------------------------
+    my_chroot("""
+    set -euo pipefail
+    dpkg --add-architecture i386
+    apt-get update
+    apt-get install -y --no-install-recommends wine32:i386
+    rm -rf /var/lib/apt/lists/*
+    """)
+
+    # ------------------------------------------------------------------
     # Wine + Inno Setup 6.
     #
     # We install Wine and a JRE so the pipeline can run the Inno Setup compiler
