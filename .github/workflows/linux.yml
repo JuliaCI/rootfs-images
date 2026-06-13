@@ -34,24 +34,24 @@ jobs:
       matrix:
         image:
           # Build a bunch of different "agent" rootfs images.
-          # TEMP-TRIM - {slug: 'agent_linux.aarch64', build_on: '-arm'}
-          # TEMP-TRIM - {slug: 'agent_linux.armv7l', build_on: ''}
-          # TEMP-TRIM - {slug: 'agent_linux.ppc64le', build_on: ''}
-          # TEMP-TRIM - {slug: 'agent_linux.x86_64', build_on: ''}
-          # TEMP-TRIM - {slug: 'agent_linux.i686', build_on: ''}
+          - {slug: 'agent_linux.aarch64', build_on: '-arm'}
+          - {slug: 'agent_linux.armv7l', build_on: ''}
+          - {slug: 'agent_linux.ppc64le', build_on: ''}
+          - {slug: 'agent_linux.x86_64', build_on: ''}
+          - {slug: 'agent_linux.i686', build_on: ''}
 
           # The `aws_uploader` image is a `debian`-based image that
           # contains just `awscli`, for usage in secured pipelines
           # that need to upload to AWS.
-          # TEMP-TRIM - {slug: 'aws_uploader.x86_64', build_on: ''}
+          - {slug: 'aws_uploader.x86_64', build_on: ''}
 
           # The `debian_minimal` image is a `debian`-based image that
           # contains no packages.
-          # TEMP-TRIM - {slug: 'debian_minimal.aarch64', build_on: '-arm'}
-          # TEMP-TRIM - {slug: 'debian_minimal.armv7l', build_on: ''}
-          # TEMP-TRIM - {slug: 'debian_minimal.ppc64le', build_on: ''}
-          # TEMP-TRIM - {slug: 'debian_minimal.x86_64', build_on: ''}
-          # TEMP-TRIM - {slug: 'debian_minimal.i686', build_on: ''}
+          - {slug: 'debian_minimal.aarch64', build_on: '-arm'}
+          - {slug: 'debian_minimal.armv7l', build_on: ''}
+          - {slug: 'debian_minimal.ppc64le', build_on: ''}
+          - {slug: 'debian_minimal.x86_64', build_on: ''}
+          - {slug: 'debian_minimal.i686', build_on: ''}
 
           # The `julia_publish` image carries the full signing/packaging
           # toolchain (AWS CLI, p7zip, libdmg-hfsplus, wine, jsign, ...) used
@@ -60,55 +60,55 @@ jobs:
           - {slug: 'julia_publish.x86_64', build_on: ''}
 
           # The `latex` image is used to build the PDF docs
-          # TEMP-TRIM - {slug: 'latex.x86_64', build_on: ''}
+          - {slug: 'latex.x86_64', build_on: ''}
 
           # The `llvm_passes` image contains `gfortran`, so we use it for our
           # "from source" (`USE_BINARYBUILDER=0`) jobs.
-          # TEMP-TRIM - {slug: 'llvm_passes.aarch64', build_on: '-arm'}
-          # TEMP-TRIM - {slug: 'llvm_passes.armv7l', build_on: ''}
-          # TEMP-TRIM - {slug: 'llvm_passes.i686', build_on: ''}
-          # TEMP-TRIM - {slug: 'llvm_passes.powerpc64le', build_on: ''}
-          # TEMP-TRIM - {slug: 'llvm_passes.x86_64', build_on: ''}
+          - {slug: 'llvm_passes.aarch64', build_on: '-arm'}
+          - {slug: 'llvm_passes.armv7l', build_on: ''}
+          - {slug: 'llvm_passes.i686', build_on: ''}
+          - {slug: 'llvm_passes.powerpc64le', build_on: ''}
+          - {slug: 'llvm_passes.x86_64', build_on: ''}
 
           # The `npm_linux` image is a helper for ecosystem jobs that need to build NPM packages
-          # TEMP-TRIM - {slug: 'npm_linux.x86_64', build_on: ''}
+          - {slug: 'npm_linux.x86_64', build_on: ''}
 
           # The `package_linux` images are all `debian`-based.
-          # TEMP-TRIM - {slug: 'package_linux.aarch64', build_on: '-arm'}
-          # TEMP-TRIM - {slug: 'package_linux.armv7l', build_on: ''}
-          # TEMP-TRIM - {slug: 'package_linux.i686', build_on: ''}
-          # TEMP-TRIM - {slug: 'package_linux.powerpc64le', build_on: ''}
-          # TEMP-TRIM - {slug: 'package_linux.x86_64', build_on: ''}
+          - {slug: 'package_linux.aarch64', build_on: '-arm'}
+          - {slug: 'package_linux.armv7l', build_on: ''}
+          - {slug: 'package_linux.i686', build_on: ''}
+          - {slug: 'package_linux.powerpc64le', build_on: ''}
+          - {slug: 'package_linux.x86_64', build_on: ''}
 
           # The `package_musl` image is `alpine`-based.
-          # TEMP-TRIM - {slug: 'package_musl.x86_64', build_on: ''}
+          - {slug: 'package_musl.x86_64', build_on: ''}
 
           # The `pkgserver_logsync` image is a helper for https://github.com/JuliaPackaging/PkgServerLogAnalysis.jl
-          # TEMP-TRIM - {slug: 'pkgserver_logsync.x86_64', build_on: ''}
+          - {slug: 'pkgserver_logsync.x86_64', build_on: ''}
 
           # The `rr` image is `debian`-based.
           # It is used for building rr from source and running the rr test suite.
-          # TEMP-TRIM - {slug: 'rr.aarch64', build_on: '-arm'}
-          # TEMP-TRIM - {slug: 'rr.x86_64', build_on: ''}
+          - {slug: 'rr.aarch64', build_on: '-arm'}
+          - {slug: 'rr.x86_64', build_on: ''}
 
           # The `tester_linux` images are all `debian`-based.
           # They do not include the compiler toolchain.
-          # TEMP-TRIM - {slug: 'tester_linux.aarch64', build_on: '-arm'}
-          # TEMP-TRIM - {slug: 'tester_linux.armv7l', build_on: ''}
-          # TEMP-TRIM - {slug: 'tester_linux.i686', build_on: ''}
-          # TEMP-TRIM - {slug: 'tester_linux.powerpc64le', build_on: ''}
-          # TEMP-TRIM - {slug: 'tester_linux.x86_64', build_on: ''}
+          - {slug: 'tester_linux.aarch64', build_on: '-arm'}
+          - {slug: 'tester_linux.armv7l', build_on: ''}
+          - {slug: 'tester_linux.i686', build_on: ''}
+          - {slug: 'tester_linux.powerpc64le', build_on: ''}
+          - {slug: 'tester_linux.x86_64', build_on: ''}
 
           # The `tester_musl` image is `alpine`-based.
           # It does not include the compiler toolchain.
-          # TEMP-TRIM - {slug: 'tester_musl.x86_64', build_on: ''}
+          - {slug: 'tester_musl.x86_64', build_on: ''}
 
           # The `xvfb` image is used in the CI for the PkgEval.jl repo
-          # TEMP-TRIM - {slug: 'xvfb.aarch64', build_on: '-arm'}
-          # TEMP-TRIM - {slug: 'xvfb.x86_64', build_on: ''}
+          - {slug: 'xvfb.aarch64', build_on: '-arm'}
+          - {slug: 'xvfb.x86_64', build_on: ''}
 
           # The `yggdrasil` image is used in the CI for the Yggdrasil repo
-          # TEMP-TRIM - {slug: 'yggdrasil.x86_64', build_on: ''}
+          - {slug: 'yggdrasil.x86_64', build_on: ''}
     steps:
       - uses: actions/checkout@v6
         with:
