@@ -53,7 +53,7 @@ jobs:
       - name: Show available disk space (PowerShell)
         run: Get-PSDrive
         shell: powershell
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/setup-julia@v3
         with:
           version: 'lts'
       - name: cat daemon.json, before modifications
