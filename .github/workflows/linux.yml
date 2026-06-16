@@ -80,6 +80,11 @@ jobs:
           - {slug: 'package_linux.powerpc64le', build_on: ''}
           - {slug: 'package_linux.x86_64', build_on: ''}
 
+          # Essentially `package_linux` plus a Rust toolchain and `libclang`
+          # for use by the MMTK GC build (`WITH_THIRD_PARTY_GC=mmtk`)
+          - {slug: 'package_linux_mmtk.x86_64', build_on: ''}
+          - {slug: 'package_linux_mmtk.aarch64', build_on: '-arm'}
+
           # The `package_musl` image is `alpine`-based.
           - {slug: 'package_musl.x86_64', build_on: ''}
 
