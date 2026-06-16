@@ -18,6 +18,8 @@ include("build_img/args.jl")
 include("build_img/awscli.jl")
 include("build_img/common.jl")
 include("build_img/debian.jl")
+include("build_img/gcc.jl")
+include("build_img/rust.jl")
 
 include("test_img/args.jl")
 include("test_img/test.jl")
