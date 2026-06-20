@@ -28,6 +28,11 @@
 #   * git / openssh /   -- general plumbing; `curl` + glibc also let the
 #     curl / tar / ...     pipeline fetch the Linux `rcodesign` binary at
 #                          runtime (via get_rcodesign.sh) for macOS notarization.
+#   * aws-kms-pkcs11     -- PKCS#11 provider that signs with an AWS KMS key.
+#                          The step's docs-deploy phase pushes to
+#                          docs.julialang.org over SSH with a deploy key whose
+#                          private half never leaves KMS (GIT_SSH_COMMAND's
+#                          PKCS11Provider points at the installed module).
 #
 # This image is x86_64-only: the `publish_all` step runs exclusively on
 # linux/x86_64, so there is no multi-arch matrix here.
@@ -49,6 +54,7 @@ end
 # Versions of the out-of-distro tools we install from upstream.
 const JSIGN_VERSION = "7.4"
 const INNO_SETUP_VERSION = "6.7.3"
+const AWS_KMS_PKCS11_VERSION = "0.0.17"
 
 # Build a debian (trixie) based image with the following extra packages.
 packages = [
@@ -61,6 +67,7 @@ packages = [
     "git",
     "gzip",
     "libbz2-dev",            # libdmg-hfsplus optional bzip2 support
+    "libjson-c5",            # runtime dep of the aws-kms-pkcs11 module
     "libssl-dev",            # libdmg-hfsplus crypto
     "locales",
     "localepurge",
@@ -89,6 +96,32 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     # Reuse the repo's shared helper (official v2 installer on x86_64).
     # ------------------------------------------------------------------
     install_awscli(rootfs, chroot_ENV, arch)
+
+    # ------------------------------------------------------------------
+    # aws-kms-pkcs11: a PKCS#11 provider that performs signatures with an AWS
+    # KMS key. The publish step's docs-deploy phase uses it so `git push` to
+    # docs.julialang.org signs over SSH with a deploy key whose private half
+    # never leaves KMS (GIT_SSH_COMMAND="ssh -o PKCS11Provider=<this module>").
+    # We install the upstream prebuilt, statically-linked module (it bundles
+    # the AWS SDK) at the standard p11-kit module path the pipeline points at.
+    # The ubuntu24.04 build matches Debian trixie (both OpenSSL 3 / libcrypto.so.3).
+    # ------------------------------------------------------------------
+    my_chroot("""
+    set -euo pipefail
+    url="https://github.com/JackOfMostTrades/aws-kms-pkcs11/releases/download/v$(AWS_KMS_PKCS11_VERSION)/aws_kms_pkcs11-ubuntu24.04-x86_64.so"
+    sha="621db84872f1eacd84436b84a14f57efd155a4d389f7b457e0c012caa4e0b584"
+    dest=/usr/lib/x86_64-linux-gnu/pkcs11/aws_kms_pkcs11.so
+    mkdir -p "\$(dirname "\$dest")"
+    curl -fsSL "\$url" -o "\$dest"
+    echo "\$sha  \$dest" | sha256sum -c -
+    # Every NEEDED library must resolve, or SSH's dlopen of the provider fails
+    # opaquely at publish time.
+    if ldd "\$dest" 2>&1 | grep -q 'not found'; then
+        echo "ERROR: aws_kms_pkcs11.so has unresolved libraries:" >&2
+        ldd "\$dest" >&2
+        exit 1
+    fi
+    """)
 
     # ------------------------------------------------------------------
     # libdmg-hfsplus: Mozilla's `hfsplus` (populate an HFS+ image) and `dmg`
@@ -319,6 +352,7 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     python3 --version
     git --version
     java -version
+    test -e /usr/lib/x86_64-linux-gnu/pkcs11/aws_kms_pkcs11.so
     """)
 end
 
