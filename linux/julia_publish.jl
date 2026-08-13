@@ -74,6 +74,7 @@ packages = [
     "make",
     "openssh-client",
     "p7zip-full",            # provides `7z` for the Windows `.zip`
+    "pigz",                  # parallel gzip for the release tarball repacks
     "python3",
     "tar",
     "unzip",
