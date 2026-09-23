@@ -1,0 +1,48 @@
+# Copy of the Artifacts.toml of GCCToolchain_jll GCCToolchain-v15.2.0+0
+# (https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/blob/GCCToolchain-v15.2.0+0/Artifacts.toml)
+[[GCCToolchain]]
+arch = "aarch64"
+git-tree-sha1 = "76c9533af423382093791fda86a8ecf731ade979"
+libc = "glibc"
+os = "linux"
+
+    [[GCCToolchain.download]]
+    sha256 = "d57d3ff3e48abf620d7d262668720be4e9b0e0b6dbe67f8157f925ad2ea41400"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+0/GCCToolchain.v15.2.0.aarch64-linux-gnu.tar.gz"
+[[GCCToolchain]]
+arch = "armv7l"
+call_abi = "eabihf"
+git-tree-sha1 = "86adbdb342ac4ea7a203f6fc02b89acf5d9be93c"
+libc = "glibc"
+os = "linux"
+
+    [[GCCToolchain.download]]
+    sha256 = "6019f1a8351938ad7dd8a112403682260e49b826db6c155c91c09fc2547f255a"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+0/GCCToolchain.v15.2.0.armv7l-linux-gnueabihf.tar.gz"
+[[GCCToolchain]]
+arch = "i686"
+git-tree-sha1 = "a656d17c925fd022fd70a3f62d3fb618beec9cbb"
+libc = "glibc"
+os = "linux"
+
+    [[GCCToolchain.download]]
+    sha256 = "e1dfe09b318e3ae1c59cd37ca74ddd318ac36e225bab9def10be42d5ea066086"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+0/GCCToolchain.v15.2.0.i686-linux-gnu.tar.gz"
+[[GCCToolchain]]
+arch = "powerpc64le"
+git-tree-sha1 = "dbc8fb9603446274fdeaebc2c72a79b33564a701"
+libc = "glibc"
+os = "linux"
+
+    [[GCCToolchain.download]]
+    sha256 = "82ffccb1e407dd67b96bcc532c072dffbfb3fff1eea726295b3f113f73fa6714"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+0/GCCToolchain.v15.2.0.powerpc64le-linux-gnu.tar.gz"
+[[GCCToolchain]]
+arch = "x86_64"
+git-tree-sha1 = "6dfaa94b7dd419db7d02f4a389be510b8166e08f"
+libc = "glibc"
+os = "linux"
+
+    [[GCCToolchain.download]]
+    sha256 = "7897f37610a203a3829ca0f10a2ca15645f4c1207347bf7ca0ecaddba9f92961"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+0/GCCToolchain.v15.2.0.x86_64-linux-gnu.tar.gz"
