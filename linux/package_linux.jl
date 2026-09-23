@@ -16,6 +16,7 @@ packages = [
     "ccache",
     "cmake",
     "curl",
+    "file",
     "flex",
     "gdb",
     "git",
@@ -35,11 +36,12 @@ packages = [
     "time",
     "vim",
     "wget",
+    "xz-utils",
     "zstd",
 ]
 
 artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
-    # Install the GCC 9 cross-toolchain as the default `gcc`/`g++`/`cc`/`c++`/`ld`.
+    # Install our GCC toolchain as the default `gcc`/`g++`/`gfortran`/`cc`/`c++`/`ld`.
     install_gcc_toolchain(rootfs, chroot_ENV, arch)
 
     # The build jobs upload their products to S3 from within the sandbox,
