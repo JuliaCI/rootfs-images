@@ -23,6 +23,7 @@ packages = [
     "clang",
     "cmake",
     "curl",
+    "file",
     "flex",
     "gdb",
     "git",
@@ -43,6 +44,7 @@ packages = [
     "time",
     "vim",
     "wget",
+    "xz-utils",
     "zstd",
 ]
 

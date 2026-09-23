@@ -16,6 +16,7 @@ packages = [
     "ccache",
     "cmake",
     "curl",
+    "file",
     "flex",
     "gdb",
     "git",
@@ -35,6 +36,7 @@ packages = [
     "time",
     "vim",
     "wget",
+    "xz-utils",
     "zstd",
 ]
 
