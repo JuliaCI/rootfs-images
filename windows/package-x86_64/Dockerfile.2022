@@ -26,13 +26,15 @@ RUN bash -l -c "pacman -Syuu --noconfirm --noprogressbar"  && \
 #   ref: https://github.com/msys2/MSYS2-packages/issues/2305#issuecomment-758162640
 
 # The C/C++/Fortran toolchain is not MSYS2's, but GCCToolchain_jll (Yggdrasil's
-# `G/GCCToolchain`): GCC 15.2 built exactly like the GCC that CompilerSupportLibraries_jll
-# comes from, whose runtime DLLs Julia ships. MSYS2's newer GCC compiles against headers
+# `G/GCCToolchain`): GCC 15.2 built like the GCC that CompilerSupportLibraries_jll comes
+# from, whose runtime DLLs Julia ships. MSYS2's newer GCC compiles against headers
 # that need symbols those DLLs lack. Installed in its own prefix, C:\gcc, ahead of MSYS2's
 # in PATH; MSYS2's own programs keep loading the DLLs next to them.
+# Like MSYS2's GCC, it uses unaligned vector moves by default, as 64-bit Windows does
+# not align AVX stack slots (GCC PR 54412).
 # Bump only together with CompilerSupportLibraries_jll's GCC.
-ARG GCC_TOOLCHAIN_URL=https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+1/GCCToolchain.v15.2.0.x86_64-w64-mingw32.tar.gz
-ARG GCC_TOOLCHAIN_SHA256=24FE892D02BE842C6E9F620C1448B5F0A1D52C7B3091D6E14A487989F2CD7E3C
+ARG GCC_TOOLCHAIN_URL=https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+2/GCCToolchain.v15.2.0.x86_64-w64-mingw32.tar.gz
+ARG GCC_TOOLCHAIN_SHA256=FE7FEC1556DCD5BAC07ADF21BF862411A29B6B789876EAFBAC5A9AD1DC7F9164
 RUN powershell -Command "\
         Invoke-WebRequest -Uri '%GCC_TOOLCHAIN_URL%' -OutFile C:/windows/temp/gcc.tar.gz -ErrorAction Stop ; \
         if ((Get-FileHash -Algorithm SHA256 C:/windows/temp/gcc.tar.gz).Hash -ne '%GCC_TOOLCHAIN_SHA256%') { throw 'GCCToolchain checksum mismatch' }" && \
