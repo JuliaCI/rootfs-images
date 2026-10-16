@@ -4,8 +4,10 @@ getuid() = ccall(:getuid, Cint, ())
 getgid() = ccall(:getgid, Cint, ())
 
 function chroot_command(rootfs, cmds...; ENV::AbstractDict, uid=getuid(), gid=getgid())
-    command = `sudo chroot --userspec=$(uid):$(gid) $(rootfs) $(cmds)`
-    return setenv(command, ENV)
+    # `sudo` replaces the environment according to the host's policy (e.g. its
+    # `secure_path`, which lacks `/usr/sbin` on some distributions), so set it in the chroot
+    env = ["$(key)=$(value)" for (key, value) in ENV]
+    return `sudo chroot --userspec=$(uid):$(gid) $(rootfs) /usr/bin/env -i $(env) $(cmds)`
 end
 
 function root_chroot_command(varargs...; ENV::AbstractDict)
