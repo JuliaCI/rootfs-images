@@ -1,48 +1,104 @@
-# Copy of the Artifacts.toml of GCCToolchain_jll GCCToolchain-v15.2.0+0
-# (https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/blob/GCCToolchain-v15.2.0+0/Artifacts.toml)
+# Copy of the Artifacts.toml of GCCToolchain_jll GCCToolchain-v15.2.0+3
+# (https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/blob/GCCToolchain-v15.2.0+3/Artifacts.toml)
+[[GCCToolchain]]
+arch = "x86_64"
+git-tree-sha1 = "6dfaa94b7dd419db7d02f4a389be510b8166e08f"
+lazy = true
+libc = "glibc"
+os = "linux"
+target_arch = "x86_64"
+target_libc = "glibc"
+target_os = "linux"
+
+    [[GCCToolchain.download]]
+    sha256 = "7897f37610a203a3829ca0f10a2ca15645f4c1207347bf7ca0ecaddba9f92961"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+3/GCCToolchain.v15.2.0.x86_64-linux-gnu-target_libc+glibc-target_arch+x86_64-target_os+linux.tar.gz"
+[[GCCToolchain]]
+arch = "i686"
+git-tree-sha1 = "a656d17c925fd022fd70a3f62d3fb618beec9cbb"
+lazy = true
+libc = "glibc"
+os = "linux"
+target_arch = "i686"
+target_libc = "glibc"
+target_os = "linux"
+
+    [[GCCToolchain.download]]
+    sha256 = "e1dfe09b318e3ae1c59cd37ca74ddd318ac36e225bab9def10be42d5ea066086"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+3/GCCToolchain.v15.2.0.i686-linux-gnu-target_libc+glibc-target_arch+i686-target_os+linux.tar.gz"
 [[GCCToolchain]]
 arch = "aarch64"
 git-tree-sha1 = "76c9533af423382093791fda86a8ecf731ade979"
+lazy = true
 libc = "glibc"
 os = "linux"
+target_arch = "aarch64"
+target_libc = "glibc"
+target_os = "linux"
 
     [[GCCToolchain.download]]
     sha256 = "d57d3ff3e48abf620d7d262668720be4e9b0e0b6dbe67f8157f925ad2ea41400"
-    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+0/GCCToolchain.v15.2.0.aarch64-linux-gnu.tar.gz"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+3/GCCToolchain.v15.2.0.aarch64-linux-gnu-target_libc+glibc-target_arch+aarch64-target_os+linux.tar.gz"
 [[GCCToolchain]]
 arch = "armv7l"
 call_abi = "eabihf"
 git-tree-sha1 = "86adbdb342ac4ea7a203f6fc02b89acf5d9be93c"
+lazy = true
 libc = "glibc"
 os = "linux"
+target_arch = "armv7l"
+target_call_abi = "eabihf"
+target_libc = "glibc"
+target_os = "linux"
 
     [[GCCToolchain.download]]
     sha256 = "6019f1a8351938ad7dd8a112403682260e49b826db6c155c91c09fc2547f255a"
-    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+0/GCCToolchain.v15.2.0.armv7l-linux-gnueabihf.tar.gz"
-[[GCCToolchain]]
-arch = "i686"
-git-tree-sha1 = "a656d17c925fd022fd70a3f62d3fb618beec9cbb"
-libc = "glibc"
-os = "linux"
-
-    [[GCCToolchain.download]]
-    sha256 = "e1dfe09b318e3ae1c59cd37ca74ddd318ac36e225bab9def10be42d5ea066086"
-    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+0/GCCToolchain.v15.2.0.i686-linux-gnu.tar.gz"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+3/GCCToolchain.v15.2.0.armv7l-linux-gnueabihf-target_libc+glibc-target_arch+armv7l-target_os+linux-target_call_abi+eabihf.tar.gz"
 [[GCCToolchain]]
 arch = "powerpc64le"
 git-tree-sha1 = "dbc8fb9603446274fdeaebc2c72a79b33564a701"
+lazy = true
 libc = "glibc"
 os = "linux"
+target_arch = "powerpc64le"
+target_libc = "glibc"
+target_os = "linux"
 
     [[GCCToolchain.download]]
     sha256 = "82ffccb1e407dd67b96bcc532c072dffbfb3fff1eea726295b3f113f73fa6714"
-    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+0/GCCToolchain.v15.2.0.powerpc64le-linux-gnu.tar.gz"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+3/GCCToolchain.v15.2.0.powerpc64le-linux-gnu-target_libc+glibc-target_arch+powerpc64le-target_os+linux.tar.gz"
 [[GCCToolchain]]
-arch = "x86_64"
-git-tree-sha1 = "6dfaa94b7dd419db7d02f4a389be510b8166e08f"
-libc = "glibc"
-os = "linux"
+arch = "i686"
+git-tree-sha1 = "8dd2f4683e0662a323594e30ccc5cf074f1e7491"
+lazy = true
+os = "windows"
+target_arch = "i686"
+target_os = "windows"
 
     [[GCCToolchain.download]]
-    sha256 = "7897f37610a203a3829ca0f10a2ca15645f4c1207347bf7ca0ecaddba9f92961"
-    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+0/GCCToolchain.v15.2.0.x86_64-linux-gnu.tar.gz"
+    sha256 = "5c0a6c4fb94ca3cf0940f960bd8c2291745fbf91fe1b67acdb662c32cce71241"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+3/GCCToolchain.v15.2.0.i686-w64-mingw32-target_arch+i686-target_os+windows.tar.gz"
+[[GCCToolchain]]
+arch = "x86_64"
+git-tree-sha1 = "9aff7d360c2a93d472e96f08c6b56451e3309c72"
+lazy = true
+os = "windows"
+target_arch = "x86_64"
+target_os = "windows"
+
+    [[GCCToolchain.download]]
+    sha256 = "cccfbb4f7263ed50bad25db71742c3e1ccc40b9aadd2bb123a35b3d5c2e7e752"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+3/GCCToolchain.v15.2.0.x86_64-w64-mingw32-target_arch+x86_64-target_os+windows.tar.gz"
+[[GCCToolchain]]
+arch = "x86_64"
+git-tree-sha1 = "44b8e99ab2405367d6ee3c221325684c0a5ea3eb"
+lazy = true
+libc = "glibc"
+os = "linux"
+target_arch = "riscv64"
+target_libc = "glibc"
+target_os = "linux"
+
+    [[GCCToolchain.download]]
+    sha256 = "5ce4f5b753de3a15bb36e70550d5e8c13b47acb3fe14be2e3d47fac640ce4727"
+    url = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+3/GCCToolchain.v15.2.0.x86_64-linux-gnu-target_libc+glibc-target_arch+riscv64-target_os+linux.tar.gz"

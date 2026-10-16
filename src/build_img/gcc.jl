@@ -6,6 +6,9 @@
 # This is the compiler toolchain used by Julia's Linux package builds, so it is shared
 # between the `package_linux` and `package_linux_mmtk` images to keep them in sync.
 #
+# `install_gcc_cross_toolchain` adds a cross compiler next to it, for images in which
+# Julia is cross-compiled.
+#
 # The toolchain is pinned by `GCCToolchain_jll.Artifacts.toml`, a copy of the
 # `Artifacts.toml` of the JLL version named in its first line; to update it, copy the
 # file of a newer version. Its GCC must never be newer than the one
@@ -13,19 +16,31 @@
 # libgfortran); the recipe is bumped together with CSL.
 const GCC_TOOLCHAIN_ARTIFACTS_TOML = joinpath(@__DIR__, "GCCToolchain_jll.Artifacts.toml")
 
+# GCCToolchain_jll's artifacts are tagged with the platform the toolchain runs on and,
+# in `target_*` tags, the one it generates code for (as BinaryBuilder2's `CrossPlatform`)
+function gcc_toolchain_platform(host_arch::String, target_arch::String)
+    platform = Base.BinaryPlatforms.Platform(host_arch, "linux"; libc="glibc")
+    target = Base.BinaryPlatforms.Platform(target_arch, "linux"; libc="glibc")
+    for (tag, value) in Base.BinaryPlatforms.tags(target)
+        platform["target_" * tag] = value
+    end
+    return platform
+end
+gcc_target_triplet(arch::String) = arch == "armv7l" ? "arm-linux-gnueabihf" : "$(arch)-linux-gnu"
+
 function install_gcc_toolchain(rootfs::String, chroot_ENV::AbstractDict, arch::String)
     arch = normalize_arch(arch)
     my_chroot(args...) = root_chroot(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
 
     # Download (and verify) the toolchain for the image's architecture, and copy it in
-    platform = Base.BinaryPlatforms.Platform(arch, "linux"; libc="glibc")
+    platform = gcc_toolchain_platform(arch, arch)
     toolchain = Pkg.Artifacts.ensure_artifact_installed("GCCToolchain", GCC_TOOLCHAIN_ARTIFACTS_TOML; platform)
     run(`sudo cp -R --no-dereference --preserve=mode,timestamps $(toolchain)/. $(rootfs)/usr/local/`)
     # Artifacts are read-only
     my_chroot("chmod -R u+w /usr/local")
 
     # Its tools are prefixed with the GCC triplet
-    gcc_triplet = arch == "armv7l" ? "arm-linux-gnueabihf" : "$(arch)-linux-gnu"
+    gcc_triplet = gcc_target_triplet(arch)
     gcc_version = only(readdir(joinpath(toolchain, "lib", "gcc", gcc_triplet)))
 
     gcc_symlink_cmd = """
@@ -87,6 +102,46 @@ function install_gcc_toolchain(rootfs::String, chroot_ENV::AbstractDict, arch::S
         echo "\${bin} requires GLIBC_\${glibc}"
         [[ "\$(printf '%s\\n' "\${glibc}" $(glibc_floor) | sort -V | tail -n1)" == $(glibc_floor) ]]
     done
+    """
+    my_chroot(sanity_cmd)
+end
+
+# Install the GCC toolchain that runs on `arch` and targets `target_arch` into
+# `/usr/local`, next to the native one (`install_gcc_toolchain`). Its tools keep their
+# target prefix, and its runtime libraries stay in its sysroot, where programs run under
+# qemu-user with that sysroot as their root (`-L`) find them.
+function install_gcc_cross_toolchain(rootfs::String, chroot_ENV::AbstractDict, arch::String,
+                                     target_arch::String)
+    arch = normalize_arch(arch)
+    my_chroot(args...) = root_chroot(rootfs, "bash", "-eu", "-o", "pipefail", "-c", args...; ENV=chroot_ENV)
+
+    platform = gcc_toolchain_platform(arch, target_arch)
+    toolchain = Pkg.Artifacts.ensure_artifact_installed("GCCToolchain", GCC_TOOLCHAIN_ARTIFACTS_TOML; platform)
+    # It is built not to overlap with the native toolchain; make sure
+    overlap = String[]
+    for (root, dirs, files) in walkdir(toolchain), f in files
+        path = relpath(joinpath(root, f), toolchain)
+        ispath(joinpath(rootfs, "usr", "local", path)) && push!(overlap, path)
+    end
+    isempty(overlap) || error("Cross toolchain overlaps with /usr/local: $(join(overlap, ", "))")
+    run(`sudo cp -R --no-dereference --preserve=mode,timestamps $(toolchain)/. $(rootfs)/usr/local/`)
+    my_chroot("chmod -R u+w /usr/local")
+
+    triplet = gcc_target_triplet(target_arch)
+    my_chroot("$(triplet)-gcc --version")
+    my_chroot("$(triplet)-ld --version")
+
+    # Sanity check: it builds C, C++ and Fortran code for the target against its sysroot.
+    # (Running that code needs qemu-user, which the image does not have.)
+    sanity_cmd = """
+    cd "\$(mktemp -d)"
+    [[ "\$($(triplet)-gcc -dumpmachine)" == $(triplet) ]]
+    printf '#include <stdio.h>\\nint main(void) { puts("hello from C"); return 0; }\\n' > c.c
+    printf '#include <iostream>\\n#include <thread>\\nint main() { std::thread t([] { std::cout << "hello from C++" << std::endl; }); t.join(); }\\n' > cxx.cpp
+    printf 'program hello\\n  print *, "hello from Fortran"\\nend program\\n' > f.f90
+    $(triplet)-gcc -O2 c.c -o c -latomic
+    $(triplet)-g++ -std=c++20 -O2 -pthread cxx.cpp -o cxx
+    $(triplet)-gfortran -O2 f.f90 -o f
     """
     my_chroot(sanity_cmd)
 end
