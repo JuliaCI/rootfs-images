@@ -68,6 +68,7 @@ packages = [
     "gzip",
     "libbz2-dev",            # libdmg-hfsplus optional bzip2 support
     "libjson-c5",            # runtime dep of the aws-kms-pkcs11 module
+    "liblzfse-dev",          # libdmg-hfsplus lzfse support (fast-to-read ULFO .dmg)
     "libssl-dev",            # libdmg-hfsplus crypto
     "locales",
     "localepurge",
@@ -151,9 +152,16 @@ artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", arch
     done
     cd /
     rm -rf "\$tmpdir"
-    # Sanity check that the binaries at least run.
+    # Sanity check that the binaries at least run, and that `dmg` picked up
+    # lzfse (julia-buildkite's build_dmg.sh requires it): CMake silently
+    # builds without it when liblzfse is missing.
     /usr/local/bin/dmg || true
     /usr/local/bin/hfsplus || true
+    dmg_usage="\$(/usr/local/bin/dmg 2>&1 || true)"
+    if [[ "\$dmg_usage" != *lzfse* ]]; then
+        echo "ERROR: libdmg-hfsplus was built without lzfse support" >&2
+        exit 1
+    fi
     """)
 
     # ------------------------------------------------------------------
