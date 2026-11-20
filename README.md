@@ -55,3 +55,24 @@ julia --project test_rootfs.jl --url https://github.com/JuliaCI/rootfs-images/re
 (Replace `1234567890000000000000000000000000000000` with the tree hash that was printed in the previous step.)
 
 This will drop you into a shell within the build environment.
+
+## Serving images from the Pkg server
+
+The Pkg servers only mirror artifacts that a registered package lists in its `Artifacts.toml`.
+The `RootfsImages` package in the [`RootfsImages`](RootfsImages) directory exists for that: it
+has no code, and its `Artifacts.toml` lists rootfs images as lazy artifacts. Once a version that
+lists an image is registered in General, the image can be fetched by tree hash from
+`https://pkg.julialang.org/artifact/<git-tree-sha1>`, e.g. by the artifact store of
+[sandboxed-buildkite-agent](https://github.com/JuliaCI/sandboxed-buildkite-agent).
+
+The Pkg servers look at the artifacts of a version only when they first see it, so publish
+the release first, then add its images and register a new version:
+
+```
+julia RootfsImages/add_images.jl v8.13 package_linux.x86_64 package_linux.i686
+```
+
+This replaces older entries for the same images. Then bump the version in
+`RootfsImages/Project.toml`, merge, and register the merge commit with
+`@JuliaRegistrator register subdir=RootfsImages`. List every image that CI still uses, not
+only the new ones: a later version then gives an image whose ingestion failed another chance.
