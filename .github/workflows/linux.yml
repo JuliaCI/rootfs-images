@@ -155,7 +155,7 @@ jobs:
       - run: uname -a
       - uses: julia-actions/setup-julia@v3
         with:
-          version: '1.6'
+          version: '1.10'
       - run: |
           import Pkg
           ENV["JULIA_PKG_SERVER"] = ""

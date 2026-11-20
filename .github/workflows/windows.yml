@@ -55,7 +55,7 @@ jobs:
         shell: powershell
       - uses: julia-actions/setup-julia@v3
         with:
-          version: 'lts'
+          version: '1.10'
       - name: cat daemon.json, before modifications
         run: cat /c/ProgramData/Docker/config/daemon.json
         shell: bash
