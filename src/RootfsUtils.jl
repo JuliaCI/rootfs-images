@@ -6,6 +6,7 @@ import Pkg
 import SHA
 import Sandbox
 import Scratch
+import Tar
 import Test
 import ghr_jll
 
