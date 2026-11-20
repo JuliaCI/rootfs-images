@@ -55,3 +55,28 @@ julia --project test_rootfs.jl --url https://github.com/JuliaCI/rootfs-images/re
 (Replace `1234567890000000000000000000000000000000` with the tree hash that was printed in the previous step.)
 
 This will drop you into a shell within the build environment.
+
+## Serving images from the Pkg server
+
+The Pkg servers only mirror artifacts that a registered package lists in its `Artifacts.toml`.
+The `RootfsImages` package in the [`RootfsImages`](RootfsImages) directory exists for that: it
+has no code, and its `Artifacts.toml` lists rootfs images as lazy artifacts. Once a version that
+lists an image is registered in General, the image can be fetched by tree hash from
+`https://pkg.julialang.org/artifact/<git-tree-sha1>`, e.g. by the artifact store of
+[sandboxed-buildkite-agent](https://github.com/JuliaCI/sandboxed-buildkite-agent).
+
+The Pkg servers look at the artifacts of a version only when they first see it. When a
+release is published, the `register_images` job of the Linux workflow runs, once all images are
+built and uploaded:
+
+```
+julia RootfsImages/add_images.jl v8.13 <every image of the release>
+```
+
+This adds each image as `<image>.<arch>.<tag>`, keeping the entries of other tags (CI pins
+different releases of the same image, and release branches keep older ones), and bumps the
+patch version. The job opens a pull request with the result. GitHub doesn't start workflows
+for it, so close and reopen it to run the required checks, merge it, and register the merge
+commit with `@JuliaRegistrator register subdir=RootfsImages`. To list images of an older
+release, run `add_images.jl` with its tag by hand. It refuses images with a symlink whose target
+isn't ASCII: Pkg and the Pkg servers disagree on their tree hash (JuliaLang/Pkg.jl#4707).

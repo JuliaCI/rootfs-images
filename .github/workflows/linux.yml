@@ -25,6 +25,39 @@ jobs:
           echo build_linux: ${{ needs.build_linux.result }}
       - run: exit 1
         if: needs.build_linux.result != 'success'
+  # Opens a pull request that lists the release's images in the RootfsImages package; once
+  # a maintainer merges it and registers the version, the Pkg servers mirror the images.
+  register_images:
+    timeout-minutes: 60
+    needs: build_linux
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: '1'
+      - run: |
+          images=$(gh release view "$TAG" --json assets --jq '.assets[].name | select(endswith(".tar.gz")) | rtrimstr(".tar.gz")')
+          julia --color=yes --startup-file=no RootfsImages/add_images.jl "$TAG" $images
+      - run: |
+          branch="rootfsimages-$TAG"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add RootfsImages
+          git commit -m "RootfsImages: add the images of $TAG"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title "RootfsImages: add the images of $TAG" \
+            --body "Lists the images of [$TAG](https://github.com/${{ github.repository }}/releases/tag/$TAG) in RootfsImages. Pull requests opened by GitHub Actions start no workflows: close and reopen this one to run the required checks. After merging, comment \`@JuliaRegistrator register subdir=RootfsImages\` on the merge commit."
   build_linux:
     timeout-minutes: 120
     name: build_linux / ${{ matrix.image.slug }}
