@@ -111,6 +111,44 @@ function cleanup_rootfs(rootfs; rootfs_info=nothing)
     force_relative(rootfs)
 end
 
+# Pkg hashes a symlink by the character count of its target, git and Tar.jl by the byte count
+# (JuliaLang/Pkg.jl#4707), so a non-ASCII target gives the image a tree hash that only Pkg
+# reproduces. The Pkg server verifies artifacts with Tar.jl and drops such images. The only
+# known source is ca-certificates (e.g. `988a38cb.0 -> NetLock_Arany_=Class_Gold=_Főtanúsítvány.pem`);
+# replace those links by copies of the certificate, and refuse anything else so it gets looked at.
+function dereference_nonascii_symlinks(rootfs)
+    certs_dir = joinpath(rootfs, "etc", "ssl", "certs")
+    links = String[]
+    for (root, dirs, files) in walkdir(rootfs), name in vcat(dirs, files)
+        path = joinpath(root, name)
+        islink(path) && !isascii(readlink(path)) && push!(links, path)
+    end
+    # Resolve all links before replacing any, since they can point at one another
+    chroot_ENV = Dict("PATH" => "/usr/sbin:/usr/bin:/sbin:/bin")
+    targets = map(links) do link
+        refuse() = error("Symlink with a non-ASCII target: $(relpath(link, rootfs)) -> $(readlink(link))")
+        dirname(link) == certs_dir || refuse()
+        resolved = readchomp(chroot_command(rootfs, "readlink", "-f", "/" * relpath(link, rootfs); ENV=chroot_ENV))
+        target = joinpath(rootfs, lstrip(resolved, '/'))
+        isfile(target) || refuse()
+        target
+    end
+    for (link, target) in zip(links, targets)
+        @info("Replacing symlink with a non-ASCII target by a copy",
+              link=relpath(link, rootfs), target=readlink(link))
+        rm(link)
+        cp(target, link)
+    end
+end
+
+# Release gate (PR builds aren't archived): the Pkg server must compute the hash we publish.
+function check_tarball_tree_hash(tarball_path, artifact_hash)
+    tar_hash = open(io -> Tar.tree_hash(io; skip_empty=true), `gzip -dc $(tarball_path)`)
+    if tar_hash != bytes2hex(artifact_hash.bytes)
+        error("Tree hash mismatch: Pkg computed $(artifact_hash), Tar.jl computed $(tar_hash)")
+    end
+end
+
 function create_rootfs(f::Function, name::String;
                        archive::Bool=true,
                        force::Bool=false)
@@ -120,7 +158,10 @@ function create_rootfs(f::Function, name::String;
         error()
     end
 
-    artifact_hash = Pkg.Artifacts.create_artifact(f)
+    artifact_hash = Pkg.Artifacts.create_artifact() do rootfs
+        f(rootfs)
+        dereference_nonascii_symlinks(rootfs)
+    end
 
     # If the `--no-archive` command-line flag was passed, we will skip the tarball creation.
     if !archive
@@ -139,6 +180,7 @@ function create_rootfs(f::Function, name::String;
     # Archive the artifact into a `.tar.gz` file.
     @info "Archiving" artifact_hash tarball_path
     Pkg.Artifacts.archive_artifact(artifact_hash, tarball_path)
+    check_tarball_tree_hash(tarball_path, artifact_hash)
     if is_github_actions()
         is_push = is_github_actions_push()
         is_main = get_github_actions_ref() == "refs/heads/main"
