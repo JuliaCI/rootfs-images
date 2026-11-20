@@ -65,14 +65,18 @@ lists an image is registered in General, the image can be fetched by tree hash f
 `https://pkg.julialang.org/artifact/<git-tree-sha1>`, e.g. by the artifact store of
 [sandboxed-buildkite-agent](https://github.com/JuliaCI/sandboxed-buildkite-agent).
 
-The Pkg servers look at the artifacts of a version only when they first see it, so publish
-the release first, then add its images and register a new version:
+The Pkg servers look at the artifacts of a version only when they first see it. When a
+release is published, the `register_images` job of the Linux workflow runs, once all images are
+built and uploaded:
 
 ```
-julia RootfsImages/add_images.jl v8.13 package_linux.x86_64 package_linux.i686
+julia RootfsImages/add_images.jl v8.13 <every image of the release>
 ```
 
-This replaces older entries for the same images. Then bump the version in
-`RootfsImages/Project.toml`, merge, and register the merge commit with
-`@JuliaRegistrator register subdir=RootfsImages`. List every image that CI still uses, not
-only the new ones: a later version then gives an image whose ingestion failed another chance.
+This adds each image as `<image>.<arch>.<tag>`, keeping the entries of other tags (CI pins
+different releases of the same image, and release branches keep older ones), and bumps the
+patch version. The job opens a pull request with the result. GitHub doesn't start workflows
+for it, so close and reopen it to run the required checks, merge it, and register the merge
+commit with `@JuliaRegistrator register subdir=RootfsImages`. To list images of an older
+release, run `add_images.jl` with its tag by hand. It refuses images with a symlink whose target
+isn't ASCII: Pkg and the Pkg servers disagree on their tree hash (JuliaLang/Pkg.jl#4707).
