@@ -1,0 +1,319 @@
+["agent_linux.aarch64.v8.13"]
+git-tree-sha1 = "d5c9e5ebdc9d9c9e4c07e2805ae4e09213c88fff"
+lazy = true
+
+    [["agent_linux.aarch64.v8.13".download]]
+    sha256 = "acbe84f8954cd53b8da42928ab9ff8decb5f8e985659b81589e0614e569e7f0b"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/agent_linux.aarch64.tar.gz"
+
+["agent_linux.armv7l.v8.13"]
+git-tree-sha1 = "739073125032eea12d1ec207e89838f219671f78"
+lazy = true
+
+    [["agent_linux.armv7l.v8.13".download]]
+    sha256 = "d73f85643b932faba9dff6478056addd838cf7858fc8fc3343b008462f21b00c"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/agent_linux.armv7l.tar.gz"
+
+["agent_linux.i686.v8.13"]
+git-tree-sha1 = "a7a56d7c5d9ef5dc9e4512f65c26e9e2fe5a9f7c"
+lazy = true
+
+    [["agent_linux.i686.v8.13".download]]
+    sha256 = "391524e49495cb7fe8c7c91b805708f87e9749aaa01c1d47efcd5d484beff3bc"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/agent_linux.i686.tar.gz"
+
+["agent_linux.ppc64le.v8.13"]
+git-tree-sha1 = "95f387293ab81a437e621c05e617de5163e9167d"
+lazy = true
+
+    [["agent_linux.ppc64le.v8.13".download]]
+    sha256 = "8582654705d4ea3faf8bbf554332c7623d6d6be87bc7013a92364d0010077ad8"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/agent_linux.ppc64le.tar.gz"
+
+["agent_linux.x86_64.v8.13"]
+git-tree-sha1 = "2ca2c1d8cc870630ae5d217c5a0b366c71f46022"
+lazy = true
+
+    [["agent_linux.x86_64.v8.13".download]]
+    sha256 = "77c42e8f77a5581f34363cbb9fd56230f3ae6e252e61d07f3a96e290f862dd5c"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/agent_linux.x86_64.tar.gz"
+
+["aws_uploader.x86_64.v8.13"]
+git-tree-sha1 = "712f19796213791e37de39970460c7fb4585da59"
+lazy = true
+
+    [["aws_uploader.x86_64.v8.13".download]]
+    sha256 = "f6d3e6fe834c52988d9ee20da4f3973c5230b6f19a7abbb4ac6c3dd3eff9e3d0"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/aws_uploader.x86_64.tar.gz"
+
+["debian_minimal.aarch64.v8.13"]
+git-tree-sha1 = "41a7dbb90f6c7ac103f73a0c33b05ad41029f229"
+lazy = true
+
+    [["debian_minimal.aarch64.v8.13".download]]
+    sha256 = "5d751c85fba5eaa9097476bd42a6ed4b5d64984fc9dea975df35c115536c06e4"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/debian_minimal.aarch64.tar.gz"
+
+["debian_minimal.armv7l.v8.13"]
+git-tree-sha1 = "6d4764b7ae466ae6645d1c0682c0dbd6e7a4c8f9"
+lazy = true
+
+    [["debian_minimal.armv7l.v8.13".download]]
+    sha256 = "420a9cec744048704e3894f1372752e7bc6847d27e3fc47fc5f386fef5efa4ed"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/debian_minimal.armv7l.tar.gz"
+
+["debian_minimal.i686.v8.13"]
+git-tree-sha1 = "508c05dec5099bd114f6ba43621c0ee4c58b8ab1"
+lazy = true
+
+    [["debian_minimal.i686.v8.13".download]]
+    sha256 = "08a1581db5ace168396a6ff65ad1a0098bfdbffcebac48bdec811a3ca8cbda23"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/debian_minimal.i686.tar.gz"
+
+["debian_minimal.ppc64le.v8.13"]
+git-tree-sha1 = "dda848dfd58510c0184bdc688411c798d9139557"
+lazy = true
+
+    [["debian_minimal.ppc64le.v8.13".download]]
+    sha256 = "b590140b096345585fe5f13e602bd8f878e290a1184b144a949d14e55e7be241"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/debian_minimal.ppc64le.tar.gz"
+
+["debian_minimal.x86_64.v8.13"]
+git-tree-sha1 = "5317ed5077cd3814aae2e5df2908e9c052b7eeac"
+lazy = true
+
+    [["debian_minimal.x86_64.v8.13".download]]
+    sha256 = "f4695e914a575c135a58d368867fc0bfec9fe5d2e4c071b0718d91e4439409be"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/debian_minimal.x86_64.tar.gz"
+
+["julia_publish.x86_64.v8.13"]
+git-tree-sha1 = "059ed61912cd6fab4b392964aaf2846082098acf"
+lazy = true
+
+    [["julia_publish.x86_64.v8.13".download]]
+    sha256 = "52ee199abd1eb532ce8b8dc4121bf4be94d9988a12ddf639b10c6843c1a005e5"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/julia_publish.x86_64.tar.gz"
+
+["latex.x86_64.v8.13"]
+git-tree-sha1 = "3549f1a411c43b45c729c565aee87b2fafd2698f"
+lazy = true
+
+    [["latex.x86_64.v8.13".download]]
+    sha256 = "c6d18f15ab24e32e6019a1c4ae804c57e63a32c2458f236252c27444cc077e37"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/latex.x86_64.tar.gz"
+
+["llvm_passes.aarch64.v8.13"]
+git-tree-sha1 = "63c0e53853e894bd26bc484f76cc57b5c593bbe8"
+lazy = true
+
+    [["llvm_passes.aarch64.v8.13".download]]
+    sha256 = "a999e8152af13345bc2b3e1f9d3cb5de1eda9c076d0dc61a36344389be6d435e"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/llvm_passes.aarch64.tar.gz"
+
+["llvm_passes.armv7l.v8.13"]
+git-tree-sha1 = "410a985b7a8f4117cd3a9677f87d1078389f81b0"
+lazy = true
+
+    [["llvm_passes.armv7l.v8.13".download]]
+    sha256 = "eab6a994d8ee87c5f13e712925fe1e6cbc2796d5c60a6b8ea1bffeb86c3cae97"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/llvm_passes.armv7l.tar.gz"
+
+["llvm_passes.i686.v8.13"]
+git-tree-sha1 = "151f99f1c287a02f2ae294a7b5c571eedc35c438"
+lazy = true
+
+    [["llvm_passes.i686.v8.13".download]]
+    sha256 = "4f610c88c3764f5260b990232a426f05e754cfb084d14841be1ac9268b2f769a"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/llvm_passes.i686.tar.gz"
+
+["llvm_passes.powerpc64le.v8.13"]
+git-tree-sha1 = "3ec15e01947b52f483e6a1873ffa0e8274c574ec"
+lazy = true
+
+    [["llvm_passes.powerpc64le.v8.13".download]]
+    sha256 = "5e8e89f1bb96572a1c104bc43c1cf8c289e519ba9d39a4dedd03dee724d99a67"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/llvm_passes.powerpc64le.tar.gz"
+
+["llvm_passes.x86_64.v8.13"]
+git-tree-sha1 = "91663e32b9fb5bc06b284f30233ff93443aa5b0e"
+lazy = true
+
+    [["llvm_passes.x86_64.v8.13".download]]
+    sha256 = "c0e2beaafbb8701199249ecefe4fae2dbef9b3602b6bde848ceffc50b4aa0eb3"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/llvm_passes.x86_64.tar.gz"
+
+["npm_linux.x86_64.v8.13"]
+git-tree-sha1 = "3e7f2e127ebebc6cd5dc4f4fadf9758f08fe542b"
+lazy = true
+
+    [["npm_linux.x86_64.v8.13".download]]
+    sha256 = "b43dd7440c4349a01cbc494b61272fe00125614930b50911a957f524c90c1851"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/npm_linux.x86_64.tar.gz"
+
+["package_linux.aarch64.v8.13"]
+git-tree-sha1 = "8b089d74154698397ce9c974cb99a460d48d6459"
+lazy = true
+
+    [["package_linux.aarch64.v8.13".download]]
+    sha256 = "99af669512ad45699b574f8383747bb28d886eb6363c7806c9f8785dbccf48ea"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/package_linux.aarch64.tar.gz"
+
+["package_linux.armv7l.v8.13"]
+git-tree-sha1 = "12b11e0a350541c954669c0c0b63549ae6dacff0"
+lazy = true
+
+    [["package_linux.armv7l.v8.13".download]]
+    sha256 = "5b4445154956d05aa40c76125a10b5e291b0f4f3bd80b383dbad2e8cbf4d7eaf"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/package_linux.armv7l.tar.gz"
+
+["package_linux.i686.v8.13"]
+git-tree-sha1 = "56f9ed2c635b75eb5b82ac2fbcdbd2de05ec44a9"
+lazy = true
+
+    [["package_linux.i686.v8.13".download]]
+    sha256 = "c5cd4721a8e3c80360b64f6585ede435973ace0855f787591422761c148301ef"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/package_linux.i686.tar.gz"
+
+["package_linux.powerpc64le.v8.13"]
+git-tree-sha1 = "2ed45f56d0a8e4ba6a6e510358df99e6adb2df89"
+lazy = true
+
+    [["package_linux.powerpc64le.v8.13".download]]
+    sha256 = "e9695318199d9493d29f93e0dff3d78fbaa79fa1df55c679c410dd734adba4d3"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/package_linux.powerpc64le.tar.gz"
+
+["package_linux.x86_64.v8.13"]
+git-tree-sha1 = "22b53f63670e9bf5b6531f03863bbce986897741"
+lazy = true
+
+    [["package_linux.x86_64.v8.13".download]]
+    sha256 = "af49491ef5a0b218fdbfc7ce6782a5895023dff45aec1f3dc8d032807760ffac"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/package_linux.x86_64.tar.gz"
+
+["package_linux_mmtk.aarch64.v8.13"]
+git-tree-sha1 = "d2a4f6f25bde76004cdb4349e526971f3e1984f8"
+lazy = true
+
+    [["package_linux_mmtk.aarch64.v8.13".download]]
+    sha256 = "c958186294162e813bb6600b1a11619ebb5f9f845b8557b03dc7c82b8d83d11a"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/package_linux_mmtk.aarch64.tar.gz"
+
+["package_linux_mmtk.x86_64.v8.13"]
+git-tree-sha1 = "d4470301a84eb9db405013238eac2aaef912eafb"
+lazy = true
+
+    [["package_linux_mmtk.x86_64.v8.13".download]]
+    sha256 = "1188f5dcf3d5bad81e8faf5f35bd1a08868410cd3b5a848c126fe82e05576c0a"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/package_linux_mmtk.x86_64.tar.gz"
+
+["package_linux_riscv64.x86_64.v8.13"]
+git-tree-sha1 = "2d2b5501bed135a0efbed9ce57221622792f556a"
+lazy = true
+
+    [["package_linux_riscv64.x86_64.v8.13".download]]
+    sha256 = "061df2121a63f08713fefa989ba6079ebba43efd318b6665ffa636818c65418d"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/package_linux_riscv64.x86_64.tar.gz"
+
+["package_musl.x86_64.v8.13"]
+git-tree-sha1 = "71995316b30bec5dde201bc8d830a9bff8539bd9"
+lazy = true
+
+    [["package_musl.x86_64.v8.13".download]]
+    sha256 = "ccaa74232db15b2fd1d56972a526a7aed8ed3f2f0424916fe9be78ac2661c66f"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/package_musl.x86_64.tar.gz"
+
+["pkgserver_logsync.x86_64.v8.13"]
+git-tree-sha1 = "0b8e0518d84544d431b0ad6e9770a4b2a26805c0"
+lazy = true
+
+    [["pkgserver_logsync.x86_64.v8.13".download]]
+    sha256 = "d375aba15e617c2060f9ad13bfa89415c782d091435cd0afd800efa5e9edbc5b"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/pkgserver_logsync.x86_64.tar.gz"
+
+["rr.aarch64.v8.13"]
+git-tree-sha1 = "06387cf626e622e237b8958df33e726860ff8412"
+lazy = true
+
+    [["rr.aarch64.v8.13".download]]
+    sha256 = "a47b27fe801b7ffed5e20d28be260a0f1ae9dc338c5a20e33a22be3fe72c8a6a"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/rr.aarch64.tar.gz"
+
+["rr.x86_64.v8.13"]
+git-tree-sha1 = "c59019479bc75eac1706c18f31621c0c5330fe2e"
+lazy = true
+
+    [["rr.x86_64.v8.13".download]]
+    sha256 = "013c0706b2fe7fc1aec33a66ac74573ea16898a0673fcbdf53419e523f372c91"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/rr.x86_64.tar.gz"
+
+["tester_linux.aarch64.v8.13"]
+git-tree-sha1 = "6720d73609cc299fb87bdb8052695cf090237695"
+lazy = true
+
+    [["tester_linux.aarch64.v8.13".download]]
+    sha256 = "5b48dc3fef69924798c827bcce1ea8d86a3789059502c805ff0c41a4112cbfc0"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/tester_linux.aarch64.tar.gz"
+
+["tester_linux.armv7l.v8.13"]
+git-tree-sha1 = "376ac7d4c27d6b32b31cbe3c3fb5d623f11455b1"
+lazy = true
+
+    [["tester_linux.armv7l.v8.13".download]]
+    sha256 = "f6869d4b68084f040330beca6f46f50afcda5f2ea8d8452df89b082ab8e7fd34"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/tester_linux.armv7l.tar.gz"
+
+["tester_linux.i686.v8.13"]
+git-tree-sha1 = "c9177b34d9b28faad01b17f68223eacd85e8a5d9"
+lazy = true
+
+    [["tester_linux.i686.v8.13".download]]
+    sha256 = "a75f72037d429bfab7684c4bc257893cfa8ea77509a397ce20bc9580639cdb96"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/tester_linux.i686.tar.gz"
+
+["tester_linux.powerpc64le.v8.13"]
+git-tree-sha1 = "5bb4b27b3512e074156b6796d0aa0cfd4a894d64"
+lazy = true
+
+    [["tester_linux.powerpc64le.v8.13".download]]
+    sha256 = "d277435a9fccb8b5055df44400498564711d7856a213739902e9adf6e66ed07b"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/tester_linux.powerpc64le.tar.gz"
+
+["tester_linux.x86_64.v8.13"]
+git-tree-sha1 = "3908b6728770c9d6ffdde835fbe8957948bf6d93"
+lazy = true
+
+    [["tester_linux.x86_64.v8.13".download]]
+    sha256 = "51728a53c231b58350bc8debb6ba28fc29a7431f450c79702ffd25cd32d1c198"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/tester_linux.x86_64.tar.gz"
+
+["tester_musl.x86_64.v8.13"]
+git-tree-sha1 = "e5b1d73d33005ac539a811c7b31b49a332a39e6f"
+lazy = true
+
+    [["tester_musl.x86_64.v8.13".download]]
+    sha256 = "16bae6e6e1f94697c7c5c3b3a1a41ba79ae84c6ed08903c56afd1588390eb45d"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/tester_musl.x86_64.tar.gz"
+
+["xvfb.aarch64.v8.13"]
+git-tree-sha1 = "e6d91bd450d8f8950164cd31f48c10903d8a60d1"
+lazy = true
+
+    [["xvfb.aarch64.v8.13".download]]
+    sha256 = "709cb6002ebb494a7c055cfde9663071abae0750fe2fc5d2e163fc9f6b22e635"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/xvfb.aarch64.tar.gz"
+
+["xvfb.x86_64.v8.13"]
+git-tree-sha1 = "d5ecba5faca4591d735a9457ecad197afcdfd55d"
+lazy = true
+
+    [["xvfb.x86_64.v8.13".download]]
+    sha256 = "358ae6a4f400457a6584e28b7d360358cea52b045041203d8200e472b98351af"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/xvfb.x86_64.tar.gz"
+
+["yggdrasil.x86_64.v8.13"]
+git-tree-sha1 = "0b7abb2c8499b4e1a72195c6bef80a915e88872f"
+lazy = true
+
+    [["yggdrasil.x86_64.v8.13".download]]
+    sha256 = "096fdc0f08f05dbc8f3ec5ac75b64560fda657a4538c91450423f1e26f91c721"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/yggdrasil.x86_64.tar.gz"
