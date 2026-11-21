@@ -68,7 +68,7 @@ New toolchains are built natively on a `windows-2022` runner, as rows of the bui
 
 ```
 julia --project windows/convert_docker.jl --arch x86_64 --tag v8.10 \
-    --image juliapackaging/package-windows-x86_64@sha256:<digest>
+    --image juliapackaging/package-windows-x86_64@sha256:<digest> --output out/v8.10
 ```
 
 ## Serving images from the Pkg server

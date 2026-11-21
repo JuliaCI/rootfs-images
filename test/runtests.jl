@@ -12,7 +12,7 @@ using Test, Tar, Pkg, TOML
 const GOOD_ENV = "PATH_PREPEND=gcc\\bin;msys64\\usr\\bin\nMSYSTEM=MINGW64\nMSYS2_PATH_TYPE=inherit\n"
 
 # A minimal valid tree; `f(root)` can break it afterwards
-function windows_tree(f=identity)
+function windows_tree(f=identity; image="package_windows.x86_64", tag="v9.0")
     root = mktempdir()
     for dir in ("msys64/usr/bin", "gcc/bin", "msys64/var/lib/pacman/local/bash-5.3-1")
         mkpath(joinpath(root, dir))
@@ -20,12 +20,14 @@ function windows_tree(f=identity)
     write(joinpath(root, "msys64/usr/bin/bash.exe"), "MZ")
     write(joinpath(root, "msys64/var/lib/pacman/local/bash-5.3-1/desc"),
           "%NAME%\nbash\n\n%VERSION%\n5.3-1\n\n%DESC%\nThe GNU Bourne Again shell\n")
-    write(joinpath(root, "toolchain.env"), GOOD_ENV)
-    write(joinpath(root, "toolchain.json"), "{}")
+    write_toolchain_files(root; image, arch=String(split(image, '.')[2]), tag, source="test",
+                          path_prepend=["gcc/bin", "msys64/usr/bin"], msystem="MINGW64")
     chmod(root, 0o755; recursive=true)
     f(root)
     return root
 end
+
+has_error(r, pattern) = any(e -> occursin(pattern, e), r.errors)
 
 function check_tree(root; kwargs...)
     tarball = tempname()
@@ -90,7 +92,6 @@ end
     root = windows_tree()
     @test r.tree_hash == bytes2hex(Pkg.GitTools.tree_hash(root))
 
-    has_error(r, pattern) = any(e -> occursin(pattern, e), r.errors)
     @test has_error(check_tree(windows_tree(root -> chmod(joinpath(root, "toolchain.json"), 0o644))),
                     "toolchain.json: file mode is 644")
     @test has_error(check_tree(windows_tree(root -> symlink("bash.exe", joinpath(root, "msys64/usr/bin/sh.exe")))),
@@ -104,7 +105,8 @@ end
     for (name, problem) in (("aux.txt", "reserved name"), ("com1", "reserved name"),
                             ("a.", "trailing dot"), ("a ", "trailing dot or space"),
                             ("a:b", "invalid character"), ("a?b", "invalid character"),
-                            ("a\\b", "invalid character"))
+                            ("a\\b", "invalid character"), ("COM¹.txt", "reserved name"),
+                            ("nul .txt", "reserved name"))
         c = RootfsUtils.WindowsTreeCheck()
         RootfsUtils.check_header!(c, Tar.Header("msys64/$(name)", :file, 0o755, 0, ""))
         @test has_error(c, problem)
@@ -118,6 +120,22 @@ end
     r = check_tree(tree; strict_paths=false)
     @test isempty(r.errors) && any(w -> occursin("longer than 200", w), r.warnings)
     @test has_error(check_tree(windows_tree(root -> rm(joinpath(root, "toolchain.json")))), "toolchain.json: missing")
+    # The files must be files
+    r = check_tree(windows_tree(root -> (rm(joinpath(root, "toolchain.env")); mkdir(joinpath(root, "toolchain.env")))))
+    @test has_error(r, "toolchain.env: must be a file")
+    # Tar.create writes every directory as 0755, so only a foreign tarball can break this
+    c = RootfsUtils.WindowsTreeCheck()
+    RootfsUtils.check_header!(c, Tar.Header("gcc", :directory, 0o700, 0, ""))
+    @test has_error(c, "gcc: directory mode is 700")
+    # Collisions through directories the tarball doesn't list (Windows merges them)
+    c = RootfsUtils.WindowsTreeCheck()
+    RootfsUtils.check_header!(c, Tar.Header("msys64/lib/Foo/a", :file, 0o755, 0, ""))
+    RootfsUtils.check_header!(c, Tar.Header("msys64/lib/foo/b", :file, 0o755, 0, ""))
+    @test has_error(c, "msys64/lib/foo differs from msys64/lib/Foo only in case")
+    # Length in UTF-16 units: a non-BMP character counts twice
+    c = RootfsUtils.WindowsTreeCheck()
+    RootfsUtils.check_header!(c, Tar.Header("msys64/" * "😀"^97, :file, 0o755, 0, ""))
+    @test has_error(c, "longer than 200")
     @test has_error(check_tree(windows_tree(root -> mkdir(joinpath(root, "extra")))), "extra: unexpected at the top level")
     @test has_error(check_tree(windows_tree(root -> rm(joinpath(root, "gcc"); recursive=true))),
                     "PATH_PREPEND entry gcc/bin is not a directory")
@@ -153,6 +171,16 @@ end
     @test Sys.isexecutable(joinpath(msys64, "usr/bin/bash.exe"))
     @test isempty(check_tree(root).errors)
     check_windows_tree(root)
+
+    # A volatile directory that is a link is not followed (the check rejects it afterwards)
+    if !Sys.iswindows()
+        keep = mktempdir()
+        write(joinpath(keep, "precious"), "")
+        tree = windows_tree(root -> symlink(keep, joinpath(root, "msys64", "tmp")))
+        normalize_windows_tree!(tree)
+        @test isfile(joinpath(keep, "precious"))
+        @test has_error(check_tree(tree), "symlink entries are not allowed")
+    end
     chmod(joinpath(root, "toolchain.json"), 0o644)
     @test_throws ErrorException check_windows_tree(root)
 end

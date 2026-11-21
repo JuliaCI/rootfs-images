@@ -14,17 +14,19 @@
 # - names must be valid and distinct on NTFS (case-insensitive), and paths short enough to leave
 #   room for the prefix a consumer installs the tree under (the Pkg depot, `T:\`).
 
-const WINDOWS_TREE_TOP_LEVEL = ("msys64", "gcc", "toolchain.env", "toolchain.json")
+# Top-level entries: name => type (`msys64` and the two files are required)
+const WINDOWS_TREE_TOP_LEVEL = Dict("msys64" => :directory, "gcc" => :directory,
+                                    "toolchain.env" => :file, "toolchain.json" => :file)
 const WINDOWS_TREE_REQUIRED = ("msys64", "toolchain.env", "toolchain.json")
 
-# Relative to the tree root, with `/` separators (as in a tarball)
+# In UTF-16 code units (what Windows counts), relative to the tree root
 const WINDOWS_TREE_MAX_PATH = 200
 
 const TOOLCHAIN_ENV_KEYS = ("PATH_PREPEND", "MSYSTEM", "MSYS2_PATH_TYPE")
 const TOOLCHAIN_MSYSTEMS = ("MSYS", "MINGW64", "MINGW32", "UCRT64", "CLANG64")
 
 const NTFS_RESERVED_NAMES = Set(vcat(["CON", "PRN", "AUX", "NUL", "CONIN\$", "CONOUT\$"],
-                                     ["COM$i" for i in 1:9], ["LPT$i" for i in 1:9]))
+                                     ["$(dev)$(i)" for dev in ("COM", "LPT") for i in [1:9; '¹'; '²'; '³']]))
 
 """
     parse_toolchain_env(str) -> Dict{String,String}
@@ -102,7 +104,7 @@ end
 function ntfs_name_problem(name::AbstractString)
     any(c -> c in "<>:\"|?*\\" || c < ' ', name) && return "invalid character"
     (endswith(name, '.') || endswith(name, ' ')) && return "trailing dot or space"
-    stem = uppercase(first(split(name, '.')))
+    stem = uppercase(rstrip(first(split(name, '.')), ' '))
     stem in NTFS_RESERVED_NAMES && return "reserved name"
     return nothing
 end
@@ -119,50 +121,60 @@ mutable struct WindowsTreeCheck
     strict_paths::Bool
     errors::Vector{String}
     warnings::Vector{String}
-    folded::Dict{String,String}    # lowercase path => path
+    folded::Dict{String,String}    # case-folded path (and every prefix) => path
     dirs::Set{String}
-    top::Set{String}
+    top::Dict{String,Symbol}       # top-level name => type of its first entry
 end
 WindowsTreeCheck(; strict_paths::Bool=true) =
-    WindowsTreeCheck(strict_paths, String[], String[], Dict{String,String}(), Set{String}(), Set{String}())
+    WindowsTreeCheck(strict_paths, String[], String[], Dict{String,String}(), Set{String}(),
+                     Dict{String,Symbol}())
+
+# NTFS compares names by their uppercase form (its upcase table); Julia's Unicode uppercase is
+# the closest portable approximation
+casefold(path) = uppercase(path)
 
 function check_header!(c::WindowsTreeCheck, hdr)
     path = rstrip(hdr.path, '/')
     path in ("", ".") && return true
     err(msg) = push!(c.errors, "$(path): $(msg)")
-    if hdr.type == :file
-        hdr.mode == 0o755 || err("file mode is $(string(hdr.mode, base=8)), must be 755")
-    elseif hdr.type == :directory
-        push!(c.dirs, path)
+    if hdr.type in (:file, :directory)
+        hdr.mode == 0o755 || err("$(hdr.type) mode is $(string(hdr.mode, base=8)), must be 755")
+        hdr.type == :directory && push!(c.dirs, path)
     else
         err("$(hdr.type) entries are not allowed (only files and directories)")
     end
     parts = split(path, '/')
-    push!(c.top, first(parts))
+    length(parts) == 1 && (c.top[path] = hdr.type)
+    get!(c.top, first(parts), :directory)
     for part in parts
         problem = ntfs_name_problem(part)
         problem === nothing || err("$(problem) in $(repr(part))")
     end
-    if length(path) > WINDOWS_TREE_MAX_PATH
+    if length(transcode(UInt16, String(path))) > WINDOWS_TREE_MAX_PATH
         msg = "$(path): longer than $(WINDOWS_TREE_MAX_PATH) characters"
         push!(c.strict_paths ? c.errors : c.warnings, msg)
     end
-    folded = lowercase(path)
-    other = get(c.folded, folded, nothing)
-    if other !== nothing && other != path
-        err("differs from $(other) only in case")
+    # Every prefix: a tarball needn't list the parent directories, which collide all the same
+    for i in 1:length(parts)
+        prefix = join(parts[1:i], '/')
+        other = get!(c.folded, casefold(prefix), prefix)
+        other == prefix || err("$(prefix) differs from $(other) only in case")
     end
-    c.folded[folded] = path
     return true
 end
 
 # Checks that need the whole tree; `env_str` is the contents of `toolchain.env`, if present.
 function finish!(c::WindowsTreeCheck, env_str::Union{Nothing,AbstractString})
-    for name in c.top
-        name in WINDOWS_TREE_TOP_LEVEL || push!(c.errors, "$(name): unexpected at the top level")
+    for (name, type) in c.top
+        expected = get(WINDOWS_TREE_TOP_LEVEL, name, nothing)
+        if expected === nothing
+            push!(c.errors, "$(name): unexpected at the top level")
+        elseif type != expected
+            push!(c.errors, "$(name): must be a $(expected), not a $(type)")
+        end
     end
     for name in WINDOWS_TREE_REQUIRED
-        name in c.top || push!(c.errors, "$(name): missing")
+        haskey(c.top, name) || push!(c.errors, "$(name): missing")
     end
     if env_str !== nothing
         try
@@ -179,22 +191,35 @@ function finish!(c::WindowsTreeCheck, env_str::Union{Nothing,AbstractString})
 end
 
 """
-    check_windows_tarball(tar_cmd_or_path; strict_paths=true) -> (; tree_hash, errors, warnings)
+    check_windows_tarball(tar_cmd_or_path; strict_paths=true) -> (; tree_hash, errors, warnings, toolchain_json)
 
 Check an uncompressed tar stream (a path, or a command that writes one to stdout, e.g.
 `gzip -dc x.tar.gz`) against the rules above, and compute its git tree hash (`skip_empty=true`,
-as Pkg) in the same pass.
+as Pkg) in the same pass. `toolchain_json` is the contents of `toolchain.json`, if present.
 """
 function check_windows_tarball(source; strict_paths::Bool=true)
     c = WindowsTreeCheck(; strict_paths)
     tree_hash = open(io -> Tar.tree_hash(hdr -> check_header!(c, hdr), io; skip_empty=true), source)
-    env_str = mktempdir() do dir
+    files = mktempdir() do dir
         open(source) do io
-            Tar.extract(hdr -> rstrip(hdr.path, '/') == "toolchain.env", io, dir)
+            Tar.extract(hdr -> hdr.type == :file && hdr.path in ("toolchain.env", "toolchain.json"), io, dir)
         end
-        env_path = joinpath(dir, "toolchain.env")
-        isfile(env_path) ? read(env_path, String) : nothing
+        map(("toolchain.env", "toolchain.json")) do name
+            path = joinpath(dir, name)
+            isfile(path) ? read(path, String) : nothing
+        end
     end
-    finish!(c, env_str)
-    return (; tree_hash, errors=c.errors, warnings=c.warnings)
+    finish!(c, files[1])
+    return (; tree_hash, errors=c.errors, warnings=c.warnings, toolchain_json=files[2])
+end
+
+"""
+    toolchain_json_field(json, key) -> Union{String,Nothing}
+
+A top-level string field of `toolchain.json` as `write_toolchain_files` writes it (one
+`"key": "value"` per line), without a JSON parser.
+"""
+function toolchain_json_field(json::AbstractString, key::AbstractString)
+    m = match(Regex("^  \"$(key)\": \"([^\"\\\\]*)\",?\$", "m"), json)
+    return m === nothing ? nothing : String(m[1])
 end

@@ -26,7 +26,8 @@ function normalize_windows_tree!(root::String)
     end
     for rel in MSYS2_EMPTY
         dir = joinpath(msys64, rel)
-        isdir(dir) || continue
+        # Never through a link (the check rejects links anyway, after this has run)
+        (isdir(dir) && !islink(dir)) || continue
         foreach(p -> rm(p; recursive=true, force=true), readdir(dir; join=true))
     end
 

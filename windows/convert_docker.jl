@@ -2,7 +2,7 @@
 # toolchain tree (`package_windows.<arch>`), for the tags that predate the native builder:
 #
 #     julia --project windows/convert_docker.jl --arch x86_64 --tag v8.10 \
-#         --image juliapackaging/package-windows-x86_64@sha256:b0aea06b...
+#         --image juliapackaging/package-windows-x86_64@sha256:b0aea06b... --output out/v8.10
 #
 # Docker tags are mutable, so the image is named by digest only. The trees are taken from the
 # image's `COPY ... C:\msys64` and `COPY ... C:\gcc` layers, fetched from Docker Hub and checked
@@ -11,7 +11,9 @@
 # there, not with ENV). Runs on Linux or macOS (needs `gzip`); it never runs anything from the
 # image.
 #
-# The tarball is written like the builders' (`--no-archive` skips it); it is not uploaded.
+# The tarball goes to `--output DIR` as `package_windows.<arch>.tar.gz`, its name on the release
+# (one directory per tag, as the names of different tags are the same); `--no-archive` skips it.
+# It is not uploaded.
 
 using RootfsUtils: create_windows_toolchain, write_toolchain_files, parse_json, image_layers,
                    toolchain_layers, path_prepend_from_hive
@@ -20,15 +22,18 @@ import Downloads, SHA, Tar
 function parse_args(args)
     opts = Dict{String,String}()
     archive = true
+    output = nothing
     i = 1
     while i <= length(args)
         arg = args[i]
         if arg == "--no-archive"
             archive = false
+        elseif arg == "--output" && i < length(args)
+            output = args[i += 1]
         elseif arg in ("--arch", "--tag", "--image") && i < length(args)
             opts[arg[3:end]] = args[i += 1]
         else
-            error("usage: convert_docker.jl --arch ARCH --tag TAG --image REPO@sha256:DIGEST [--no-archive]")
+            error("usage: convert_docker.jl --arch ARCH --tag TAG --image REPO@sha256:DIGEST (--output DIR | --no-archive)")
         end
         i += 1
     end
@@ -38,7 +43,8 @@ function parse_args(args)
     m = match(r"^([a-z0-9._/-]+)@(sha256:[0-9a-f]{64})$", opts["image"])
     m === nothing && error("--image must be REPO@sha256:DIGEST, not $(opts["image"])")
     opts["arch"] in ("x86_64", "i686") || error("unknown arch $(opts["arch"])")
-    return (; arch=opts["arch"], tag=opts["tag"], repo=String(m[1]), digest=String(m[2]), archive)
+    archive == (output !== nothing) || error("give either --output DIR or --no-archive")
+    return (; arch=opts["arch"], tag=opts["tag"], repo=String(m[1]), digest=String(m[2]), archive, output)
 end
 
 const REGISTRY = "https://registry-1.docker.io/v2"
@@ -69,7 +75,7 @@ function system_hive(layer_tgz)
     end
 end
 
-function convert(; arch, tag, repo, digest, archive)
+function convert(; arch, tag, repo, digest, archive, output)
     image = "package_windows.$(arch)"
     source = "docker.io/$(repo)@$(digest)"
     mktempdir() do work
@@ -111,6 +117,11 @@ function convert(; arch, tag, repo, digest, archive)
     end
 end
 
-result = convert(; parse_args(ARGS)...)
+args = parse_args(ARGS)
+result = convert(; args...)
 println("tree hash: ", result.artifact_hash)
-result.tarball_path === nothing || println("tarball: ", result.tarball_path)
+if result.tarball_path !== nothing
+    tarball = joinpath(mkpath(args.output), basename(result.tarball_path))
+    mv(result.tarball_path, tarball; force=true)
+    println("tarball: ", tarball)
+end
