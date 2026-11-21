@@ -86,16 +86,19 @@ function msys2(root, script)
     end
 end
 
+# The root is passed as data (it may hold quotes or wildcard characters) and compared as a
+# literal prefix
 function stop_msys2_processes(root)
-    script = """
-        \$ps = @(Get-Process | Where-Object { \$_.Path -like '$(root)\\*' })
-        if (\$ps.Count -gt 0) {
-            \$ps | Format-Table Id, Path | Out-String | Write-Output
-            \$ps | Stop-Process -Force
-            \$ps | Wait-Process -Timeout 60
+    script = raw"""
+        $root = $env:TOOLCHAIN_ROOT.TrimEnd('\') + '\'
+        $ps = @(Get-Process | Where-Object { $_.Path -and $_.Path.StartsWith($root, [StringComparison]::OrdinalIgnoreCase) })
+        if ($ps.Count -gt 0) {
+            $ps | Format-Table Id, Path | Out-String | Write-Output
+            $ps | Stop-Process -Force
+            $ps | Wait-Process -Timeout 60
         }
         """
-    run(`powershell -NoProfile -NonInteractive -Command $(script)`)
+    run(addenv(`powershell -NoProfile -NonInteractive -Command $(script)`, "TOOLCHAIN_ROOT" => root))
 end
 
 function source_info()
