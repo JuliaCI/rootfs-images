@@ -121,13 +121,12 @@ mutable struct WindowsTreeCheck
     strict_paths::Bool
     errors::Vector{String}
     warnings::Vector{String}
-    folded::Dict{String,String}    # case-folded path (and every prefix) => path
-    dirs::Set{String}
-    top::Dict{String,Symbol}       # top-level name => type of its first entry
+    # Every path and every prefix of one (parent directories need no entry of their own), by
+    # its case-folded form: its spelling and whether it is a file or a directory
+    entries::Dict{String,Tuple{String,Symbol}}
 end
 WindowsTreeCheck(; strict_paths::Bool=true) =
-    WindowsTreeCheck(strict_paths, String[], String[], Dict{String,String}(), Set{String}(),
-                     Dict{String,Symbol}())
+    WindowsTreeCheck(strict_paths, String[], String[], Dict{String,Tuple{String,Symbol}}())
 
 # NTFS compares names by their uppercase form (its upcase table); Julia's Unicode uppercase is
 # the closest portable approximation
@@ -139,13 +138,10 @@ function check_header!(c::WindowsTreeCheck, hdr)
     err(msg) = push!(c.errors, "$(path): $(msg)")
     if hdr.type in (:file, :directory)
         hdr.mode == 0o755 || err("$(hdr.type) mode is $(string(hdr.mode, base=8)), must be 755")
-        hdr.type == :directory && push!(c.dirs, path)
     else
         err("$(hdr.type) entries are not allowed (only files and directories)")
     end
     parts = split(path, '/')
-    length(parts) == 1 && (c.top[path] = hdr.type)
-    get!(c.top, first(parts), :directory)
     for part in parts
         problem = ntfs_name_problem(part)
         problem === nothing || err("$(problem) in $(repr(part))")
@@ -154,33 +150,42 @@ function check_header!(c::WindowsTreeCheck, hdr)
         msg = "$(path): longer than $(WINDOWS_TREE_MAX_PATH) characters"
         push!(c.strict_paths ? c.errors : c.warnings, msg)
     end
-    # Every prefix: a tarball needn't list the parent directories, which collide all the same
+    # Windows merges names that differ in case, and a later entry replaces an earlier one of
+    # another kind, so each must name one thing
     for i in 1:length(parts)
         prefix = join(parts[1:i], '/')
-        other = get!(c.folded, casefold(prefix), prefix)
-        other == prefix || err("$(prefix) differs from $(other) only in case")
+        kind = i < length(parts) ? :directory : hdr.type
+        other, other_kind = get!(c.entries, casefold(prefix), (prefix, kind))
+        if other != prefix
+            push!(c.errors, "$(prefix): differs from $(other) only in case")
+        elseif other_kind != kind
+            push!(c.errors, "$(prefix): both a $(other_kind) and a $(kind)")
+        end
     end
     return true
 end
 
 # Checks that need the whole tree; `env_str` is the contents of `toolchain.env`, if present.
 function finish!(c::WindowsTreeCheck, env_str::Union{Nothing,AbstractString})
-    for (name, type) in c.top
+    top = Dict(path => kind for (path, kind) in values(c.entries) if !occursin('/', path))
+    for (name, kind) in top
         expected = get(WINDOWS_TREE_TOP_LEVEL, name, nothing)
         if expected === nothing
             push!(c.errors, "$(name): unexpected at the top level")
-        elseif type != expected
-            push!(c.errors, "$(name): must be a $(expected), not a $(type)")
+        elseif kind != expected
+            push!(c.errors, "$(name): must be a $(expected), not a $(kind)")
         end
     end
     for name in WINDOWS_TREE_REQUIRED
-        haskey(c.top, name) || push!(c.errors, "$(name): missing")
+        haskey(top, name) || push!(c.errors, "$(name): missing")
     end
     if env_str !== nothing
         try
             env = parse_toolchain_env(env_str)
             for entry in toolchain_path_entries(env)
-                entry in c.dirs || push!(c.errors, "toolchain.env: PATH_PREPEND entry $(entry) is not a directory of the tree")
+                if get(c.entries, casefold(entry), ("", :none)) != (entry, :directory)
+                    push!(c.errors, "toolchain.env: PATH_PREPEND entry $(entry) is not a directory of the tree")
+                end
             end
         catch e
             e isa ArgumentError || rethrow()
@@ -216,8 +221,10 @@ end
 """
     toolchain_json_field(json, key) -> Union{String,Nothing}
 
-A top-level string field of `toolchain.json` as `write_toolchain_files` writes it (one
-`"key": "value"` per line), without a JSON parser.
+A top-level string field of `toolchain.json`, read without a JSON parser. Only the layout
+`write_toolchain_files` writes (one `"key": "value"` per line, indented by two spaces) is
+recognized, deliberately: trees come from this repository's builders, and anything else is
+refused rather than interpreted.
 """
 function toolchain_json_field(json::AbstractString, key::AbstractString)
     m = match(Regex("^  \"$(key)\": \"([^\"\\\\]*)\",?\$", "m"), json)

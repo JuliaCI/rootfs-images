@@ -133,7 +133,21 @@ end
     c = RootfsUtils.WindowsTreeCheck()
     RootfsUtils.check_header!(c, Tar.Header("msys64/lib/Foo/a", :file, 0o755, 0, ""))
     RootfsUtils.check_header!(c, Tar.Header("msys64/lib/foo/b", :file, 0o755, 0, ""))
-    @test has_error(c, "msys64/lib/foo differs from msys64/lib/Foo only in case")
+    @test has_error(c, "msys64/lib/foo: differs from msys64/lib/Foo only in case")
+    # A path that is a file and a directory: full extraction keeps only the last
+    c = RootfsUtils.WindowsTreeCheck()
+    RootfsUtils.check_header!(c, Tar.Header("toolchain.env", :file, 0o755, 0, ""))
+    RootfsUtils.check_header!(c, Tar.Header("toolchain.env/child", :file, 0o755, 0, ""))
+    @test has_error(c, "toolchain.env: both a file and a directory")
+    # Parent directories need no entry of their own, also for PATH_PREPEND
+    c = RootfsUtils.WindowsTreeCheck()
+    for path in ("msys64/usr/bin/bash.exe", "gcc/bin/gcc.exe", "toolchain.env", "toolchain.json")
+        RootfsUtils.check_header!(c, Tar.Header(path, :file, 0o755, 0, ""))
+    end
+    RootfsUtils.finish!(c, GOOD_ENV)
+    @test isempty(c.errors)
+    RootfsUtils.finish!(c, replace(GOOD_ENV, "gcc\\bin" => "GCC\\bin"))
+    @test has_error(c, "PATH_PREPEND entry GCC/bin is not a directory")
     # Length in UTF-16 units: a non-BMP character counts twice
     c = RootfsUtils.WindowsTreeCheck()
     RootfsUtils.check_header!(c, Tar.Header("msys64/" * "😀"^97, :file, 0o755, 0, ""))
@@ -174,14 +188,17 @@ end
     @test isempty(check_tree(root).errors)
     check_windows_tree(root)
 
-    # A volatile directory that is a link is not followed (the check rejects it afterwards)
+    # Links are refused before anything is deleted, also through a parent directory
     if !Sys.iswindows()
         keep = mktempdir()
-        write(joinpath(keep, "precious"), "")
-        tree = windows_tree(root -> symlink(keep, joinpath(root, "msys64", "tmp")))
-        normalize_windows_tree!(tree)
-        @test isfile(joinpath(keep, "precious"))
-        @test has_error(check_tree(tree), "symlink entries are not allowed")
+        mkpath(joinpath(keep, "log"))
+        write(joinpath(keep, "log", "precious"), "")
+        tree = windows_tree() do root
+            rm(joinpath(root, "msys64", "var"); recursive=true)
+            symlink(keep, joinpath(root, "msys64", "var"))
+        end
+        @test_throws ErrorException normalize_windows_tree!(tree)
+        @test isfile(joinpath(keep, "log", "precious"))
     end
     chmod(joinpath(root, "toolchain.json"), 0o644)
     @test_throws ErrorException check_windows_tree(root)
