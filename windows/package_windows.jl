@@ -101,10 +101,15 @@ function stop_msys2_processes(root)
     run(addenv(`powershell -NoProfile -NonInteractive -Command $(script)`, "TOOLCHAIN_ROOT" => root))
 end
 
+# The commit of the recipe; a local build from a copy without git says so instead of failing
 function source_info()
     sha = get(ENV, "GITHUB_SHA", "")
     if isempty(sha)
-        sha = readchomp(`git -C $(@__DIR__) rev-parse HEAD`)
+        sha = try
+            readchomp(pipeline(`git -C $(@__DIR__) rev-parse HEAD`; stderr=devnull))
+        catch
+            return "local build (no git checkout)"
+        end
     end
     return "github.com/JuliaCI/rootfs-images@$(sha)"
 end
