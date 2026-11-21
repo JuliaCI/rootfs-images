@@ -1,4 +1,4 @@
-name: Linux
+name: Build
 on:
   pull_request:
   push:
@@ -15,17 +15,18 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.ref != 'refs/heads/main' || github.run_number }}
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
-  linux:
+  # The one required check
+  images:
     timeout-minutes: 10
-    needs: [build_linux, test]
+    needs: [build, test]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo build_linux: ${{ needs.build_linux.result }}
+          echo build: ${{ needs.build.result }}
           echo test: ${{ needs.test.result }}
       - run: exit 1
-        if: needs.build_linux.result != 'success' || needs.test.result != 'success'
+        if: needs.build.result != 'success' || needs.test.result != 'success'
   # The tooling's own tests; on Windows too, where file modes are ACLs
   test:
     timeout-minutes: 30
@@ -48,7 +49,7 @@ jobs:
   # a maintainer merges it and registers the version, the Pkg servers mirror the images.
   register_images:
     timeout-minutes: 60
-    needs: build_linux
+    needs: build
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
@@ -77,10 +78,15 @@ jobs:
           git push origin "$branch"
           gh pr create --base main --head "$branch" --title "RootfsImages: add the images of $TAG" \
             --body "Lists the images of [$TAG](https://github.com/${{ github.repository }}/releases/tag/$TAG) in RootfsImages. Pull requests opened by GitHub Actions start no workflows: close and reopen this one to run the required checks. After merging, comment \`@JuliaRegistrator register subdir=RootfsImages\` on the merge commit."
-  build_linux:
+  # Every image is a row: `linux/<image>.jl` runs on `ubuntu-24.04<build_on>`, and
+  # `windows/<image>.jl` (rows with `os: windows`) on `windows-2022`.
+  build:
     timeout-minutes: 120
-    name: build_linux / ${{ matrix.image.slug }}
-    runs-on: "ubuntu-24.04${{ matrix.image.build_on }}"
+    name: build / ${{ matrix.image.slug }}
+    runs-on: ${{ matrix.image.os == 'windows' && 'windows-2022' || format('ubuntu-24.04{0}', matrix.image.build_on) }}
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
@@ -167,6 +173,11 @@ jobs:
 
           # The `yggdrasil` image is used in the CI for the Yggdrasil repo
           - {slug: 'yggdrasil.x86_64', build_on: ''}
+
+          # The `package_windows` images are MSYS2 plus GCCToolchain_jll, the toolchain of
+          # Julia's Windows builds. Both run on x86_64; i686 is the target.
+          - {slug: 'package_windows.x86_64', os: 'windows'}
+          - {slug: 'package_windows.i686', os: 'windows'}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -181,8 +192,11 @@ jobs:
           Pkg.Registry.add("General")
         shell: julia --color=yes {0}
       - run: sudo apt-get update
+        if: runner.os == 'Linux'
       - run: sudo apt-get -y install binfmt-support debootstrap qemu-user-static
+        if: runner.os == 'Linux'
       - run: update-binfmts --display
+        if: runner.os == 'Linux'
       - run: julia --color=yes --project=. -e 'import Pkg; @time Pkg.instantiate()'
       - run: julia --color=yes --project=. -e 'import Pkg; @time Pkg.precompile()'
       - run: julia --color=yes --project=. -e '@time import RootfsUtils'
@@ -191,7 +205,7 @@ jobs:
           IMAGE_ARCH=$(echo ${{ matrix.image.slug }} | cut -d. -f2)
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "IMAGE_ARCH=$IMAGE_ARCH" >> $GITHUB_ENV
-      - run: julia --color=yes --project=. linux/${{ env.IMAGE_NAME }}.jl --arch=${{ env.IMAGE_ARCH }}
+      - run: julia --color=yes --project=. ${{ matrix.image.os || 'linux' }}/${{ env.IMAGE_NAME }}.jl --arch=${{ env.IMAGE_ARCH }}
         id: build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
