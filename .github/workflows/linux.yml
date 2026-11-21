@@ -65,11 +65,12 @@ jobs:
       - uses: julia-actions/setup-julia@v3
         with:
           version: '1'
-      # The images are the rows of the build matrix of the release's own commit (not of main,
-      # which may have moved, and not whatever the release holds)
+      # The images are the rows of the build matrix of the commit the release built (not of
+      # main, which may have moved, nor of the tag, which may have, and not whatever the
+      # release holds)
       - run: |
-          git fetch --depth=1 origin "refs/tags/$TAG:refs/tags/$TAG"
-          images=$(git show "$TAG:.github/workflows/linux.yml" | yq '.jobs.build.strategy.matrix.image[].slug')
+          git fetch --depth=1 origin "$GITHUB_SHA"
+          images=$(git show "$GITHUB_SHA:.github/workflows/linux.yml" | yq '.jobs.build.strategy.matrix.image[].slug')
           julia --color=yes --startup-file=no RootfsImages/add_images.jl "$TAG" $images
       - run: |
           branch="rootfsimages-$TAG"
