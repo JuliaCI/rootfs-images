@@ -222,6 +222,30 @@ lazy = true
     sha256 = "ccaa74232db15b2fd1d56972a526a7aed8ed3f2f0424916fe9be78ac2661c66f"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.13/package_musl.x86_64.tar.gz"
 
+["package_windows.i686.v8.5"]
+git-tree-sha1 = "178712d45afd0bf134c5419f030ba15f33faa8da"
+lazy = true
+
+    [["package_windows.i686.v8.5".download]]
+    sha256 = "a7baa8c8100620071a8bb178e51335061cdf77cfbfc96544adc7847f988bc34a"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.5/package_windows.i686.tar.gz"
+
+["package_windows.x86_64.v8.10"]
+git-tree-sha1 = "c05b25a4e8ce4cdfca1960f1c226368c7913dc82"
+lazy = true
+
+    [["package_windows.x86_64.v8.10".download]]
+    sha256 = "dadc6454211a3046eb5babab06b769f35174f4cbecb7990c958200be03fcd8e6"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.10/package_windows.x86_64.tar.gz"
+
+["package_windows.x86_64.v8.5"]
+git-tree-sha1 = "d1ebc8047474c8520a37e4223831c20849c617cb"
+lazy = true
+
+    [["package_windows.x86_64.v8.5".download]]
+    sha256 = "4e8e013262656a6d61ca05deb0631f800d1e2ab823d2e85c17786a39bcacc372"
+    url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.5/package_windows.x86_64.tar.gz"
+
 ["pkgserver_logsync.x86_64.v8.13"]
 git-tree-sha1 = "0b8e0518d84544d431b0ad6e9770a4b2a26805c0"
 lazy = true
