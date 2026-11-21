@@ -18,38 +18,29 @@ args    = parse_build_args(ARGS, @__FILE__)
 arch    = args.arch
 archive = args.archive
 image   = args.image
-arch in ("x86_64", "i686") || error("unknown arch $(arch)")
+# 32-bit Windows is being phased out (Julia 1.14 drops it): no new i686 toolchains. The release
+# branches that still build for i686 keep the trees converted from the v8.5 Docker image.
+arch == "x86_64" || error("package_windows is built for x86_64 only, not $(arch)")
 
-# The x86_64 MSYS2 base serves both: MSYS2 itself is 64-bit, and the i686 toolchain comes from
-# its `mingw32` packages. repo.msys2.org drops installers after about two years; the GitHub
-# releases keep them. The `.tar.xz`, since Pkg's 7-Zip doesn't read zstd.
+# repo.msys2.org drops installers after about two years; the GitHub releases keep them. The
+# `.tar.xz`, since Pkg's 7-Zip doesn't read zstd.
 const MSYS2_TAG = "2026-11-20"
 const MSYS2_URL = "https://github.com/msys2/msys2-installer/releases/download/$(MSYS2_TAG)/msys2-base-x86_64-$(replace(MSYS2_TAG, "-" => "")).tar.xz"
 const MSYS2_SHA256 = "bd267f65e3656706d5e3b27d4f7d6c498e8ee3a54fcc3be200b7079bfc01f74a"
 
 # The C/C++/Fortran toolchain is not MSYS2's, but GCCToolchain_jll (Yggdrasil's
 # `G/GCCToolchain`): GCC 15.2 built like the GCC that CompilerSupportLibraries_jll comes from,
-# whose runtime DLLs Julia ships (with SJLJ exceptions on i686). MSYS2's newer GCC compiles
-# against headers that need symbols those DLLs lack. It goes in its own prefix, `gcc/`, ahead
-# of MSYS2's on PATH; MSYS2's own programs keep loading the DLLs next to them. Like MSYS2's GCC,
-# it uses unaligned vector moves by default, as 64-bit Windows does not align AVX stack slots
-# (GCC PR 54412). Bump only together with CompilerSupportLibraries_jll's GCC.
-const GCC_TOOLCHAIN = Dict(
-    "x86_64" => ("https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+2/GCCToolchain.v15.2.0.x86_64-w64-mingw32.tar.gz",
-                 "fe7fec1556dcd5bac07adf21bf862411a29b6b789876eafbac5a9ad1dc7f9164"),
-    "i686"   => ("https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+2/GCCToolchain.v15.2.0.i686-w64-mingw32.tar.gz",
-                 "abeeb7195417b12462799b07027c0dfef431f515df9fa977a3716c8ca5fd7782"),
-)
+# whose runtime DLLs Julia ships. MSYS2's newer GCC compiles against headers that need symbols
+# those DLLs lack. It goes in its own prefix, `gcc/`, ahead of MSYS2's on PATH; MSYS2's own
+# programs keep loading the DLLs next to them. Like MSYS2's GCC, it uses unaligned vector moves
+# by default, as 64-bit Windows does not align AVX stack slots (GCC PR 54412). Bump only
+# together with CompilerSupportLibraries_jll's GCC.
+const GCC_TOOLCHAIN_URL = "https://github.com/JuliaBinaryWrappers/GCCToolchain_jll.jl/releases/download/GCCToolchain-v15.2.0+2/GCCToolchain.v15.2.0.x86_64-w64-mingw32.tar.gz"
+const GCC_TOOLCHAIN_SHA256 = "fe7fec1556dcd5bac07adf21bf862411a29b6b789876eafbac5a9ad1dc7f9164"
 
-const MINGW = Dict("x86_64" => "mingw64", "i686" => "mingw32")
-const MINGW_PREFIX = Dict("x86_64" => "mingw-w64-x86_64", "i686" => "mingw-w64-i686")
-const PACKAGES = Dict(
-    "x86_64" => ["$(MINGW_PREFIX["x86_64"])-cmake", "diffutils", "git", "m4", "make", "patch", "tar",
-                 "p7zip", "curl", "python3", "openssl", "gnupg2"],
-    "i686"   => ["$(MINGW_PREFIX["i686"])-cmake", "diffutils", "git", "m4", "make", "patch", "tar",
-                 "p7zip", "curl", "python3"],
-)
-# Julia's build runs under MINGW64 on both: i686 differs only in PATH (the Docker images did the same)
+const PACKAGES = ["mingw-w64-x86_64-cmake", "diffutils", "git", "m4", "make", "patch", "tar",
+                  "p7zip", "curl", "python3", "openssl", "gnupg2"]
+const PATH_PREPEND = ["gcc/bin", "msys64/mingw64/bin", "msys64/usr/bin"]
 const MSYSTEM = "MINGW64"
 
 function download_verified(url, sha256, dir)
@@ -124,8 +115,7 @@ end
 
 artifact_hash, tarball_path = mktempdir() do downloads
     msys2_base = download_verified(MSYS2_URL, MSYS2_SHA256, downloads)
-    gcc_url, gcc_sha256 = GCC_TOOLCHAIN[arch]
-    gcc_tarball = download_verified(gcc_url, gcc_sha256, downloads)
+    gcc_tarball = download_verified(GCC_TOOLCHAIN_URL, GCC_TOOLCHAIN_SHA256, downloads)
 
     create_windows_toolchain(image; archive) do root
         extract(msys2_base, root)
@@ -138,14 +128,13 @@ artifact_hash, tarball_path = mktempdir() do downloads
         msys2(root, "pacman -Syuu --noconfirm --noprogressbar")
         msys2(root, "pacman -Syu --needed --noconfirm --noprogressbar")
         msys2(root, "pacman -Syu --needed --noconfirm --noprogressbar")
-        msys2(root, "pacman -S --needed --noconfirm --noprogressbar $(join(PACKAGES[arch], ' '))")
+        msys2(root, "pacman -S --needed --noconfirm --noprogressbar $(join(PACKAGES, ' '))")
         msys2(root, "git config --system core.longpaths true")
         msys2(root, "pacman -Scc --noconfirm")
 
         extract(gcc_tarball, joinpath(root, "gcc"))
-        path_prepend = ["gcc/bin", "msys64/$(MINGW[arch])/bin", "msys64/usr/bin"]
         write_toolchain_files(root; image, arch, tag=tag_info(), source=source_info(),
-                              path_prepend, msystem=MSYSTEM)
+                              path_prepend=PATH_PREPEND, msystem=MSYSTEM)
     end
 end
 

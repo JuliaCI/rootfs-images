@@ -178,10 +178,10 @@ jobs:
           # The `yggdrasil` image is used in the CI for the Yggdrasil repo
           - {slug: 'yggdrasil.x86_64', build_on: ''}
 
-          # The `package_windows` images are MSYS2 plus GCCToolchain_jll, the toolchain of
-          # Julia's Windows builds. Both run on x86_64; i686 is the target.
+          # The `package_windows` image is MSYS2 plus GCCToolchain_jll, the toolchain of Julia's
+          # Windows builds. x86_64 only: 32-bit Windows is being phased out, and the release
+          # branches that still build it use package_windows.i686 of v8.5.
           - {slug: 'package_windows.x86_64', os: 'windows'}
-          - {slug: 'package_windows.i686', os: 'windows'}
     steps:
       - uses: actions/checkout@v7
         with:
