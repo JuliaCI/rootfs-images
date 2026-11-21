@@ -6,8 +6,8 @@ FROM mcr.microsoft.com/windows/servercore:$WIN_VERSION AS MSYS2_download
 
 # We always download x86_64 MSYS2 installer, since our system itself is x86_64.
 # repo.msys2.org drops installers after about two years; the GitHub releases keep them.
-ARG MSYS2_TAG=2024-05-07
-ARG MSYS2_VERSION=20240507
+ARG MSYS2_TAG=2026-11-20
+ARG MSYS2_VERSION=20261120
 ARG MSYS2_DOWNLOAD_URL=https://github.com/msys2/msys2-installer/releases/download/${MSYS2_TAG}/msys2-base-x86_64-${MSYS2_VERSION}.sfx.exe
 RUN setx /M PATH "C:\msys64\mingw32\bin;C:\msys64\usr\bin;%PATH%" && \
     powershell -Command "Invoke-WebRequest -Uri %MSYS2_DOWNLOAD_URL% -OutFile C:\windows\temp\msys2-base.sfx.exe"  && \
