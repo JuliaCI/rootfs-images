@@ -68,21 +68,33 @@ function extract(tarball, dest)
     end
 end
 
-# Run a login shell of the MSYS2 being built, as the MSYS2 installer's first start does, with
-# none of the runner's own MSYS2 or Git on PATH.
+# Run a login shell of the MSYS2 being built, with none of the runner's own MSYS2 or Git on
+# PATH. Afterwards, stop what it left running: pacman starts gpg-agent and dirmngr, which outlive
+# it and keep files of the tree open, and an upgrade of the MSYS2 runtime must not find old
+# processes using it.
 function msys2(root, script)
     msys64 = joinpath(root, "msys64")
     sysroot = get(ENV, "SystemRoot", "C:\\Windows")
     path = join([joinpath(msys64, "usr", "bin"), joinpath(sysroot, "System32"), sysroot,
                  joinpath(sysroot, "System32", "WindowsPowerShell", "v1.0")], ';')
     @info("msys2: $(script)")
-    run(addenv(`$(joinpath(msys64, "usr", "bin", "bash.exe")) -lc $(script)`,
-               "PATH" => path, "MSYSTEM" => "MSYS", "CHERE_INVOKING" => "1"))
+    try
+        run(addenv(`$(joinpath(msys64, "usr", "bin", "bash.exe")) -lc $(script)`,
+                   "PATH" => path, "MSYSTEM" => "MSYS", "CHERE_INVOKING" => "1"))
+    finally
+        stop_msys2_processes(root)
+    end
 end
 
-# pacman starts gpg-agent and dirmngr, which outlive it and keep files of the tree open
 function stop_msys2_processes(root)
-    script = "Get-Process | Where-Object { \$_.Path -like '$(root)\\*' } | Stop-Process -Force -PassThru | Format-Table Id, Path"
+    script = """
+        \$ps = @(Get-Process | Where-Object { \$_.Path -like '$(root)\\*' })
+        if (\$ps.Count -gt 0) {
+            \$ps | Format-Table Id, Path | Out-String | Write-Output
+            \$ps | Stop-Process -Force
+            \$ps | Wait-Process -Timeout 60
+        }
+        """
     run(`powershell -NoProfile -NonInteractive -Command $(script)`)
 end
 
@@ -111,19 +123,16 @@ artifact_hash, tarball_path = mktempdir() do downloads
         extract(msys2_base, root)
         # Tar.jl turns the tarball's 0644 into an ACL that forbids running the .exe files
         chmod(root, 0o755; recursive=true)
-        try
-            # The first start initializes the pacman keyring
-            msys2(root, "exit 0")
-            # The first upgrade replaces the MSYS2 runtime and stops; the next ones finish it
-            msys2(root, "pacman -Syuu --noconfirm --noprogressbar")
-            msys2(root, "pacman -Syu --needed --noconfirm --noprogressbar")
-            msys2(root, "pacman -Syu --needed --noconfirm --noprogressbar")
-            msys2(root, "pacman -S --needed --noconfirm --noprogressbar $(join(PACKAGES[arch], ' '))")
-            msys2(root, "git config --system core.longpaths true")
-            msys2(root, "pacman -Scc --noconfirm")
-        finally
-            stop_msys2_processes(root)
-        end
+        # MSYS2's profile runs its first-start setup (which initializes the keyring) only when
+        # HOME is unset, and the runner sets it: initialize the keyring explicitly
+        msys2(root, "pacman-key --init && pacman-key --populate msys2")
+        # The first upgrade replaces the MSYS2 runtime and stops; the next ones finish it
+        msys2(root, "pacman -Syuu --noconfirm --noprogressbar")
+        msys2(root, "pacman -Syu --needed --noconfirm --noprogressbar")
+        msys2(root, "pacman -Syu --needed --noconfirm --noprogressbar")
+        msys2(root, "pacman -S --needed --noconfirm --noprogressbar $(join(PACKAGES[arch], ' '))")
+        msys2(root, "git config --system core.longpaths true")
+        msys2(root, "pacman -Scc --noconfirm")
 
         extract(gcc_tarball, joinpath(root, "gcc"))
         path_prepend = ["gcc/bin", "msys64/$(MINGW[arch])/bin", "msys64/usr/bin"]
