@@ -26,8 +26,8 @@ end
 
 # Archive the artifact `artifact_hash` into `tarball_path` and check the tarball's tree hash,
 # unless archiving is disabled (`--no-archive`) or this is a pull request build. Builds of
-# `main` pass the tarball on to the workflow (`tarball_name`/`tarball_path` outputs), which keeps
-# it as a workflow artifact.
+# `main` and manually dispatched builds (of any branch) pass the tarball on to the workflow
+# (`tarball_name`/`tarball_path` outputs), which keeps it as a workflow artifact.
 function archive_image(artifact_hash::Base.SHA1, tarball_path::String; archive::Bool=true)
     if !archive
         info_msg = "Skipping tarball creation because the `--no-archive` command-line flag was passed"
@@ -46,7 +46,7 @@ function archive_image(artifact_hash::Base.SHA1, tarball_path::String; archive::
     if is_github_actions()
         is_push = is_github_actions_push()
         is_main = get_github_actions_ref() == "refs/heads/main"
-        if is_push && is_main
+        if (is_push && is_main) || is_github_actions_event("workflow_dispatch")
             github_actions_set_output("tarball_name" => basename(tarball_path))
             github_actions_set_output("tarball_path" => tarball_path)
         end
