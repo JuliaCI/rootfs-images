@@ -7,7 +7,7 @@ using RootfsUtils: parse_toolchain_env, render_toolchain_env, toolchain_path_ent
                    check_windows_tarball, check_windows_tree, normalize_windows_tree!,
                    msys2_packages, write_toolchain_files, parse_json, image_layers,
                    toolchain_layers, path_prepend_from_hive, utf16_strings
-using Test, Tar, Pkg
+using Test, Tar, Pkg, TOML
 
 const GOOD_ENV = "PATH_PREPEND=gcc\\bin;msys64\\usr\\bin\nMSYSTEM=MINGW64\nMSYS2_PATH_TYPE=inherit\n"
 
@@ -35,6 +35,11 @@ function check_tree(root; kwargs...)
     finally
         rm(tarball)
     end
+end
+
+# The catalog script, in a module of its own (it includes `windows_rules.jl` again)
+module AddImages
+    include(joinpath(@__DIR__, "..", "RootfsImages", "add_images.jl"))
 end
 
 @testset "RootfsUtils" begin
@@ -175,6 +180,67 @@ end
     outside = vcat(utf16("C:\\tools\\bin;C:\\msys64\\usr\\bin;C:\\Windows;"), UInt8[0, 0])
     @test_throws ErrorException path_prepend_from_hive(outside)
     @test_throws ErrorException path_prepend_from_hive(UInt8[1, 2, 3])
+end
+
+@testset "add_images.jl" begin
+    if Sys.which("gzip") === nothing
+        @info "Skipping the add_images.jl tests: no gzip"
+    else
+    mktempdir() do dir
+        artifacts_toml = joinpath(dir, "Artifacts.toml")
+        project_toml = joinpath(dir, "Project.toml")
+        write(project_toml, "name = \"RootfsImages\"\nversion = \"0.1.0\"\n")
+        tarballs = mkpath(joinpath(dir, "tarballs"))
+        function publish(image, root)
+            tarball = joinpath(tarballs, "$(image).tar.gz")
+            open(io -> Tar.create(root, io), pipeline(`gzip -9`, stdout=tarball), "w")
+            return bytes2hex(Pkg.GitTools.tree_hash(root))
+        end
+        add(images...) = AddImages.add_images(artifacts_toml, project_toml, "v9.0", collect(images); from=tarballs)
+        version() = match(r"version = \"(.*)\"", read(project_toml, String))[1]
+
+        hash = publish("package_windows.x86_64", windows_tree())
+        linux = mktempdir()
+        write(joinpath(linux, "hello"), "hi")
+        linux_hash = publish("debian_minimal.x86_64", linux)
+        @test add("package_windows.x86_64", "debian_minimal.x86_64") ==
+              ["package_windows.x86_64.v9.0", "debian_minimal.x86_64.v9.0"]
+        entries = TOML.parsefile(artifacts_toml)
+        @test entries["package_windows.x86_64.v9.0"]["git-tree-sha1"] == hash
+        @test entries["debian_minimal.x86_64.v9.0"]["git-tree-sha1"] == linux_hash
+        @test entries["package_windows.x86_64.v9.0"]["download"][1]["url"] ==
+              "https://github.com/JuliaCI/rootfs-images/releases/download/v9.0/package_windows.x86_64.tar.gz"
+        @test version() == "0.1.1"
+
+        # The same content again: nothing changes
+        before = read(artifacts_toml, String)
+        @test add("package_windows.x86_64") == String[]
+        @test read(artifacts_toml, String) == before && version() == "0.1.1"
+
+        # Different content under a published name: refused, and nothing is written, not even
+        # the other (new) image of the same call
+        write(joinpath(linux, "hello"), "changed")
+        publish("debian_minimal.x86_64", linux)
+        publish("debian_minimal.i686", linux)
+        @test_throws ErrorException add("debian_minimal.i686", "debian_minimal.x86_64")
+        @test read(artifacts_toml, String) == before && version() == "0.1.1"
+
+        # Windows rules
+        publish("package_windows.i686", windows_tree(root -> chmod(joinpath(root, "toolchain.env"), 0o644)))
+        @test_throws ErrorException add("package_windows.i686")
+        publish("package_windows.i686", windows_tree(root -> rm(joinpath(root, "toolchain.json"))))
+        @test_throws ErrorException add("package_windows.i686")
+
+        # Pkg.jl#4707
+        bad = mktempdir()
+        write(joinpath(bad, "Főtanúsítvány.pem"), "")
+        symlink("Főtanúsítvány.pem", joinpath(bad, "link"))
+        publish("tester_linux.x86_64", bad)
+        @test_throws ErrorException add("tester_linux.x86_64")
+        @test_throws ErrorException add("not-an-image")
+        @test read(artifacts_toml, String) == before
+    end
+    end
 end
 
 end
