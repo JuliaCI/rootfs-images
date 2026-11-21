@@ -6,8 +6,10 @@
 
 # State that a pacman run or a login shell leaves behind, relative to `msys64/`. The keyring
 # (`etc/pacman.d/gnupg`) is per installation: a job that wants pacman runs `pacman-key --init`.
+# `etc/mtab` is written by a login shell's post-install script; the non-login bash that CI and
+# `test_rootfs.jl` start does not need it (bash, gcc, make and cmake work without it).
 # `var/lib/pacman/local` stays: it is the inventory of installed packages.
-const MSYS2_STRIP = ["etc/pacman.d/gnupg", "var/cache/pacman/pkg", "var/lib/pacman/sync"]
+const MSYS2_STRIP = ["etc/pacman.d/gnupg", "etc/mtab", "var/cache/pacman/pkg", "var/lib/pacman/sync"]
 const MSYS2_EMPTY = ["var/log", "tmp", "home"]  # kept, but emptied
 
 """
