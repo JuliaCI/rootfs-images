@@ -17,14 +17,33 @@ concurrency:
 jobs:
   linux:
     timeout-minutes: 10
-    needs: build_linux
+    needs: [build_linux, test]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - run: |
           echo build_linux: ${{ needs.build_linux.result }}
+          echo test: ${{ needs.test.result }}
       - run: exit 1
-        if: needs.build_linux.result != 'success'
+        if: needs.build_linux.result != 'success' || needs.test.result != 'success'
+  # The tooling's own tests; on Windows too, where file modes are ACLs
+  test:
+    timeout-minutes: 30
+    name: test / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: '1.10'
+      - run: julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate()'
+      - run: julia --color=yes --project=. test/runtests.jl
   # Opens a pull request that lists the release's images in the RootfsImages package; once
   # a maintainer merges it and registers the version, the Pkg servers mirror the images.
   register_images:
