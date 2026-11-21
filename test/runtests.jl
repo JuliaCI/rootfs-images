@@ -252,33 +252,59 @@ end
     mktempdir() do dir
         artifacts_toml = joinpath(dir, "Artifacts.toml")
         project_toml = joinpath(dir, "Project.toml")
-        write(project_toml, "name = \"RootfsImages\"\nversion = \"0.1.0\"\n")
         tarballs = mkpath(joinpath(dir, "tarballs"))
         function publish(image, root)
             tarball = joinpath(tarballs, "$(image).tar.gz")
             open(io -> Tar.create(root, io), pipeline(`gzip -9`, stdout=tarball), "w")
             return bytes2hex(Pkg.GitTools.tree_hash(root))
         end
-        add(images...) = AddImages.add_images(artifacts_toml, project_toml, "v9.0", collect(images); from=tarballs)
+        add(images...; tag="v9.0") = AddImages.add_images(artifacts_toml, project_toml, tag, collect(images); from=tarballs)
         version() = match(r"version = \"(.*)\"", read(project_toml, String))[1]
+        # A catalog of v8.13
+        function catalog_v8_13(names...)
+            rm(artifacts_toml; force=true)
+            for name in names
+                Pkg.Artifacts.bind_artifact!(artifacts_toml, name, Base.SHA1("1"^40); lazy=true,
+                                             download_info=[("https://example.com/$(name).tar.gz", "2"^64)])
+            end
+            write(project_toml, "name = \"RootfsImages\"\nversion = \"8.13.0\"\n")
+        end
 
         hash = publish("package_windows.x86_64", windows_tree())
         linux = mktempdir()
         write(joinpath(linux, "hello"), "hi")
         linux_hash = publish("debian_minimal.x86_64", linux)
+
+        # The release the version is of: added to it, patch version
+        catalog_v8_13("package_linux.x86_64.v8.13")
+        @test add("debian_minimal.x86_64"; tag="v8.13") == ["debian_minimal.x86_64.v8.13"]
+        @test sort(collect(keys(TOML.parsefile(artifacts_toml)))) ==
+              ["debian_minimal.x86_64.v8.13", "package_linux.x86_64.v8.13"]
+        @test version() == "8.13.1"
+        # A listed name keeps its content, and older releases are refused
+        catalog_v8_13("debian_minimal.x86_64.v8.13")
+        before = read(artifacts_toml, String)
+        @test_throws ErrorException add("debian_minimal.x86_64"; tag="v8.13")
+        @test_throws ErrorException add("debian_minimal.x86_64"; tag="v8.12")
+        @test read(artifacts_toml, String) == before && version() == "8.13.0"
+
+        # A new release replaces every entry and sets the version
+        catalog_v8_13("debian_minimal.x86_64.v8.13", "package_linux.x86_64.v8.13")
         @test add("package_windows.x86_64", "debian_minimal.x86_64") ==
               ["package_windows.x86_64.v9.0", "debian_minimal.x86_64.v9.0"]
         entries = TOML.parsefile(artifacts_toml)
+        @test sort(collect(keys(entries))) == ["debian_minimal.x86_64.v9.0", "package_windows.x86_64.v9.0"]
         @test entries["package_windows.x86_64.v9.0"]["git-tree-sha1"] == hash
         @test entries["debian_minimal.x86_64.v9.0"]["git-tree-sha1"] == linux_hash
         @test entries["package_windows.x86_64.v9.0"]["download"][1]["url"] ==
               "https://github.com/JuliaCI/rootfs-images/releases/download/v9.0/package_windows.x86_64.tar.gz"
-        @test version() == "0.1.1"
+        @test version() == "9.0.0"
+        @test !isfile(artifacts_toml * ".new")
 
         # The same content again: nothing changes
         before = read(artifacts_toml, String)
         @test add("package_windows.x86_64") == String[]
-        @test read(artifacts_toml, String) == before && version() == "0.1.1"
+        @test read(artifacts_toml, String) == before && version() == "9.0.0"
 
         # Different content under a published name: refused, and nothing is written, not even
         # the other (new) image of the same call
@@ -286,7 +312,18 @@ end
         publish("debian_minimal.x86_64", linux)
         publish("debian_minimal.i686", linux)
         @test_throws ErrorException add("debian_minimal.i686", "debian_minimal.x86_64")
-        @test read(artifacts_toml, String) == before && version() == "0.1.1"
+        @test read(artifacts_toml, String) == before && version() == "9.0.0"
+
+        # An image added to the release later: kept with the others, patch version
+        @test add("debian_minimal.i686") == ["debian_minimal.i686.v9.0"]
+        @test length(TOML.parsefile(artifacts_toml)) == 3 && version() == "9.0.1"
+        before = read(artifacts_toml, String)
+
+        # Tags that aren't a release vA.B, and older releases, are refused
+        for tag in ("v9", "9.0", "v9.0.0", "v9.00", "v09.1", "v9.1-rc1", "v8.13", "v8.99")
+            @test_throws ErrorException add("debian_minimal.i686"; tag)
+        end
+        @test read(artifacts_toml, String) == before && version() == "9.0.1"
 
         # Windows rules
         publish("package_windows.i686", windows_tree(root -> chmod(joinpath(root, "toolchain.env"), 0o644)))
@@ -311,7 +348,12 @@ end
         open(io -> Tar.create(windows_tree(), io),
              pipeline(`gzip -1`, stdout=joinpath(tarballs, "package_windows.x86_64.tar.gz")), "w")
         @test_throws ErrorException add("package_windows.x86_64")
-        @test read(artifacts_toml, String) == before
+        @test read(artifacts_toml, String) == before && version() == "9.0.1"
+
+        # The next release
+        @test add("debian_minimal.i686"; tag="v9.1") == ["debian_minimal.i686.v9.1"]
+        @test collect(keys(TOML.parsefile(artifacts_toml))) == ["debian_minimal.i686.v9.1"]
+        @test version() == "9.1.0"
     end
     end
 end
