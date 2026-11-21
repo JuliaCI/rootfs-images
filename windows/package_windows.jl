@@ -152,7 +152,6 @@ let root = Pkg.Artifacts.artifact_path(artifact_hash)
         tmp = mkpath(joinpath(dir, "tmp"))
         script = """
             set -eux
-            cd "\$(cygpath -u '$(dir)')"
             case "\$(command -v gcc)" in */gcc/bin/gcc) ;; *) echo "gcc is not the tree's"; exit 1 ;; esac
             gcc --version
             gcc -dumpmachine | grep -q '^$(arch)-w64-mingw32\$'
@@ -161,7 +160,7 @@ let root = Pkg.Artifacts.artifact_path(artifact_hash)
             test "\$(./hello.exe)" = hello
             for tool in make cmake git python3 curl patch m4 7z cygpath; do command -v \$tool; done
             """
-        run(toolchain_cmd(root, ["bash", "-c", script]; home, tmp))
+        run(Cmd(toolchain_cmd(root, ["bash", "-c", script]; home, tmp); dir))
     end
     Pkg.Artifacts.verify_artifact(artifact_hash) || error("The smoke test modified the tree")
     @info("Smoke test passed; the tree is unmodified", artifact_hash)
