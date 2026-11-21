@@ -44,6 +44,20 @@ end
 
 @testset "RootfsUtils" begin
 
+@testset "test_rootfs.jl arguments" begin
+    file = joinpath(dirname(@__DIR__), "test_rootfs.jl")
+    parse(args...) = RootfsUtils.parse_test_args(collect(args), file)
+    a = parse("--map-build-dir=no", "package_windows.x86_64.v8.10")
+    @test a.image == "package_windows.x86_64.v8.10" && a.treehash === nothing && isempty(a.command)
+    a = parse("--map-build-dir=no", "package_linux.x86_64.v8.13", "--", "gcc", "--version")
+    @test a.image == "package_linux.x86_64.v8.13" && a.command == ["gcc", "--version"]
+    a = parse("--map-build-dir=no", "--treehash=" * "1"^40, "--", "/bin/bash", "-c", "true")
+    @test a.image === nothing && a.treehash == Base.SHA1("1"^40) && a.command == ["/bin/bash", "-c", "true"]
+    @test_throws ArgumentError parse("--map-build-dir=no")
+    @test_throws ArgumentError parse("--map-build-dir=no", "/bin/bash")
+end
+
+
 @testset "toolchain.env" begin
     env = parse_toolchain_env(GOOD_ENV)
     @test env["MSYSTEM"] == "MINGW64"
