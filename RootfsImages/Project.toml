@@ -1,7 +1,7 @@
 name = "RootfsImages"
 uuid = "37b65662-2a7f-45a7-ab2a-8103fdf7661e"
 authors = ["JuliaCI"]
-version = "0.1.0"
+version = "8.13.0"
 
 [compat]
 julia = "1.6"
