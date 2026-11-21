@@ -87,7 +87,8 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
     # Without --url and --treehash, the first positional argument names the image
     image = nothing
     if url === nothing && isempty(strip(parsed_args["treehash"]))
-        if isempty(command) || match(r"^[a-z0-9_]+\.[a-z0-9_]+\.v[0-9.]+$", command[1]) === nothing
+        # Whether it names an image is up to RootfsImages/Artifacts.toml (ensure_image_installed)
+        if isempty(command)
             throw(ArgumentError("Name the image as IMAGE.ARCH.TAG (e.g. package_linux.x86_64.v8.13), or give --url"))
         end
         image = popfirst!(command)
