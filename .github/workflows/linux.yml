@@ -45,8 +45,10 @@ jobs:
           version: '1.10'
       - run: julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate()'
       - run: julia --color=yes --project=. test/runtests.jl
-  # Opens a pull request that lists the release's images in the RootfsImages package; once
-  # a maintainer merges it and registers the version, the Pkg servers mirror the images.
+  # Opens a pull request that makes the RootfsImages package list the release's images; once
+  # a maintainer merges it and registers the version, the Pkg servers mirror the images. It
+  # needs every build, i.e. every asset uploaded: a Pkg server reads a registered version's
+  # Artifacts.toml once, and never retries an artifact it failed to download.
   register_images:
     timeout-minutes: 60
     needs: build
@@ -72,16 +74,34 @@ jobs:
           git fetch --depth=1 origin "$GITHUB_SHA"
           images=$(git show "$GITHUB_SHA:.github/workflows/linux.yml" | yq '.jobs.build.strategy.matrix.image[].slug')
           julia --color=yes --startup-file=no RootfsImages/add_images.jl "$TAG" $images
+      # The version follows the tag (vA.B is A.B.0, images added to it later bump the patch).
+      # Rerunnable: nothing new is no pull request, and a rerun updates the open one.
       - run: |
-          branch="rootfsimages-$TAG"
+          if git diff --quiet -- RootfsImages; then
+            echo "RootfsImages already lists every image of $TAG; nothing to do"
+            exit 0
+          fi
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' RootfsImages/Project.toml)
+          branch="rootfsimages-$version"
+          title="RootfsImages $version: the images of $TAG"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
           git add RootfsImages
-          git commit -m "RootfsImages: add the images of $TAG"
-          git push origin "$branch"
-          gh pr create --base main --head "$branch" --title "RootfsImages: add the images of $TAG" \
-            --body "Lists the images of [$TAG](https://github.com/${{ github.repository }}/releases/tag/$TAG) in RootfsImages. Pull requests opened by GitHub Actions start no workflows: close and reopen this one to run the required checks. After merging, comment \`@JuliaRegistrator register subdir=RootfsImages\` on the merge commit."
+          git commit -m "$title"
+          git push --force origin "$branch"
+          if [ "$(gh pr view "$branch" --json state --jq .state 2>/dev/null)" = OPEN ]; then
+            echo "The pull request of $branch is open already; updated its branch"
+            exit 0
+          fi
+          cat > "$RUNNER_TEMP/body.md" <<EOF
+          Lists the images of [$TAG](https://github.com/${{ github.repository }}/releases/tag/$TAG) in RootfsImages $version.
+
+          Workflows of pull requests opened by GitHub Actions wait for approval: use \`Approve workflows to run\` on this one to run the required checks. After merging, comment \`@JuliaRegistrator register subdir=RootfsImages\` on the merge commit.
+
+          A version that skips a minor version (a tag that was never catalogued) isn't sequential for General's AutoMerge: a package author approves it with \`[merge approved]\` on the General pull request.
+          EOF
+          gh pr create --base main --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/body.md"
   # Every image is a row: `linux/<image>.jl` runs on `ubuntu-24.04<build_on>`, and
   # `windows/<image>.jl` (rows with `os: windows`) on `windows-2022`.
   build:
