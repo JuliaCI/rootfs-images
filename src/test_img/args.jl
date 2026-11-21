@@ -3,9 +3,15 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
         throw(ArgumentError("$(file) is not an absolute file"))
     end
     settings = ArgParse.ArgParseSettings(;
-        description = "Run commands inside rootfs images",
+        description = string(
+            "Run commands inside rootfs images. Name the image as IMAGE.ARCH.TAG ",
+            "(an entry of RootfsImages/Artifacts.toml), or give --url and --treehash.",
+        ),
+        usage = string(
+            "test_rootfs.jl [options] IMAGE.ARCH.TAG [--] [command...]\n",
+            "       test_rootfs.jl [options] --url URL [--treehash HASH] [--] [command...]",
+        ),
     )
-    default_command = "/bin/bash"
     ArgParse.@add_arg_table! settings begin
         "--arch", "-a"
             arg_type = String
@@ -60,7 +66,10 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
             required = false
             default = Any[]
             nargs = 'R' # 'R' = all remaining tokens
-            help = "The command to run. If not specified, defaults to $(default_command)"
+            help = string(
+                "The image name (unless --url or --treehash is given), then the command to run. ",
+                "Defaults to a shell: /bin/bash on Linux, the toolchain's bash on Windows.",
+            )
     end
     parsed_args = ArgParse.parse_args(args, settings)
 
@@ -72,10 +81,22 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
     tmpfs_size        = _process_required_string_arg(  parsed_args, "tmpfs-size")
 
     arch              = _process_optional_string_arg(  parsed_args, "arch")
-    treehash          = _process_optional_treehash_arg(parsed_args, "treehash")
     url               = _process_optional_string_arg(  parsed_args, "url")
+    command           = convert(Vector{String}, parsed_args["command"])::Vector{String}
 
-    command           = _process_optional_command_args(parsed_args, "command"; default_command)
+    # Without --url and --treehash, the first positional argument names the image
+    image = nothing
+    if url === nothing && isempty(strip(parsed_args["treehash"]))
+        if isempty(command) || match(r"^[a-z0-9_]+\.[a-z0-9_]+\.v[0-9.]+$", command[1]) === nothing
+            throw(ArgumentError("Name the image as IMAGE.ARCH.TAG (e.g. package_linux.x86_64.v8.13), or give --url"))
+        end
+        image = popfirst!(command)
+        # ArgParse keeps a `--` that follows the first positional argument
+        !isempty(command) && command[1] == "--" && popfirst!(command)
+        treehash = nothing
+    else
+        treehash = _process_optional_treehash_arg(parsed_args, "treehash")
+    end
 
     read_write_maps = Dict{String, String}()
     # `repo_root` is the root directory of the repository.
@@ -111,6 +132,7 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
     end
 
     result = (;
+        image,
         command,
         mount_julia,
         multiarch,

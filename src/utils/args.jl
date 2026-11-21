@@ -21,14 +21,3 @@ function _process_optional_treehash_arg(parsed_args::AbstractDict, arg_name::Str
     treehash = Base.SHA1(treehash_str)
     return treehash
 end
-
-function _process_optional_command_args(parsed_args::AbstractDict, arg_name::String; default_command::String)
-    _command_str_vec  = parsed_args["command"]
-    if isempty(_command_str_vec)
-        command_str_vec = String[default_command]
-    else
-        command_str_vec = convert(Vector{String}, _command_str_vec)::Vector{String}
-    end
-    command = `$(command_str_vec)`
-    return command
-end
