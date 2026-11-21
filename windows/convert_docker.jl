@@ -43,6 +43,8 @@ function parse_args(args)
     m = match(r"^([a-z0-9._/-]+)@(sha256:[0-9a-f]{64})$", opts["image"])
     m === nothing && error("--image must be REPO@sha256:DIGEST, not $(opts["image"])")
     opts["arch"] in ("x86_64", "i686") || error("unknown arch $(opts["arch"])")
+    # The images are named after their arch; a mix-up would give an i686 toolchain an x86_64 name
+    endswith(m[1], "-$(opts["arch"])") || error("--image $(m[1]) is not the image of --arch $(opts["arch"])")
     archive == (output !== nothing) || error("give either --output DIR or --no-archive")
     return (; arch=opts["arch"], tag=opts["tag"], repo=String(m[1]), digest=String(m[2]), archive, output)
 end
@@ -95,11 +97,13 @@ function convert(; arch, tag, repo, digest, archive, output)
         path_prepend = path_prepend_from_hive(system_hive(fetch_layer(setx_layer)))
         @info("Converting $(source)", tag, layers=trees, path_prepend, msystem)
 
-        # Straight into the output directory: the scratch space has one tarball per image name,
-        # and the tags of an image share it
-        tarball_path = archive ? joinpath(mkpath(output), "$(image).tar.gz") : tempname()
-        archive && ispath(tarball_path) && error("$(tarball_path) exists")
-        create_windows_toolchain(image; archive, strict_paths=false, tarball_path) do root
+        # Into the output directory (the scratch space has one tarball per image name, which
+        # the tags of an image share), archived and verified next to its final name, which it
+        # takes only when complete
+        final_path = archive ? joinpath(mkpath(output), "$(image).tar.gz") : nothing
+        archive && ispath(final_path) && error("$(final_path) exists")
+        tarball_path = archive ? tempname(output; cleanup=false) * ".partial" : tempname()
+        result = try create_windows_toolchain(image; archive, strict_paths=false, tarball_path) do root
             for (dir, layer_digest) in sort(collect(trees))
                 layer = fetch_layer(layer_digest)
                 prefix = "Files/$(dir)"
@@ -118,6 +122,16 @@ function convert(; arch, tag, repo, digest, archive, output)
             end
             write_toolchain_files(root; image, arch, tag, source, path_prepend, msystem)
         end
+        catch
+            rm(tarball_path; force=true)
+            rethrow()
+        end
+        if archive
+            ispath(final_path) && error("$(final_path) appeared during the conversion")
+            mv(tarball_path, final_path)
+            result = (; result.artifact_hash, tarball_path=final_path)
+        end
+        return result
     end
 end
 
