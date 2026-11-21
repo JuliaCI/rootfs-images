@@ -55,8 +55,10 @@ end
     @test a.image == "package_linux.x86_64.v8.13" && a.command == ["gcc", "--version"]
     a = parse("--map-build-dir=no", "--treehash=" * "1"^40, "--", "/bin/bash", "-c", "true")
     @test a.image === nothing && a.treehash == Base.SHA1("1"^40) && a.command == ["/bin/bash", "-c", "true"]
+    @test parse("--map-build-dir=no", "package_windows.x86_64.v8.14-rc1").image == "package_windows.x86_64.v8.14-rc1"
     @test_throws ArgumentError parse("--map-build-dir=no")
-    @test_throws ArgumentError parse("--map-build-dir=no", "/bin/bash")
+    # Anything that is not in the catalog is refused before anything is downloaded
+    @test_throws ArgumentError RootfsUtils.ensure_image_installed("/bin/bash")
 end
 
 
