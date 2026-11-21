@@ -10,9 +10,10 @@
 # - its tree hash must be computable by the Pkg servers (no symlink with a non-ASCII target,
 #   JuliaLang/Pkg.jl#4707);
 # - Windows toolchains (`package_windows.*`) must follow the tree rules of
-#   `src/windows_rules.jl`;
+#   `src/windows_rules.jl`, and their `toolchain.json` must name this image and tag;
 # - an entry that exists must keep its tree hash: a published name never changes content, CI
-#   pins it. Re-adding an image with the same tree hash changes nothing.
+#   pins it. Re-adding an image with the same tree hash changes nothing, unless the asset at the
+#   recorded URL changed its bytes (a download from it would then fail the recorded sha256).
 # Nothing is written unless every image passes. Entries of other tags stay: CI pins different
 # releases of the same image (release branches keep the toolchain they were branched with).
 #
@@ -26,7 +27,7 @@ include(joinpath(@__DIR__, "..", "src", "windows_rules.jl"))
 release_url(tag, image) = "https://github.com/JuliaCI/rootfs-images/releases/download/$(tag)/$(image).tar.gz"
 
 # The tree hash and sha256 of an image's tarball, after checking it
-function inspect_image(tarball, image)
+function inspect_image(tarball, image, tag)
     sha256 = bytes2hex(open(SHA.sha256, tarball))
     tree_hash = open(`gzip -dc $(tarball)`) do io
         Tar.tree_hash(io; skip_empty=true) do hdr
@@ -46,6 +47,11 @@ function inspect_image(tarball, image)
             error("$(image) breaks $(length(check.errors)) rule(s) of Windows toolchain trees")
         end
         @assert check.tree_hash == tree_hash
+        json = something(check.toolchain_json, "")
+        for (key, value) in ("image" => image, "tag" => tag)
+            actual = toolchain_json_field(json, key)
+            actual == value || error("$(image): toolchain.json says $(key) is $(repr(actual)), not $(repr(value))")
+        end
     end
     return (; tree_hash, sha256)
 end
@@ -58,6 +64,7 @@ Check every image, then bind the new ones in `artifacts_toml` and bump the patch
 """
 function add_images(artifacts_toml, project_toml, tag, images; from=nothing)
     existing = isfile(artifacts_toml) ? TOML.parsefile(artifacts_toml) : Dict{String,Any}()
+    allunique(images) || error("Images listed more than once: $(join(unique(filter(i -> count(==(i), images) > 1, images)), ", "))")
     new = []
     for image in images
         occursin(r"^[a-z0-9_]+\.[a-z0-9_]+$", image) || error("$(image) is not IMAGE.ARCH")
@@ -69,13 +76,19 @@ function add_images(artifacts_toml, project_toml, tag, images; from=nothing)
             else
                 joinpath(from, "$(image).tar.gz")
             end
-            inspect_image(tarball, image)
+            inspect_image(tarball, image, tag)
         end
         if haskey(existing, name)
             old = existing[name]["git-tree-sha1"]
             if old != info.tree_hash
                 error("$(name) is already listed with tree hash $(old), but the image now has $(info.tree_hash); " *
                       "a published image never changes: publish it under a new tag")
+            end
+            for download in get(existing[name], "download", [])
+                if download["url"] == url && download["sha256"] != info.sha256
+                    error("$(url) changed: its sha256 is $(info.sha256), $(name) lists $(download["sha256"]); " *
+                          "restore the published asset")
+                end
             end
             @info "$(name) is already listed with this tree hash" tree_hash=info.tree_hash
             continue
