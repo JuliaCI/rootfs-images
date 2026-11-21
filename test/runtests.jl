@@ -282,6 +282,16 @@ end
         publish("tester_linux.x86_64", bad)
         @test_throws ErrorException add("tester_linux.x86_64")
         @test_throws ErrorException add("not-an-image")
+        @test_throws ErrorException add("debian_minimal.i686", "debian_minimal.i686")
+        # The tree must say what it is
+        publish("package_windows.i686", windows_tree(image="package_windows.x86_64"))
+        @test_throws ErrorException add("package_windows.i686")
+        publish("package_windows.i686", windows_tree(image="package_windows.i686", tag="v8.10"))
+        @test_throws ErrorException add("package_windows.i686")
+        # A listed asset that changed its bytes (same tree, recompressed)
+        open(io -> Tar.create(windows_tree(), io),
+             pipeline(`gzip -1`, stdout=joinpath(tarballs, "package_windows.x86_64.tar.gz")), "w")
+        @test_throws ErrorException add("package_windows.x86_64")
         @test read(artifacts_toml, String) == before
     end
     end
