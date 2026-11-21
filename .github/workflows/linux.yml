@@ -65,8 +65,9 @@ jobs:
       - uses: julia-actions/setup-julia@v3
         with:
           version: '1'
+      # The images are the rows of the build matrix, not whatever the release holds
       - run: |
-          images=$(gh release view "$TAG" --json assets --jq '.assets[].name | select(endswith(".tar.gz")) | rtrimstr(".tar.gz")')
+          images=$(yq '.jobs.build.strategy.matrix.image[].slug' .github/workflows/linux.yml)
           julia --color=yes --startup-file=no RootfsImages/add_images.jl "$TAG" $images
       - run: |
           branch="rootfsimages-$TAG"
