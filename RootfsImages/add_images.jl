@@ -1,11 +1,18 @@
-# Add images of a rootfs-images release to RootfsImages/Artifacts.toml, as
-# `<image>.<arch>.<tag>`, and bump the package's patch version:
+# List the images of a rootfs-images release in RootfsImages/Artifacts.toml, as
+# `<image>.<arch>.<tag>`, and set the package's version to follow the tag:
 #
-#     julia RootfsImages/add_images.jl v8.13 package_linux.x86_64 package_linux.i686 ...
+#     julia RootfsImages/add_images.jl v8.14 package_linux.x86_64 package_linux.i686 ...
+#
+# RootfsImages lists the images of the latest release, `vA.B`, and its version is `A.B.<patch>`:
+# - for a newer release, the images replace every entry and the version becomes `A.B.0`;
+# - for the release the version is of (images added to it later), the new images are added and
+#   the patch version is bumped. Nothing new changes nothing.
+# Older releases are refused: versions only go up, and replacing the catalog with an older
+# release would drop listed names.
 #
 # The images are named explicitly: the release workflow passes its build matrix, and images
-# added to an older release later are listed by hand. Each is downloaded from the release (or,
-# with `--from DIR`, read from `DIR/<image>.<arch>.tar.gz`, e.g. to prepare the entry of a tarball
+# added to a release later are listed by hand. Each is downloaded from the release (or, with
+# `--from DIR`, read from `DIR/<image>.<arch>.tar.gz`, e.g. to prepare the entry of a tarball
 # before uploading it; the URL recorded is the release's either way) and checked:
 # - its tree hash must be computable by the Pkg servers (no symlink with a non-ASCII target,
 #   JuliaLang/Pkg.jl#4707);
@@ -14,8 +21,7 @@
 # - an entry that exists must keep its tree hash: a published name never changes content, CI
 #   pins it. Re-adding an image with the same tree hash changes nothing, unless the asset at the
 #   recorded URL changed its bytes (a download from it would then fail the recorded sha256).
-# Nothing is written unless every image passes. Entries of other tags stay: CI pins different
-# releases of the same image (release branches keep the toolchain they were branched with).
+# Nothing is written unless every image passes.
 #
 # Only uses standard libraries, so it runs without an environment.
 
@@ -25,6 +31,12 @@ import Downloads, SHA, Tar, TOML
 include(joinpath(@__DIR__, "..", "src", "windows_rules.jl"))
 
 release_url(tag, image) = "https://github.com/JuliaCI/rootfs-images/releases/download/$(tag)/$(image).tar.gz"
+
+# The release `vA.B` as `(A, B)`, or `nothing`. No leading zeros, so that a version names one tag.
+function parse_tag(tag)
+    m = match(r"^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$", tag)
+    return m === nothing ? nothing : (parse(Int, m[1]), parse(Int, m[2]))
+end
 
 # The tree hash and sha256 of an image's tarball, after checking it
 function inspect_image(tarball, image, tag)
@@ -59,13 +71,24 @@ end
 """
     add_images(artifacts_toml, project_toml, tag, images; from=nothing)
 
-Check every image, then bind the new ones in `artifacts_toml` and bump the patch version in
-`project_toml`. Returns the names that were added.
+Check every image, then list them in `artifacts_toml` and set the version in `project_toml`:
+for a release `vA.B` newer than the version, the images replace every entry and the version
+becomes `A.B.0`; for the release the version is of, the new images are added and the patch
+version is bumped. Returns the names that were written.
 """
 function add_images(artifacts_toml, project_toml, tag, images; from=nothing)
+    release = parse_tag(tag)
+    release === nothing && error("$(tag) is not a release tag vA.B, which RootfsImages' version follows")
+    current = read_version(project_toml)
+    listed = (current.major, current.minor)
+    if release < listed
+        error("RootfsImages $(current) is of release v$(listed[1]).$(listed[2]), newer than $(tag): " *
+              "the catalog lists the latest release, and its version can't go back")
+    end
+    replacing = release != listed
     existing = isfile(artifacts_toml) ? TOML.parsefile(artifacts_toml) : Dict{String,Any}()
     allunique(images) || error("Images listed more than once: $(join(unique(filter(i -> count(==(i), images) > 1, images)), ", "))")
-    new = []
+    entries = []
     for image in images
         occursin(r"^[a-z0-9_]+\.[a-z0-9_]+$", image) || error("$(image) is not IMAGE.ARCH")
         name = "$(image).$(tag)"
@@ -78,6 +101,8 @@ function add_images(artifacts_toml, project_toml, tag, images; from=nothing)
             end
             inspect_image(tarball, image, tag)
         end
+        entry = (; name, url, info...)
+        # Also when replacing: a name listed by an earlier version keeps its content
         if haskey(existing, name)
             old = existing[name]["git-tree-sha1"]
             if old != info.tree_hash
@@ -91,26 +116,42 @@ function add_images(artifacts_toml, project_toml, tag, images; from=nothing)
                 end
             end
             @info "$(name) is already listed with this tree hash" tree_hash=info.tree_hash
+            replacing && push!(entries, entry)
             continue
         end
         @info "Adding $(name)" info.tree_hash info.sha256
-        push!(new, (; name, url, info...))
+        push!(entries, entry)
     end
-    for entry in new
+    isempty(entries) && return String[]
+    if replacing
+        version = VersionNumber(release..., 0)
+        new_toml = artifacts_toml * ".new"
+        rm(new_toml; force=true)
+        bind_entries(new_toml, entries)
+        mv(new_toml, artifacts_toml; force=true)
+    else
+        version = VersionNumber(current.major, current.minor, current.patch + 1)
+        bind_entries(artifacts_toml, entries)
+    end
+    write_version(project_toml, version)
+    @info "RootfsImages $(version)" previous=current replaced=replacing
+    return [entry.name for entry in entries]
+end
+
+function bind_entries(artifacts_toml, entries)
+    for entry in entries
         bind_artifact!(artifacts_toml, entry.name, Base.SHA1(entry.tree_hash);
                        download_info=[(entry.url, entry.sha256)], lazy=true)
     end
-    isempty(new) || bump_patch_version(project_toml)
-    return [entry.name for entry in new]
 end
 
-function bump_patch_version(project_toml)
+const VERSION_LINE = r"^version = \"(.*)\"$"m
+
+read_version(project_toml) = VersionNumber(match(VERSION_LINE, read(project_toml, String))[1])
+
+function write_version(project_toml, version)
     project = read(project_toml, String)
-    m = match(r"^version = \"(.*)\"$"m, project)
-    old = VersionNumber(m[1])
-    new = VersionNumber(old.major, old.minor, old.patch + 1)
-    write(project_toml, replace(project, m.match => "version = \"$(new)\""))
-    @info "Bumped RootfsImages" old new
+    write(project_toml, replace(project, VERSION_LINE => "version = \"$(version)\""))
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
