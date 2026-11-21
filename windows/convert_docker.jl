@@ -95,7 +95,11 @@ function convert(; arch, tag, repo, digest, archive, output)
         path_prepend = path_prepend_from_hive(system_hive(fetch_layer(setx_layer)))
         @info("Converting $(source)", tag, layers=trees, path_prepend, msystem)
 
-        create_windows_toolchain("$(image)"; archive, force=true, strict_paths=false) do root
+        # Straight into the output directory: the scratch space has one tarball per image name,
+        # and the tags of an image share it
+        tarball_path = archive ? joinpath(mkpath(output), "$(image).tar.gz") : tempname()
+        archive && ispath(tarball_path) && error("$(tarball_path) exists")
+        create_windows_toolchain(image; archive, strict_paths=false, tarball_path) do root
             for (dir, layer_digest) in sort(collect(trees))
                 layer = fetch_layer(layer_digest)
                 prefix = "Files/$(dir)"
@@ -120,8 +124,4 @@ end
 args = parse_args(ARGS)
 result = convert(; args...)
 println("tree hash: ", result.artifact_hash)
-if result.tarball_path !== nothing
-    tarball = joinpath(mkpath(args.output), basename(result.tarball_path))
-    mv(result.tarball_path, tarball; force=true)
-    println("tarball: ", tarball)
-end
+result.tarball_path === nothing || println("tarball: ", result.tarball_path)

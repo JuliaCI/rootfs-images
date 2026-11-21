@@ -20,14 +20,19 @@ replace hard links by copies, and make every file and directory 0755 (on Windows
 `chmod` sets the corresponding ACL).
 """
 function normalize_windows_tree!(root::String)
+    # A tree has no links (the rules reject them); refuse them before deleting anything, which
+    # could otherwise happen through a link to elsewhere
+    for (dir, dirs, files) in walkdir(root), name in vcat(dirs, files)
+        path = joinpath(dir, name)
+        islink(path) && error("Windows toolchain trees can't contain links: $(relpath(path, root)) -> $(readlink(path))")
+    end
     msys64 = joinpath(root, "msys64")
     for rel in MSYS2_STRIP
         rm(joinpath(msys64, rel); recursive=true, force=true)
     end
     for rel in MSYS2_EMPTY
         dir = joinpath(msys64, rel)
-        # Never through a link (the check rejects links anyway, after this has run)
-        (isdir(dir) && !islink(dir)) || continue
+        isdir(dir) || continue
         foreach(p -> rm(p; recursive=true, force=true), readdir(dir; join=true))
     end
 
@@ -130,15 +135,17 @@ function check_windows_tree(root::String; strict_paths::Bool=true)
 end
 
 """
-    create_windows_toolchain(f, name; archive=true, force=false, strict_paths=true)
+    create_windows_toolchain(f, name; archive=true, force=false, strict_paths=true,
+                             tarball_path=image_tarball_path(name; force))
 
 Create an artifact by calling `f(root)` on an empty directory, which must populate `msys64/`
 (and `gcc/`) and write the toolchain files; then normalize and check it, and archive it as
-`<name>.tar.gz`. Returns `(; artifact_hash, tarball_path)` like `create_rootfs`.
+`tarball_path` (by default `<name>.tar.gz` in the scratch space). Returns
+`(; artifact_hash, tarball_path)` like `create_rootfs`.
 """
 function create_windows_toolchain(f::Function, name::String; archive::Bool=true,
-                                  force::Bool=false, strict_paths::Bool=true)
-    tarball_path = image_tarball_path(name; force)
+                                  force::Bool=false, strict_paths::Bool=true,
+                                  tarball_path::String=image_tarball_path(name; force))
     artifact_hash = Pkg.Artifacts.create_artifact() do root
         f(root)
         normalize_windows_tree!(root)
