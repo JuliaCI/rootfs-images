@@ -31,21 +31,21 @@ julia --project -e 'import Pkg; Pkg.instantiate()'
 
 ## Testing out a rootfs image
 
-`test_rootfs.jl` runs a command, by default a shell, in an image listed in
-[`RootfsImages/Artifacts.toml`](RootfsImages/Artifacts.toml), named `<image>.<arch>.<tag>`:
+`test_rootfs.jl` runs a command, by default a shell, in an image listed in the
+[RootfsImages catalog](#serving-images-from-the-pkg-server), named `<image>.<arch>.<tag>`:
 
 ```
 julia --project test_rootfs.jl package_linux.x86_64.v8.13
 julia --project test_rootfs.jl package_linux.x86_64.v8.13 -- gcc --version
 ```
 
-It installs the image like Pkg installs any artifact (from the Pkg server, or else from the release, checking the tree hash), so it works before RootfsImages is registered. The current directory's `build/` is mapped as the working directory (`--map-build-dir=temp` for a throwaway one); `--help` lists the other options.
+It looks the name up in [`RootfsImages/Artifacts.toml`](RootfsImages/Artifacts.toml), which lists the latest release only; images of other releases are run by URL and tree hash (see below). It installs the image like Pkg installs any artifact (from the Pkg server, or else from the release, checking the tree hash), so it works before RootfsImages is registered. The current directory's `build/` is mapped as the working directory (`--map-build-dir=temp` for a throwaway one); `--help` lists the other options.
 
 - **On Linux**, a Linux image is the root of a [Sandbox.jl](https://github.com/staticfloat/Sandbox.jl) sandbox, as in CI.
 - **On Windows**, a Windows toolchain runs as in CI: the tree's own `bash` (not a login shell), with the toolchain's directories ahead of `PATH` and the `MSYSTEM` that its `toolchain.env` names, and `HOME` and the temporary directory outside the tree (`temp/`), so the installed tree is never modified.
 - **On Linux, for a Windows VM**: make an NTFS disk of the tree with `platforms/windows-kvm/ntfsdisk.sh` from [sandboxed-buildkite-agent](https://github.com/JuliaCI/sandboxed-buildkite-agent), as the CI hosts do, and attach it to the VM; in the guest, give its `JLTC` volume a drive letter and run `<letter>:\msys64\usr\bin\bash.exe` with the environment of `toolchain.env`.
 
-An image that is not listed (e.g. one built from a branch) can be given by URL and tree hash instead.
+An image that is not listed (of an older release, or built from a branch) can be given by URL and tree hash instead.
 Running with only `--url` prints the tree hash to pass with `--treehash`:
 
 ```
@@ -80,23 +80,44 @@ lists an image is registered in General, the image can be fetched by tree hash f
 `https://pkg.julialang.org/artifact/<git-tree-sha1>`, e.g. by the artifact store of
 [sandboxed-buildkite-agent](https://github.com/JuliaCI/sandboxed-buildkite-agent).
 
-The Pkg servers look at the artifacts of a version only when they first see it. When a
-release is published, the `register_images` job of the build workflow runs, once all images are
-built and uploaded:
+RootfsImages lists the images of the latest release only, and its version follows the tag:
+release `vA.B` is listed by RootfsImages `A.B.0`, and images added to that release later by
+`A.B.1`, `A.B.2`, .... A registered version stays in General, so the Pkg servers keep serving the images
+of older releases; locally, run those by URL and tree hash. (The Linux images of releases before
+v8.13 have symlinks whose target isn't ASCII, see below, so the Pkg servers can't serve them.)
+
+When a release is published, the `register_images` job of the build workflow runs, once all
+images are built and uploaded:
 
 ```
-julia RootfsImages/add_images.jl v8.13 <every image of the build matrix>
+julia RootfsImages/add_images.jl v8.14 <every image of the build matrix>
 ```
 
-This adds each image as `<image>.<arch>.<tag>`, keeping the entries of other tags (CI pins
-different releases of the same image, and release branches keep older ones), and bumps the
-patch version. The job opens a pull request with the result. GitHub doesn't start workflows
-for it, so close and reopen it to run the required checks, merge it, and register the merge
-commit with `@JuliaRegistrator register subdir=RootfsImages`.
+For a release newer than RootfsImages' version, this replaces the listed images with this
+release's, as `<image>.<arch>.<tag>`, and sets the version to `A.B.0`; for the release the
+version is of, it adds the images that aren't listed yet and bumps the patch version. It refuses
+tags that aren't `vA.B`, and releases older than the current version (versions only go up).
+The job opens a pull request with the result. Its workflows wait for approval (GitHub
+runs workflows of pull requests opened with `GITHUB_TOKEN` only once approved), so use
+"Approve workflows to run" on it to run the required checks, merge it, and register the merge commit with
+`@JuliaRegistrator register subdir=RootfsImages`.
+
+A version that skips a minor version (a tag that was never catalogued) isn't sequential for
+General's AutoMerge, so a package author approves it with `[merge approved]` on the General
+pull request. A new major release (v9.0, RootfsImages 9.0.0) is a breaking version for General:
+give its Registrator comment release notes that mention breaking changes.
+
+**Upload every image of a version before registering it.** A Pkg server reads the
+`Artifacts.toml` of a registered version once, when it first sees the version, and never
+again; an artifact it fails to download is never retried. An image that isn't on its release
+yet when the version is registered is therefore not served for that version. The workflow
+keeps this order (the job needs every build, and `add_images.jl` downloads each image from the
+release); when listing images by hand with `--from`, upload them before registering.
 
 A listed name never changes content: `add_images.jl` refuses an image whose tree hash differs
 from the one listed, and writes nothing unless every image passes its checks. It also refuses
 images with a symlink whose target isn't ASCII (Pkg and the Pkg servers disagree on their tree
 hash, JuliaLang/Pkg.jl#4707), and Windows toolchains that break the tree rules. To list images
-added to an older release, run it with that tag and their names by hand; `--from DIR` reads the
-tarballs from `DIR` instead of the release, to prepare the entries before uploading them.
+added to the current release later, run it with that tag and their names by hand; `--from DIR`
+reads the tarballs from `DIR` instead of the release, to prepare the entries before uploading
+them.

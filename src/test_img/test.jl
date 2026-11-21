@@ -46,15 +46,18 @@ end
     ensure_image_installed(name) -> Base.SHA1
 
 Install the image `name` (`IMAGE.ARCH.TAG`) as listed in this checkout's
-`RootfsImages/Artifacts.toml`, which needs no registered version of RootfsImages: Pkg fetches it
-from the Pkg server by tree hash, or else from the release URL, and checks the tree hash.
+`RootfsImages/Artifacts.toml` (the latest release), which needs no registered version of
+RootfsImages: Pkg fetches it from the Pkg server by tree hash, or else from the release URL, and
+checks the tree hash.
 """
 function ensure_image_installed(name::String)
     artifacts_toml = joinpath(dirname(dirname(@__DIR__)), "RootfsImages", "Artifacts.toml")
     treehash = Pkg.Artifacts.artifact_hash(name, artifacts_toml)
     if treehash === nothing
         known = sort(collect(keys(Pkg.TOML.parsefile(artifacts_toml))))
-        throw(ArgumentError("$(name) is not in $(artifacts_toml); known images: $(join(known, ", "))"))
+        throw(ArgumentError("$(name) is not in $(artifacts_toml), which lists the latest release only: " *
+                            "$(join(known, ", ")). Run an image of another release with " *
+                            "--url URL --treehash HASH."))
     end
     Pkg.Artifacts.ensure_artifact_installed(name, artifacts_toml)
     return treehash
