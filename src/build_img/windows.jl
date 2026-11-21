@@ -144,3 +144,28 @@ function create_windows_toolchain(f::Function, name::String; archive::Bool=true,
     @info("Created $(name)", artifact_hash)
     return archive_image(artifact_hash, tarball_path; archive)
 end
+
+"""
+    toolchain_cmd(root, args; home, tmp) -> Cmd
+
+A command that runs `args` (an argv) in the toolchain tree at `root` the way the CI job wrapper
+does: under the tree's non-login `bash` (an interactive one when `args` is empty),
+with `PATH` = the tree's `PATH_PREPEND` + the inherited `PATH` minus Git for Windows' own MSYS
+directories, the tree's `MSYSTEM` and `MSYS2_PATH_TYPE`, and `HOME`/`TMP`/`TEMP`/`TMPDIR`
+outside the tree, so that it stays unmodified (and `verify_artifact` true). A login shell
+(`bash -l`) would not: MSYS2's profile runs post-install scripts that rewrite `etc/mtab`.
+"""
+function toolchain_cmd(root::String, args::Vector{String}; home::String, tmp::String)
+    Sys.iswindows() || error("Windows toolchains only run on Windows")
+    env_vars = parse_toolchain_env(read(joinpath(root, "toolchain.env"), String))
+    prepend = [joinpath(root, split(entry, '/')...) for entry in toolchain_path_entries(env_vars)]
+    inherited = filter(split(get(ENV, "PATH", ""), ';')) do entry
+        !isempty(entry) && !occursin(r"\\Git\\(usr|mingw64)\\bin\\?$"i, entry)
+    end
+    bash = joinpath(root, "msys64", "usr", "bin", "bash.exe")
+    # The tree's bash execs the command (an argv, as on Linux), after its PATH lookup
+    cmd = isempty(args) ? `$(bash)` : `$(bash) -c 'exec "$@"' bash $(args)`
+    return addenv(cmd, "PATH" => join(vcat(prepend, inherited), ';'),
+                  "MSYSTEM" => env_vars["MSYSTEM"], "MSYS2_PATH_TYPE" => env_vars["MSYS2_PATH_TYPE"],
+                  "HOME" => home, "TMP" => tmp, "TEMP" => tmp, "TMPDIR" => tmp)
+end
