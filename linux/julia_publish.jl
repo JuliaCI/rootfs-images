@@ -88,7 +88,7 @@ packages = [
     "zlib1g-dev",            # libdmg-hfsplus
 ]
 
-artifact_hash, tarball_path, = debootstrap(arch, image; release = "trixie", archive, packages) do rootfs, chroot_ENV
+artifact_hash, tarball_path, = debootstrap(arch, image; archive, packages) do rootfs, chroot_ENV
     env = copy(chroot_ENV)
     env["DEBIAN_FRONTEND"] = "noninteractive"
     my_chroot(cmd) = root_chroot(rootfs, "bash", "-eu", "-o", "pipefail", "-c", cmd; ENV=env)
