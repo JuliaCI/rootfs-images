@@ -43,7 +43,6 @@ It looks the name up in [`RootfsImages/Artifacts.toml`](RootfsImages/Artifacts.t
 
 - **On Linux**, a Linux image is the root of a [Sandbox.jl](https://github.com/staticfloat/Sandbox.jl) sandbox, as in CI.
 - **On Windows**, a Windows toolchain runs as in CI: the tree's own `bash` (not a login shell), with the toolchain's directories ahead of `PATH` and the `MSYSTEM` that its `toolchain.env` names, and `HOME` and the temporary directory outside the tree (`temp/`), so the installed tree is never modified.
-- **On Linux, for a Windows VM**: make an NTFS disk of the tree with `platforms/windows-kvm/ntfsdisk.sh` from [sandboxed-buildkite-agent](https://github.com/JuliaCI/sandboxed-buildkite-agent), as the CI hosts do, and attach it to the VM; in the guest, give its `JLTC` volume a drive letter and run `<letter>:\msys64\usr\bin\bash.exe` with the environment of `toolchain.env`.
 
 An image that is not listed (of an older release, or built from a branch) can be given by URL and tree hash instead.
 Running with only `--url` prints the tree hash to pass with `--treehash`:
@@ -62,7 +61,7 @@ A `package_windows.<arch>` image is a tree with:
 - `toolchain.env`: the environment the toolchain needs, as `KEY=VALUE` lines: `PATH_PREPEND` (`;`-separated directories, relative to the tree), `MSYSTEM` and `MSYS2_PATH_TYPE=inherit`, each exactly once;
 - `toolchain.json`: which image this is, what it was made from, and the installed MSYS2 packages.
 
-New toolchains are x86_64 only, as 32-bit Windows is being phased out; the release branches that still build for 32-bit Windows use `package_windows.i686` of v8.5 (it runs on x86_64 Windows too). CI attaches the tree to the Windows VM as a read-only disk with drive letter `T:`, and the build step runs through julia-buildkite's `utilities/windows/toolchain.sh`. A tree must follow the rules in [`src/windows_rules.jl`](src/windows_rules.jl): every file mode 0755 (on Windows, Tar.jl turns 0644 into an ACL that forbids running a program), only files and directories, names valid on NTFS, and short paths. The builders check them, and so does `add_images.jl`.
+New toolchains are x86_64 only, as 32-bit Windows is being phased out; the release branches that still build for 32-bit Windows use `package_windows.i686` of v8.5 (it runs on x86_64 Windows too). CI installs the tree as a Pkg artifact into the job's cache (julia-buildkite's `utilities/windows/install_toolchain.jl`) and runs the build through `utilities/windows/toolchain.sh`. A tree must follow the rules in [`src/windows_rules.jl`](src/windows_rules.jl): every file mode 0755 (on Windows, Tar.jl turns 0644 into an ACL that forbids running a program), only files and directories, names valid on NTFS, and short paths. The builders check them, and so does `add_images.jl`.
 
 New toolchains are built natively on a `windows-2022` runner, as rows of the build workflow. The trees of the tags that predate this (v8.5, v8.10, built as Docker images) were converted from the published images, by digest:
 

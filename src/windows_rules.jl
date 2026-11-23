@@ -2,9 +2,8 @@
 # on, the `toolchain.env` format, and checks on a tarball's headers. Only uses the Tar standard
 # library, so `RootfsImages/add_images.jl` can include it without an environment.
 #
-# A tree holds `msys64/`, optionally `gcc/`, `toolchain.env` and `toolchain.json`. Consumers use
-# it in three ways: extracted by Pkg on native Windows, converted into an NTFS disk for a KVM
-# guest, or listed in RootfsImages. Hence:
+# A tree holds `msys64/`, optionally `gcc/`, `toolchain.env` and `toolchain.json`. It is
+# installed by Pkg on Windows (in CI, and by test_rootfs.jl) and listed in RootfsImages. Hence:
 # - every file is 0755: on Windows, Tar.jl turns the mode into an ACL, and a 0644 `.exe` can't be
 #   run ("Access is denied"). Pkg's tree hash on Windows also derives the mode from
 #   `Sys.isexecutable`, so only "all files executable" hashes the same everywhere;
@@ -12,7 +11,7 @@
 #   copies them instead, which changes nothing in the hash but is brittle), no hard links (the
 #   builders materialize them), no special files;
 # - names must be valid and distinct on NTFS (case-insensitive), and paths short enough to leave
-#   room for the prefix a consumer installs the tree under (the Pkg depot, `T:\`).
+#   room for the prefix a consumer installs the tree under (the Pkg depot).
 
 # Top-level entries: name => type (`msys64` and the two files are required)
 const WINDOWS_TREE_TOP_LEVEL = Dict("msys64" => :directory, "gcc" => :directory,
