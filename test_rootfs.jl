@@ -30,9 +30,8 @@ if isfile(joinpath(root, "toolchain.env"))
     # (CI needs a PowerShell hop to leave Git for Windows' bash); HOME and the temporary
     # directory stay outside the tree, so that it is not modified.
     if !Sys.iswindows()
-        error("This is a Windows toolchain, which runs on Windows. To use it in a Windows VM, ",
-              "make a disk of it with sandboxed-buildkite-agent's platforms/windows-kvm/ntfsdisk.sh ",
-              "($(root)) and attach it; see the README.")
+        error("This is a Windows toolchain, which runs on Windows (in a Windows VM too: run ",
+              "this script there).")
     end
     repo_temp = joinpath(@__DIR__, "temp")
     home = mkpath(joinpath(repo_temp, "home"))
