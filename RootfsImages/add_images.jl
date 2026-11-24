@@ -1,9 +1,11 @@
 # List the images of a rootfs-images release in RootfsImages/Artifacts.toml, as
-# `<image>.<arch>.<tag>`, and set the package's version to follow the tag:
+# `<image>.<arch>`, and set the package's version to follow the tag:
 #
 #     julia RootfsImages/add_images.jl v8.14 package_linux.x86_64 package_linux.i686 ...
 #
-# RootfsImages lists the images of the latest release, `vA.B`, and its version is `A.B.<patch>`:
+# RootfsImages lists the images of the latest release, `vA.B`, and its version is `A.B.<patch>`.
+# The names leave out the tag, which the version already gives: `artifact"package_linux.x86_64"`
+# follows RootfsImages upgrades, and a `[compat]` bound pins a release.
 # - for a newer release, the images replace every entry and the version becomes `A.B.0`;
 # - for the release the version is of (images added to it later), the new images are added and
 #   the patch version is bumped. Nothing new changes nothing.
@@ -18,9 +20,11 @@
 #   JuliaLang/Pkg.jl#4707);
 # - Windows toolchains (`package_windows.*`) must follow the tree rules of
 #   `src/windows_rules.jl`, and their `toolchain.json` must name this image and tag;
-# - an entry that exists must keep its tree hash: a published name never changes content, CI
-#   pins it. Re-adding an image with the same tree hash changes nothing, unless the asset at the
-#   recorded URL changed its bytes (a download from it would then fail the recorded sha256).
+# - within a release, an entry that exists must keep its tree hash: a released image never
+#   changes, CI pins its tree hash. Re-adding an image with the same tree hash changes nothing,
+#   unless the asset at the recorded URL changed its bytes (a download from it would then fail
+#   the recorded sha256). A newer release replaces the entries, so the same name then holds
+#   that release's image.
 # Nothing is written unless every image passes.
 #
 # Only uses standard libraries, so it runs without an environment.
@@ -74,7 +78,7 @@ end
 Check every image, then list them in `artifacts_toml` and set the version in `project_toml`:
 for a release `vA.B` newer than the version, the images replace every entry and the version
 becomes `A.B.0`; for the release the version is of, the new images are added and the patch
-version is bumped. Returns the names that were written.
+version is bumped. Entries are named `<image>.<arch>`. Returns the names that were written.
 """
 function add_images(artifacts_toml, project_toml, tag, images; from=nothing)
     release = parse_tag(tag)
@@ -91,7 +95,7 @@ function add_images(artifacts_toml, project_toml, tag, images; from=nothing)
     entries = []
     for image in images
         occursin(r"^[a-z0-9_]+\.[a-z0-9_]+$", image) || error("$(image) is not IMAGE.ARCH")
-        name = "$(image).$(tag)"
+        name = image
         url = release_url(tag, image)
         info = mktempdir() do dir
             tarball = if from === nothing
@@ -102,12 +106,12 @@ function add_images(artifacts_toml, project_toml, tag, images; from=nothing)
             inspect_image(tarball, image, tag)
         end
         entry = (; name, url, info...)
-        # Also when replacing: a name listed by an earlier version keeps its content
-        if haskey(existing, name)
+        # Within the release: a listed image keeps its content (a newer release replaces it)
+        if !replacing && haskey(existing, name)
             old = existing[name]["git-tree-sha1"]
             if old != info.tree_hash
-                error("$(name) is already listed with tree hash $(old), but the image now has $(info.tree_hash); " *
-                      "a published image never changes: publish it under a new tag")
+                error("$(name) of $(tag) is already listed with tree hash $(old), but the image now has $(info.tree_hash); " *
+                      "a released image never changes: publish it under a new tag")
             end
             for download in get(existing[name], "download", [])
                 if download["url"] == url && download["sha256"] != info.sha256
@@ -116,7 +120,6 @@ function add_images(artifacts_toml, project_toml, tag, images; from=nothing)
                 end
             end
             @info "$(name) is already listed with this tree hash" tree_hash=info.tree_hash
-            replacing && push!(entries, entry)
             continue
         end
         @info "Adding $(name)" info.tree_hash info.sha256

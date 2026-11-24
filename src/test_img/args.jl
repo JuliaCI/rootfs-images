@@ -4,11 +4,11 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
     end
     settings = ArgParse.ArgParseSettings(;
         description = string(
-            "Run commands inside rootfs images. Name the image as IMAGE.ARCH.TAG ",
+            "Run commands inside rootfs images. Name the image as IMAGE.ARCH ",
             "(an entry of RootfsImages/Artifacts.toml), or give --url and --treehash.",
         ),
         usage = string(
-            "test_rootfs.jl [options] IMAGE.ARCH.TAG [--] [command...]\n",
+            "test_rootfs.jl [options] IMAGE.ARCH [--] [command...]\n",
             "       test_rootfs.jl [options] --url URL [--treehash HASH] [--] [command...]",
         ),
     )
@@ -89,7 +89,7 @@ function parse_test_args(args::AbstractVector, file::AbstractString)
     if url === nothing && isempty(strip(parsed_args["treehash"]))
         # Whether it names an image is up to RootfsImages/Artifacts.toml (ensure_image_installed)
         if isempty(command)
-            throw(ArgumentError("Name the image as IMAGE.ARCH.TAG (e.g. package_linux.x86_64.v8.13), or give --url"))
+            throw(ArgumentError("Name the image as IMAGE.ARCH (e.g. package_linux.x86_64), or give --url"))
         end
         image = popfirst!(command)
         # ArgParse keeps a `--` that follows the first positional argument

@@ -32,11 +32,11 @@ julia --project -e 'import Pkg; Pkg.instantiate()'
 ## Testing out a rootfs image
 
 `test_rootfs.jl` runs a command, by default a shell, in an image listed in the
-[RootfsImages catalog](#serving-images-from-the-pkg-server), named `<image>.<arch>.<tag>`:
+[RootfsImages catalog](#serving-images-from-the-pkg-server), named `<image>.<arch>`:
 
 ```
-julia --project test_rootfs.jl package_linux.x86_64.v8.13
-julia --project test_rootfs.jl package_linux.x86_64.v8.13 -- gcc --version
+julia --project test_rootfs.jl package_linux.x86_64
+julia --project test_rootfs.jl package_linux.x86_64 -- gcc --version
 ```
 
 It looks the name up in [`RootfsImages/Artifacts.toml`](RootfsImages/Artifacts.toml), which lists the latest release only; images of other releases are run by URL and tree hash (see below). It installs the image like Pkg installs any artifact (from the Pkg server, or else from the release, checking the tree hash), so it works before RootfsImages is registered. The current directory's `build/` is mapped as the working directory (`--map-build-dir=temp` for a throwaway one); `--help` lists the other options.
@@ -81,8 +81,12 @@ lists an image is registered in General, the image can be fetched by tree hash f
 
 RootfsImages lists the images of the latest release only, and its version follows the tag:
 release `vA.B` is listed by RootfsImages `A.B.0`, and images added to that release later by
-`A.B.1`, `A.B.2`, .... A registered version stays in General, so the Pkg servers keep serving the images
-of older releases; locally, run those by URL and tree hash. (The Linux images of releases before
+`A.B.1`, `A.B.2`, .... The images are named `<image>.<arch>`, without the tag, which the
+version already gives. A package that depends on RootfsImages uses e.g.
+`artifact"package_linux.x86_64"` and gets the image of the release its RootfsImages version
+lists; a `[compat]` bound on RootfsImages pins a release. A registered version stays in
+General, so the Pkg servers keep serving the images of older releases; locally, run those by
+URL and tree hash. (The Linux images of releases before
 v8.13 have symlinks whose target isn't ASCII, see below, so the Pkg servers can't serve them.)
 
 When a release is published, the `register_images` job of the build workflow runs, once all
@@ -93,7 +97,7 @@ julia RootfsImages/add_images.jl v8.14 <every image of the build matrix>
 ```
 
 For a release newer than RootfsImages' version, this replaces the listed images with this
-release's, as `<image>.<arch>.<tag>`, and sets the version to `A.B.0`; for the release the
+release's, as `<image>.<arch>`, and sets the version to `A.B.0`; for the release the
 version is of, it adds the images that aren't listed yet and bumps the patch version. It refuses
 tags that aren't `vA.B`, and releases older than the current version (versions only go up).
 The job opens a pull request with the result. Its workflows wait for approval (GitHub
@@ -113,8 +117,10 @@ yet when the version is registered is therefore not served for that version. The
 keeps this order (the job needs every build, and `add_images.jl` downloads each image from the
 release); when listing images by hand with `--from`, upload them before registering.
 
-A listed name never changes content: `add_images.jl` refuses an image whose tree hash differs
-from the one listed, and writes nothing unless every image passes its checks. It also refuses
+Within a release, a listed name never changes content: `add_images.jl` refuses an image of
+the current release whose tree hash differs from the one listed, and writes nothing unless every
+image passes its checks. A newer release replaces the entries, so a name then holds that
+release's image. It also refuses
 images with a symlink whose target isn't ASCII (Pkg and the Pkg servers disagree on their tree
 hash, JuliaLang/Pkg.jl#4707), and Windows toolchains that break the tree rules. To list images
 added to the current release later, run it with that tag and their names by hand; `--from DIR`

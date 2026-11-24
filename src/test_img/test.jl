@@ -45,7 +45,7 @@ end
 """
     ensure_image_installed(name) -> Base.SHA1
 
-Install the image `name` (`IMAGE.ARCH.TAG`) as listed in this checkout's
+Install the image `name` (`IMAGE.ARCH`) as listed in this checkout's
 `RootfsImages/Artifacts.toml` (the latest release), which needs no registered version of
 RootfsImages: Pkg fetches it from the Pkg server by tree hash, or else from the release URL, and
 checks the tree hash.
