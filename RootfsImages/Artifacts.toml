@@ -1,327 +1,327 @@
-["agent_linux.aarch64.v8.14"]
+["agent_linux.aarch64"]
 git-tree-sha1 = "09db53c7ef6228c25cddaf4f2776be52c58ca3a3"
 lazy = true
 
-    [["agent_linux.aarch64.v8.14".download]]
+    [["agent_linux.aarch64".download]]
     sha256 = "cdde457701ed8ea5b5f9097eb3375de0406444a171b6ebbc6b59fff02e89dcd9"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/agent_linux.aarch64.tar.gz"
 
-["agent_linux.armv7l.v8.14"]
+["agent_linux.armv7l"]
 git-tree-sha1 = "0ee2564d457f237d938a24be7247d34e8eb0496b"
 lazy = true
 
-    [["agent_linux.armv7l.v8.14".download]]
+    [["agent_linux.armv7l".download]]
     sha256 = "75fe9e07145a3e2b261a215ee0afca2888a9f1f2c39397c7f7fb4afe9980de72"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/agent_linux.armv7l.tar.gz"
 
-["agent_linux.i686.v8.14"]
+["agent_linux.i686"]
 git-tree-sha1 = "a0874c04f47e47914ac0ed1147fe10f84cd99c0e"
 lazy = true
 
-    [["agent_linux.i686.v8.14".download]]
+    [["agent_linux.i686".download]]
     sha256 = "ba236f4123992ed4ff1307deb06208a662c24844f51e350630433c59a17fed4c"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/agent_linux.i686.tar.gz"
 
-["agent_linux.ppc64le.v8.14"]
+["agent_linux.ppc64le"]
 git-tree-sha1 = "7f82481faceed1e06ec497026edb6f3b8f20a31f"
 lazy = true
 
-    [["agent_linux.ppc64le.v8.14".download]]
+    [["agent_linux.ppc64le".download]]
     sha256 = "4ac5cd52ff66ef2abde170a21e90cf1fdb6def307fada356ebf734789cf74805"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/agent_linux.ppc64le.tar.gz"
 
-["agent_linux.x86_64.v8.14"]
+["agent_linux.x86_64"]
 git-tree-sha1 = "5dfd80cf4060069bfaca847209d61e862a7905d7"
 lazy = true
 
-    [["agent_linux.x86_64.v8.14".download]]
+    [["agent_linux.x86_64".download]]
     sha256 = "ceafbaee324727ea390f57e7f1b2163c26ee75c3b802cf4580a9940bf19beea4"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/agent_linux.x86_64.tar.gz"
 
-["aws_uploader.x86_64.v8.14"]
+["aws_uploader.x86_64"]
 git-tree-sha1 = "82af944ec212abfdfa368155063d040836092df9"
 lazy = true
 
-    [["aws_uploader.x86_64.v8.14".download]]
+    [["aws_uploader.x86_64".download]]
     sha256 = "e00c263377bc2b8c64c215ed2539556ed5d44d76799d3da6ecbe2dd2f8d4c967"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/aws_uploader.x86_64.tar.gz"
 
-["debian_minimal.aarch64.v8.14"]
+["debian_minimal.aarch64"]
 git-tree-sha1 = "3f29597350db9ff1e50f2f0299ab87da5cadb4fb"
 lazy = true
 
-    [["debian_minimal.aarch64.v8.14".download]]
+    [["debian_minimal.aarch64".download]]
     sha256 = "c78bb1d0d253d98792267aa79d7bf0c7845ecaa0ed71939c3f714bfcf8552e33"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/debian_minimal.aarch64.tar.gz"
 
-["debian_minimal.armv7l.v8.14"]
+["debian_minimal.armv7l"]
 git-tree-sha1 = "c1d95c461f3a0e92a7ddeeaf7bcdfa03eda12de9"
 lazy = true
 
-    [["debian_minimal.armv7l.v8.14".download]]
+    [["debian_minimal.armv7l".download]]
     sha256 = "2eaa349350e9618b21104025d74fd1e07edbee89f9bba69a5b3777f870abb0b6"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/debian_minimal.armv7l.tar.gz"
 
-["debian_minimal.i686.v8.14"]
+["debian_minimal.i686"]
 git-tree-sha1 = "cb3ada0c59aa569a2915f2a25a06fab4dd67f788"
 lazy = true
 
-    [["debian_minimal.i686.v8.14".download]]
+    [["debian_minimal.i686".download]]
     sha256 = "df0e18460138617e57cb8cfa650541a3705dc4ae13526def20fe00124b1a5298"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/debian_minimal.i686.tar.gz"
 
-["debian_minimal.ppc64le.v8.14"]
+["debian_minimal.ppc64le"]
 git-tree-sha1 = "563f4fb95baf0b0d1cd28af739079c67eee302e3"
 lazy = true
 
-    [["debian_minimal.ppc64le.v8.14".download]]
+    [["debian_minimal.ppc64le".download]]
     sha256 = "65108e481724b42df800616254431dc68bc89c8858d944bdcc5e3e9867081651"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/debian_minimal.ppc64le.tar.gz"
 
-["debian_minimal.x86_64.v8.14"]
+["debian_minimal.x86_64"]
 git-tree-sha1 = "ae30234581337cbdc6f4efb74c3fbf74d0e9af5c"
 lazy = true
 
-    [["debian_minimal.x86_64.v8.14".download]]
+    [["debian_minimal.x86_64".download]]
     sha256 = "b80490d5021253e0d4eb258c2492845248dbd9874d9f4eceaea826446b4b4d2c"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/debian_minimal.x86_64.tar.gz"
 
-["julia_publish.x86_64.v8.14"]
+["julia_publish.x86_64"]
 git-tree-sha1 = "9760253ef11092a343609b2fcd3f1f49bbd45f37"
 lazy = true
 
-    [["julia_publish.x86_64.v8.14".download]]
+    [["julia_publish.x86_64".download]]
     sha256 = "fb5bf7a70ed28f88aadcd2ec2c23a2ace72284b3e95f80611360eb0f994614f8"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/julia_publish.x86_64.tar.gz"
 
-["latex.x86_64.v8.14"]
+["latex.x86_64"]
 git-tree-sha1 = "3e967fc98e905580a3af8e231ef8cf883ed07f58"
 lazy = true
 
-    [["latex.x86_64.v8.14".download]]
+    [["latex.x86_64".download]]
     sha256 = "0153e875ac0394f3d93a15e89a6306bcbcb915bbc1549782f83a0ca92a5dbfd0"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/latex.x86_64.tar.gz"
 
-["llvm_passes.aarch64.v8.14"]
+["llvm_passes.aarch64"]
 git-tree-sha1 = "0b0ef449025fc0ebbcf2a656158929f1081ce3e2"
 lazy = true
 
-    [["llvm_passes.aarch64.v8.14".download]]
+    [["llvm_passes.aarch64".download]]
     sha256 = "8d9fd56ff122b35680f647aa1f9c531d888e8cb2ba686b2f65c2f4fa8220adea"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/llvm_passes.aarch64.tar.gz"
 
-["llvm_passes.armv7l.v8.14"]
+["llvm_passes.armv7l"]
 git-tree-sha1 = "894f8b7e25d9a2aab4fd298ec99af181ae466cef"
 lazy = true
 
-    [["llvm_passes.armv7l.v8.14".download]]
+    [["llvm_passes.armv7l".download]]
     sha256 = "5727230ab8f137f71aced66ea8e2e16d06b8a467276c6cea259184233c0f8d5d"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/llvm_passes.armv7l.tar.gz"
 
-["llvm_passes.i686.v8.14"]
+["llvm_passes.i686"]
 git-tree-sha1 = "70d90aca71ec9d68084f1aa0311b3830b1a73d13"
 lazy = true
 
-    [["llvm_passes.i686.v8.14".download]]
+    [["llvm_passes.i686".download]]
     sha256 = "65c0180d8945af9174e5b2e7362e4ab9be1770cd60fd06b080b24a778db2f58c"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/llvm_passes.i686.tar.gz"
 
-["llvm_passes.powerpc64le.v8.14"]
+["llvm_passes.powerpc64le"]
 git-tree-sha1 = "d7ed7a41fa7882c797667601418ee718ca3978b0"
 lazy = true
 
-    [["llvm_passes.powerpc64le.v8.14".download]]
+    [["llvm_passes.powerpc64le".download]]
     sha256 = "dd83f03791447b7941d673afe4d3fc3c33407cefe66dbf043cfa17a1c1cb23b6"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/llvm_passes.powerpc64le.tar.gz"
 
-["llvm_passes.x86_64.v8.14"]
+["llvm_passes.x86_64"]
 git-tree-sha1 = "9ddfb1f9067cb4d2f53c27960132e5a03ce5065e"
 lazy = true
 
-    [["llvm_passes.x86_64.v8.14".download]]
+    [["llvm_passes.x86_64".download]]
     sha256 = "ccb278751248b3a54c7d751e56e8086e43c2dbc68ffe44f05e7e1b228e928444"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/llvm_passes.x86_64.tar.gz"
 
-["npm_linux.x86_64.v8.14"]
+["npm_linux.x86_64"]
 git-tree-sha1 = "de579b4225e1afb22be72d43a9150849f0732d38"
 lazy = true
 
-    [["npm_linux.x86_64.v8.14".download]]
+    [["npm_linux.x86_64".download]]
     sha256 = "771772ce4027e1c741188bbde84322bb53788557406372d332466e5e12c9f11b"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/npm_linux.x86_64.tar.gz"
 
-["package_linux.aarch64.v8.14"]
+["package_linux.aarch64"]
 git-tree-sha1 = "d9b875772d8c569935492b36580bd7658ff99b13"
 lazy = true
 
-    [["package_linux.aarch64.v8.14".download]]
+    [["package_linux.aarch64".download]]
     sha256 = "8c324cbdc9a0cc50625faa154a19bb59d93f2f390b975b79afdcd8d60067ae38"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/package_linux.aarch64.tar.gz"
 
-["package_linux.armv7l.v8.14"]
+["package_linux.armv7l"]
 git-tree-sha1 = "717969bcb1c2bca2dd2d98ac71ab1a6483c3a949"
 lazy = true
 
-    [["package_linux.armv7l.v8.14".download]]
+    [["package_linux.armv7l".download]]
     sha256 = "07ee18352136a86c4f5aadb236ac6d8bd244304696f070a578efe08bcd2a46af"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/package_linux.armv7l.tar.gz"
 
-["package_linux.i686.v8.14"]
+["package_linux.i686"]
 git-tree-sha1 = "26c3228ee5de81261653334e3471a1ff65c536ee"
 lazy = true
 
-    [["package_linux.i686.v8.14".download]]
+    [["package_linux.i686".download]]
     sha256 = "5a4189f2f85856c75e52c91dc17617ba2ab252b8ed8c0a3e82bcfec0dcdc1cb4"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/package_linux.i686.tar.gz"
 
-["package_linux.powerpc64le.v8.14"]
+["package_linux.powerpc64le"]
 git-tree-sha1 = "89d4c0c8b834f562f77da34ee474f707d405a369"
 lazy = true
 
-    [["package_linux.powerpc64le.v8.14".download]]
+    [["package_linux.powerpc64le".download]]
     sha256 = "54d4b14ffa6263a23142bccce7771b26d2df6ac02664bf443aa4815b338076e1"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/package_linux.powerpc64le.tar.gz"
 
-["package_linux.x86_64.v8.14"]
+["package_linux.x86_64"]
 git-tree-sha1 = "411212e14a3c8c4af1aae5ebe367c24728dcee65"
 lazy = true
 
-    [["package_linux.x86_64.v8.14".download]]
+    [["package_linux.x86_64".download]]
     sha256 = "38289ed08ae490e45a7d8b7a1201e706d0e4fd5457e829a2d381dca32343d7b8"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/package_linux.x86_64.tar.gz"
 
-["package_linux_mmtk.aarch64.v8.14"]
+["package_linux_mmtk.aarch64"]
 git-tree-sha1 = "9680f333323af0aa521a05e8158376daf7b3130e"
 lazy = true
 
-    [["package_linux_mmtk.aarch64.v8.14".download]]
+    [["package_linux_mmtk.aarch64".download]]
     sha256 = "1094e69a06423a9129327aa42f8c22aaf82d57c2bfe36347b2ceea0b34dea3cc"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/package_linux_mmtk.aarch64.tar.gz"
 
-["package_linux_mmtk.x86_64.v8.14"]
+["package_linux_mmtk.x86_64"]
 git-tree-sha1 = "cf1579d55e70c7e62fd5da970051f9f1c25f9e4d"
 lazy = true
 
-    [["package_linux_mmtk.x86_64.v8.14".download]]
+    [["package_linux_mmtk.x86_64".download]]
     sha256 = "0aedb76c84d1364e0a1155655ef0cd74a8d98522f30bf7f460704d7fc2d74890"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/package_linux_mmtk.x86_64.tar.gz"
 
-["package_linux_riscv64.x86_64.v8.14"]
+["package_linux_riscv64.x86_64"]
 git-tree-sha1 = "0fe3da424313a0d7e8bc7c383d41c495637e54f2"
 lazy = true
 
-    [["package_linux_riscv64.x86_64.v8.14".download]]
+    [["package_linux_riscv64.x86_64".download]]
     sha256 = "1f0f0c0da2954298407b7ca2df6ffeb1998a44ed668c8bcb320609732e0ce6a4"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/package_linux_riscv64.x86_64.tar.gz"
 
-["package_musl.x86_64.v8.14"]
+["package_musl.x86_64"]
 git-tree-sha1 = "1e25809f4f43df9c06ad4b44032ccc36ee4b5d5d"
 lazy = true
 
-    [["package_musl.x86_64.v8.14".download]]
+    [["package_musl.x86_64".download]]
     sha256 = "c340c9c92c6089f7b349d6ff2940edc6a90bea9cdf7a608743a90e12a48f390b"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/package_musl.x86_64.tar.gz"
 
-["package_windows.x86_64.v8.14"]
+["package_windows.x86_64"]
 git-tree-sha1 = "c1ee19169e6c3ddc16a28d609a00245aa5241a78"
 lazy = true
 
-    [["package_windows.x86_64.v8.14".download]]
+    [["package_windows.x86_64".download]]
     sha256 = "be4f68b9143e7a3ccf6e019bb93a76b3cf912b6ddd17f60b6ec6083df2015534"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/package_windows.x86_64.tar.gz"
 
-["pkgserver_logsync.x86_64.v8.14"]
+["pkgserver_logsync.x86_64"]
 git-tree-sha1 = "44be2bf07c097410339c468377db524c487ea699"
 lazy = true
 
-    [["pkgserver_logsync.x86_64.v8.14".download]]
+    [["pkgserver_logsync.x86_64".download]]
     sha256 = "36488e2b4985ea1ebe760c312e709c79c870f0bcf8f1b24043edf2ae09949a06"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/pkgserver_logsync.x86_64.tar.gz"
 
-["rr.aarch64.v8.14"]
+["rr.aarch64"]
 git-tree-sha1 = "b23a896b39e97d591056e735f5d86edea4d3820d"
 lazy = true
 
-    [["rr.aarch64.v8.14".download]]
+    [["rr.aarch64".download]]
     sha256 = "0e73b8d56a72054f50d362f0c60fe11f097acb2f3b2aac4070a3a8754199a536"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/rr.aarch64.tar.gz"
 
-["rr.x86_64.v8.14"]
+["rr.x86_64"]
 git-tree-sha1 = "43c9819d436181ac6438d2f16ca29509a3e2bc80"
 lazy = true
 
-    [["rr.x86_64.v8.14".download]]
+    [["rr.x86_64".download]]
     sha256 = "701b58c226fd72c8bc6d1073639a263ad811c0ae62e7c7097528050c3f1ae84d"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/rr.x86_64.tar.gz"
 
-["tester_linux.aarch64.v8.14"]
+["tester_linux.aarch64"]
 git-tree-sha1 = "6c552b9856386db27dd2ed365233fea2e15bbdd3"
 lazy = true
 
-    [["tester_linux.aarch64.v8.14".download]]
+    [["tester_linux.aarch64".download]]
     sha256 = "04d17a89f179c0abd681498785ef3f3a304c70d1cc20676749a85ef4e0f83443"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/tester_linux.aarch64.tar.gz"
 
-["tester_linux.armv7l.v8.14"]
+["tester_linux.armv7l"]
 git-tree-sha1 = "e6b2b6ea3d36e03b07093a7ee3d21e48a57dfa2b"
 lazy = true
 
-    [["tester_linux.armv7l.v8.14".download]]
+    [["tester_linux.armv7l".download]]
     sha256 = "fdb9a7c48afafc4033fe508e865724c153358de4a65822c521572c85792d578a"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/tester_linux.armv7l.tar.gz"
 
-["tester_linux.i686.v8.14"]
+["tester_linux.i686"]
 git-tree-sha1 = "dadccd1d8e59d17633a8dc689acdf0a2165b27cd"
 lazy = true
 
-    [["tester_linux.i686.v8.14".download]]
+    [["tester_linux.i686".download]]
     sha256 = "1b8b0375611bfe837cf1991278a05076b3d13788c920df5888a812e0b94b5729"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/tester_linux.i686.tar.gz"
 
-["tester_linux.powerpc64le.v8.14"]
+["tester_linux.powerpc64le"]
 git-tree-sha1 = "434b96295c46951b7c67abaa5c33dabf202e74e5"
 lazy = true
 
-    [["tester_linux.powerpc64le.v8.14".download]]
+    [["tester_linux.powerpc64le".download]]
     sha256 = "65a67647a84ab45350283459c3ad57b4200b82812373f467d2ca371406c5258c"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/tester_linux.powerpc64le.tar.gz"
 
-["tester_linux.x86_64.v8.14"]
+["tester_linux.x86_64"]
 git-tree-sha1 = "9a9c90f4967a788db36f48c9fb8c0c9bfa4f3c04"
 lazy = true
 
-    [["tester_linux.x86_64.v8.14".download]]
+    [["tester_linux.x86_64".download]]
     sha256 = "12d38909fa4ef5b4a04a270ca583ad88fc0df407e6f5b51c6434b1511c9ad5df"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/tester_linux.x86_64.tar.gz"
 
-["tester_musl.x86_64.v8.14"]
+["tester_musl.x86_64"]
 git-tree-sha1 = "0571598209dc5960d4868039ada6c75b483b38b0"
 lazy = true
 
-    [["tester_musl.x86_64.v8.14".download]]
+    [["tester_musl.x86_64".download]]
     sha256 = "c9608eb094e81d214d2c297e92b2612094e59502c93a4982cdd0539252b380e6"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/tester_musl.x86_64.tar.gz"
 
-["xvfb.aarch64.v8.14"]
+["xvfb.aarch64"]
 git-tree-sha1 = "5bf573ae71a442db784577d35b9957476aa78e65"
 lazy = true
 
-    [["xvfb.aarch64.v8.14".download]]
+    [["xvfb.aarch64".download]]
     sha256 = "65b51fec18828f207c35345cf4d0917f22a6ebe435bcba4ff9398e0e67294b02"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/xvfb.aarch64.tar.gz"
 
-["xvfb.x86_64.v8.14"]
+["xvfb.x86_64"]
 git-tree-sha1 = "33887e63c18bfb939485f42173c33f3f3408c17f"
 lazy = true
 
-    [["xvfb.x86_64.v8.14".download]]
+    [["xvfb.x86_64".download]]
     sha256 = "5bf20ebe7b03a24bef964d446a96f581729d319d298f0da5aaa587b829bc6196"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/xvfb.x86_64.tar.gz"
 
-["yggdrasil.x86_64.v8.14"]
+["yggdrasil.x86_64"]
 git-tree-sha1 = "6d6a6127df3978d725f0bf10fda6a4d67a411d02"
 lazy = true
 
-    [["yggdrasil.x86_64.v8.14".download]]
+    [["yggdrasil.x86_64".download]]
     sha256 = "ce54f3128d60551871158379b5bf65a4e8334ec0a57bf94a0e4ff02cc31938d9"
     url = "https://github.com/JuliaCI/rootfs-images/releases/download/v8.14/yggdrasil.x86_64.tar.gz"

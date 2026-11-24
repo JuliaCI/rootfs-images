@@ -49,16 +49,18 @@ end
 @testset "test_rootfs.jl arguments" begin
     file = joinpath(dirname(@__DIR__), "test_rootfs.jl")
     parse(args...) = RootfsUtils.parse_test_args(collect(args), file)
-    a = parse("--map-build-dir=no", "package_windows.x86_64.v8.10")
-    @test a.image == "package_windows.x86_64.v8.10" && a.treehash === nothing && isempty(a.command)
-    a = parse("--map-build-dir=no", "package_linux.x86_64.v8.13", "--", "gcc", "--version")
-    @test a.image == "package_linux.x86_64.v8.13" && a.command == ["gcc", "--version"]
+    a = parse("--map-build-dir=no", "package_windows.x86_64")
+    @test a.image == "package_windows.x86_64" && a.treehash === nothing && isempty(a.command)
+    a = parse("--map-build-dir=no", "package_linux.x86_64", "--", "gcc", "--version")
+    @test a.image == "package_linux.x86_64" && a.command == ["gcc", "--version"]
     a = parse("--map-build-dir=no", "--treehash=" * "1"^40, "--", "/bin/bash", "-c", "true")
     @test a.image === nothing && a.treehash == Base.SHA1("1"^40) && a.command == ["/bin/bash", "-c", "true"]
     @test parse("--map-build-dir=no", "package_windows.x86_64.v8.14-rc1").image == "package_windows.x86_64.v8.14-rc1"
     @test_throws ArgumentError parse("--map-build-dir=no")
     # Anything that is not in the catalog is refused before anything is downloaded
     @test_throws ArgumentError RootfsUtils.ensure_image_installed("/bin/bash")
+    # Names don't carry the release tag
+    @test_throws ArgumentError RootfsUtils.ensure_image_installed("package_linux.x86_64.v8.14")
 end
 
 
@@ -276,27 +278,28 @@ end
         linux_hash = publish("debian_minimal.x86_64", linux)
 
         # The release the version is of: added to it, patch version
-        catalog_v8_13("package_linux.x86_64.v8.13")
-        @test add("debian_minimal.x86_64"; tag="v8.13") == ["debian_minimal.x86_64.v8.13"]
+        catalog_v8_13("package_linux.x86_64")
+        @test add("debian_minimal.x86_64"; tag="v8.13") == ["debian_minimal.x86_64"]
         @test sort(collect(keys(TOML.parsefile(artifacts_toml)))) ==
-              ["debian_minimal.x86_64.v8.13", "package_linux.x86_64.v8.13"]
+              ["debian_minimal.x86_64", "package_linux.x86_64"]
         @test version() == "8.13.1"
-        # A listed name keeps its content, and older releases are refused
-        catalog_v8_13("debian_minimal.x86_64.v8.13")
+        # Within a release a listed name keeps its content, and older releases are refused
+        catalog_v8_13("debian_minimal.x86_64")
         before = read(artifacts_toml, String)
         @test_throws ErrorException add("debian_minimal.x86_64"; tag="v8.13")
         @test_throws ErrorException add("debian_minimal.x86_64"; tag="v8.12")
         @test read(artifacts_toml, String) == before && version() == "8.13.0"
 
-        # A new release replaces every entry and sets the version
-        catalog_v8_13("debian_minimal.x86_64.v8.13", "package_linux.x86_64.v8.13")
+        # A new release replaces every entry, also the content of a name it keeps (v8.13's
+        # debian_minimal.x86_64 has another tree hash), and sets the version
+        catalog_v8_13("debian_minimal.x86_64", "package_linux.x86_64")
         @test add("package_windows.x86_64", "debian_minimal.x86_64") ==
-              ["package_windows.x86_64.v9.0", "debian_minimal.x86_64.v9.0"]
+              ["package_windows.x86_64", "debian_minimal.x86_64"]
         entries = TOML.parsefile(artifacts_toml)
-        @test sort(collect(keys(entries))) == ["debian_minimal.x86_64.v9.0", "package_windows.x86_64.v9.0"]
-        @test entries["package_windows.x86_64.v9.0"]["git-tree-sha1"] == hash
-        @test entries["debian_minimal.x86_64.v9.0"]["git-tree-sha1"] == linux_hash
-        @test entries["package_windows.x86_64.v9.0"]["download"][1]["url"] ==
+        @test sort(collect(keys(entries))) == ["debian_minimal.x86_64", "package_windows.x86_64"]
+        @test entries["package_windows.x86_64"]["git-tree-sha1"] == hash
+        @test entries["debian_minimal.x86_64"]["git-tree-sha1"] == linux_hash
+        @test entries["package_windows.x86_64"]["download"][1]["url"] ==
               "https://github.com/JuliaCI/rootfs-images/releases/download/v9.0/package_windows.x86_64.tar.gz"
         @test version() == "9.0.0"
         @test !isfile(artifacts_toml * ".new")
@@ -315,7 +318,7 @@ end
         @test read(artifacts_toml, String) == before && version() == "9.0.0"
 
         # An image added to the release later: kept with the others, patch version
-        @test add("debian_minimal.i686") == ["debian_minimal.i686.v9.0"]
+        @test add("debian_minimal.i686") == ["debian_minimal.i686"]
         @test length(TOML.parsefile(artifacts_toml)) == 3 && version() == "9.0.1"
         before = read(artifacts_toml, String)
 
@@ -350,9 +353,13 @@ end
         @test_throws ErrorException add("package_windows.x86_64")
         @test read(artifacts_toml, String) == before && version() == "9.0.1"
 
-        # The next release
-        @test add("debian_minimal.i686"; tag="v9.1") == ["debian_minimal.i686.v9.1"]
-        @test collect(keys(TOML.parsefile(artifacts_toml))) == ["debian_minimal.i686.v9.1"]
+        # The next release, with the same image under the same name: its entry points at the new
+        # release's asset
+        @test add("debian_minimal.i686"; tag="v9.1") == ["debian_minimal.i686"]
+        entries = TOML.parsefile(artifacts_toml)
+        @test collect(keys(entries)) == ["debian_minimal.i686"]
+        @test entries["debian_minimal.i686"]["download"][1]["url"] ==
+              "https://github.com/JuliaCI/rootfs-images/releases/download/v9.1/debian_minimal.i686.tar.gz"
         @test version() == "9.1.0"
     end
     end
